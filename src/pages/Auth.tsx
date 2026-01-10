@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
-import { Waves, Apple, Mail, Loader2 } from "lucide-react";
+import { Waves, Mail, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type AuthMode = "login" | "register";
@@ -17,7 +17,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<"google" | "apple" | null>(null);
+  const [socialLoading, setSocialLoading] = useState<"google" | null>(null);
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -149,32 +149,7 @@ const Auth = () => {
     }
   };
 
-  const handleAppleLogin = async () => {
-    setSocialLoading("apple");
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "apple",
-        options: {
-          redirectTo: `${window.location.origin}/onboarding`,
-        },
-      });
-      if (error) {
-        toast({
-          title: "Errore",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore con Apple. Riprova.",
-        variant: "destructive",
-      });
-    } finally {
-      setSocialLoading(null);
-    }
-  };
+  // Apple Sign-in is not yet supported in Lovable Cloud
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
@@ -194,20 +169,6 @@ const Auth = () => {
 
         {/* Social login buttons */}
         <div className="space-y-3 mb-6">
-          <Button 
-            variant="social" 
-            size="lg" 
-            className="w-full py-3"
-            onClick={handleAppleLogin}
-            disabled={socialLoading !== null}
-          >
-            {socialLoading === "apple" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Apple className="w-5 h-5" />
-            )}
-            {t("continueWithApple")}
-          </Button>
           <Button 
             variant="social" 
             size="lg" 
