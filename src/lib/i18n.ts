@@ -105,6 +105,22 @@ const translations = {
     profile: "Profilo",
     settings: "Impostazioni",
     logout: "Esci",
+    editProfile: "Modifica profilo",
+    certification: "Certificazione",
+    submitCertification: "Invia certificazione",
+    adminDashboard: "Dashboard Admin",
+    
+    // Roles
+    roleRegular: "Utente",
+    roleCertified: "Certificato",
+    roleInstructor: "Istruttore",
+    roleAdmin: "Admin",
+    
+    // Certification status
+    certStatusNotSubmitted: "Non inviata",
+    certStatusPending: "In attesa",
+    certStatusApproved: "Approvata",
+    certStatusRejected: "Rifiutata",
     
     // Spots
     discoverSpots: "Scopri spot",
@@ -238,6 +254,22 @@ const translations = {
     profile: "Profile",
     settings: "Settings",
     logout: "Logout",
+    editProfile: "Edit profile",
+    certification: "Certification",
+    submitCertification: "Submit certification",
+    adminDashboard: "Admin Dashboard",
+    
+    // Roles
+    roleRegular: "User",
+    roleCertified: "Certified",
+    roleInstructor: "Instructor",
+    roleAdmin: "Admin",
+    
+    // Certification status
+    certStatusNotSubmitted: "Not submitted",
+    certStatusPending: "Pending",
+    certStatusApproved: "Approved",
+    certStatusRejected: "Rejected",
     
     // Spots
     discoverSpots: "Discover spots",
