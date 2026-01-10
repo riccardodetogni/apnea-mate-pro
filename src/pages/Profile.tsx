@@ -2,53 +2,65 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
+import { CertificationStatusBadge, CertificationBadge } from "@/components/certification/CertificationStatus";
+import { CertificationForm } from "@/components/certification/CertificationForm";
 import { 
-  User, 
   Settings, 
   LogOut, 
   Award, 
   MapPin, 
   ChevronLeft,
-  Globe
+  Globe,
+  Shield,
+  Loader2,
+  Plus
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-interface Profile {
-  name: string;
-  location: string;
-  isCertified: boolean;
-  agency: string | null;
-  level: string | null;
-}
+const roleLabels = {
+  regular: "Utente",
+  certified: "Apneista Certificato",
+  instructor: "Istruttore",
+  admin: "Admin",
+};
 
 const Profile = () => {
   const { user, signOut } = useAuth();
+  const { profile, role, certification, loading, isCertified, isAdmin } = useProfile();
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !loading) {
       navigate("/auth");
-      return;
     }
-
-    const stored = localStorage.getItem("apnea-mate-profile");
-    if (stored) {
-      setProfile(JSON.parse(stored));
-    }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const handleLogout = async () => {
     await signOut();
-    localStorage.removeItem("apnea-mate-onboarding-complete");
     navigate("/auth");
   };
 
   const toggleLanguage = () => {
     setLanguage(language === "it" ? "en" : "it");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user || !profile) {
     return null;
@@ -83,22 +95,52 @@ const Profile = () => {
             </p>
           )}
 
-          {profile.isCertified && (
-            <div className="inline-flex items-center gap-1.5 mt-3 py-1.5 px-3 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <Award className="w-4 h-4" />
-              {t("certifiedFreediver")}
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-2 mt-3">
+            {isCertified && <CertificationBadge certified={true} />}
+            <span className="text-xs text-muted bg-secondary px-2 py-1 rounded-full">
+              {roleLabels[role]}
+            </span>
+          </div>
 
-          {profile.agency && profile.level && (
+          {certification && (certification.status === "approved") && (
             <p className="text-sm text-muted mt-2">
-              {profile.agency} · {profile.level}
+              {certification.agency} · {certification.level}
             </p>
+          )}
+        </div>
+
+        {/* Certification Status */}
+        <div className="mb-6">
+          <h3 className="text-sm font-medium text-muted mb-3">{t("certification")}</h3>
+          <CertificationStatusBadge 
+            status={certification?.status || null} 
+            rejectionReason={certification?.rejection_reason}
+          />
+          
+          {(!certification || certification.status === "rejected") && (
+            <Button
+              variant="outline"
+              className="w-full mt-3"
+              onClick={() => setCertDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4" />
+              {t("submitCertification")}
+            </Button>
           )}
         </div>
 
         {/* Settings */}
         <div className="bg-card rounded-2xl border overflow-hidden">
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="w-full p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors border-b"
+            >
+              <Shield className="w-5 h-5 text-primary" />
+              <span className="text-foreground font-medium">{t("adminDashboard")}</span>
+            </button>
+          )}
+
           <button
             onClick={toggleLanguage}
             className="w-full p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors border-b"
@@ -124,6 +166,19 @@ const Profile = () => {
           </button>
         </div>
       </div>
+
+      {/* Certification Dialog */}
+      <Dialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>{t("submitCertification")}</DialogTitle>
+          </DialogHeader>
+          <CertificationForm
+            onSuccess={() => setCertDialogOpen(false)}
+            onCancel={() => setCertDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   User, 
   MapPin, 
@@ -15,7 +17,8 @@ import {
   ChevronRight,
   Check,
   Upload,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 
 type Step = 1 | 2 | 3 | 4;
@@ -37,8 +40,11 @@ const Onboarding = () => {
   const [agency, setAgency] = useState("");
   const [level, setLevel] = useState("");
   const [certId, setCertId] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
   
   const { user } = useAuth();
+  const { profile, submitCertification, refreshProfile } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,7 +54,12 @@ const Onboarding = () => {
     }
   }, [user, navigate]);
 
-  const totalSteps = isCertified === false ? 4 : isCertified === true ? 4 : 2;
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name || "");
+      setLocation(profile.location || "");
+    }
+  }, [profile]);
 
   const handleNext = () => {
     if (step === 1 && !name.trim()) {
@@ -88,25 +99,86 @@ const Onboarding = () => {
     }
   };
 
-  const handleComplete = () => {
-    // Save onboarding data to localStorage for now
-    const profile = {
-      name,
-      location,
-      isCertified,
-      agency: isCertified ? agency : null,
-      level: isCertified ? level : null,
-      certId: isCertified ? certId : null,
-    };
-    localStorage.setItem("apnea-mate-profile", JSON.stringify(profile));
-    localStorage.setItem("apnea-mate-onboarding-complete", "true");
+  const handleComplete = async () => {
+    if (!user) return;
     
-    toast({
-      title: "Profilo completato!",
-      description: "Benvenuto in Apnea Mate",
-    });
-    
-    navigate("/community");
+    setSaving(true);
+
+    try {
+      // Update profile in database
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          name,
+          location: location || null,
+        })
+        .eq("user_id", user.id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Submit certification if provided
+      if (isCertified && agency && level) {
+        let documentUrl: string | undefined;
+
+        if (file) {
+          const fileExt = file.name.split(".").pop();
+          const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("certifications")
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+          } else {
+            const { data: urlData } = supabase.storage
+              .from("certifications")
+              .getPublicUrl(filePath);
+            documentUrl = urlData.publicUrl;
+          }
+        }
+
+        await submitCertification({
+          agency,
+          level,
+          certification_id: certId || undefined,
+          document_url: documentUrl,
+        });
+      }
+
+      await refreshProfile();
+      
+      toast({
+        title: "Profilo completato!",
+        description: "Benvenuto in Apnea Mate",
+      });
+      
+      navigate("/community");
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      toast({
+        title: "Errore",
+        description: "Impossibile salvare il profilo. Riprova.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile && selectedFile.size <= 5 * 1024 * 1024) {
+      setFile(selectedFile);
+    } else if (selectedFile) {
+      toast({
+        title: "File troppo grande",
+        description: "Il file non può superare i 5MB",
+        variant: "destructive",
+      });
+    }
   };
 
   const stepIcons = {
@@ -173,14 +245,6 @@ const Onboarding = () => {
                     className="rounded-xl h-12 pl-10"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t("profilePicture")}</Label>
-                <button className="w-full h-24 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-2 text-muted hover:text-primary transition-colors">
-                  <Upload className="w-6 h-6" />
-                  <span className="text-sm">Carica foto</span>
-                </button>
               </div>
             </div>
           )}
@@ -274,10 +338,16 @@ const Onboarding = () => {
 
               <div className="space-y-2">
                 <Label>{t("uploadCertificate")}</Label>
-                <button className="w-full h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex items-center justify-center gap-2 text-muted hover:text-primary transition-colors">
+                <label className="block w-full h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex items-center justify-center gap-2 text-muted hover:text-primary transition-colors cursor-pointer">
                   <Upload className="w-5 h-5" />
-                  <span className="text-sm">Carica documento</span>
-                </button>
+                  <span className="text-sm">{file ? file.name : "Carica documento"}</span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
               </div>
             </div>
           )}
@@ -315,6 +385,7 @@ const Onboarding = () => {
               size="lg"
               onClick={handleBack}
               className="flex-1 h-12 rounded-xl"
+              disabled={saving}
             >
               <ChevronLeft className="w-5 h-5" />
               {t("back")}
@@ -337,8 +408,13 @@ const Onboarding = () => {
               size="lg"
               onClick={handleComplete}
               className="flex-1 h-12 rounded-xl"
+              disabled={saving}
             >
-              <Check className="w-5 h-5" />
+              {saving ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Check className="w-5 h-5" />
+              )}
               {t("iUnderstand")}
             </Button>
           )}
