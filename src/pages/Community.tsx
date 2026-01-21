@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CommunityHeader } from "@/components/community/CommunityHeader";
@@ -8,89 +8,97 @@ import { SessionCard } from "@/components/community/SessionCard";
 import { GroupCard } from "@/components/community/GroupCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSessions, useSessionsFromFollowing } from "@/hooks/useSessions";
+import { useGroups } from "@/hooks/useGroups";
+import { useSearch } from "@/hooks/useSearch";
 import { t } from "@/lib/i18n";
-
-// Placeholder data matching the HTML reference
-const nearYouSessions = [
-  {
-    id: "1",
-    spotName: "Noli",
-    environmentType: "Mare",
-    sessionType: "Uscita mare",
-    dateTime: "Domani · 08:30 · 2h",
-    title: "Allenamento profondità",
-    level: "intermediate" as const,
-    spotsAvailable: 4,
-    spotsTotal: 6,
-    creatorName: "Riccardo",
-    creatorInitial: "R",
-    creatorRole: "instructor" as const,
-  },
-  {
-    id: "2",
-    spotName: "Y-40",
-    environmentType: "Deep pool",
-    sessionType: "Piscina profonda",
-    dateTime: "Ven · 19:00 · 1h 30",
-    title: "Tecnica compensazione",
-    level: "beginner" as const,
-    spotsAvailable: 2,
-    spotsTotal: 5,
-    creatorName: "Cristina",
-    creatorInitial: "C",
-    creatorRole: "instructorF" as const,
-  },
-];
-
-const followingSessions = [
-  {
-    id: "3",
-    spotName: "Portofino",
-    environmentType: "Mare",
-    sessionType: "Uscita mare",
-    dateTime: "Sab · 10:00 · 3h",
-    title: "Easy apnea & snorkeling",
-    level: "allLevels" as const,
-    spotsAvailable: 8,
-    spotsTotal: 10,
-    creatorName: "Eleonora",
-    creatorInitial: "E",
-    creatorRole: "user" as const,
-  },
-];
-
-const nearYouGroups = [
-  {
-    id: "1",
-    name: "Apnea Milano ASD",
-    initial: "A",
-    memberCount: 34,
-    activityType: "Piscina & mare",
-    tags: ["Allenamenti settimanali", "Corsi base"],
-    distanceKm: 4,
-  },
-  {
-    id: "2",
-    name: "Lago Lovers",
-    initial: "L",
-    memberCount: 12,
-    activityType: "Lago",
-    tags: ["Uscite weekend", "Livello misto"],
-    distanceKm: 18,
-  },
-];
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Community = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const { 
+    sessions, 
+    loading: sessionsLoading, 
+    joinSession, 
+    leaveSession 
+  } = useSessions();
+  
+  const { 
+    sessions: followingSessions, 
+    loading: followingLoading 
+  } = useSessionsFromFollowing();
+  
+  const { 
+    groups, 
+    loading: groupsLoading, 
+    joinGroup 
+  } = useGroups();
+  
+  const { 
+    search, 
+    results, 
+    loading: searchLoading, 
+    hasResults, 
+    query,
+    clearSearch 
+  } = useSearch();
+
+  const [joiningSession, setJoiningSession] = useState<string | null>(null);
+  const [joiningGroup, setJoiningGroup] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (loading) {
+  const handleJoinSession = async (sessionId: string) => {
+    setJoiningSession(sessionId);
+    const { error } = await joinSession(sessionId);
+    setJoiningSession(null);
+    
+    if (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile unirsi alla sessione",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Iscritto!",
+        description: "Ti sei unito alla sessione",
+      });
+    }
+  };
+
+  const handleJoinGroup = async (groupId: string) => {
+    setJoiningGroup(groupId);
+    const { error } = await joinGroup(groupId);
+    setJoiningGroup(null);
+    
+    if (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile unirsi al gruppo",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Iscritto!",
+        description: "Ti sei unito al gruppo",
+      });
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    search(query);
+  };
+
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted">{t("loading")}</div>
@@ -102,28 +110,116 @@ const Community = () => {
     return null;
   }
 
+  const SessionSkeleton = () => (
+    <div className="min-w-[280px] max-w-[280px] rounded-2xl border border-border p-4 space-y-3">
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-16 rounded-full" />
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-5 w-full" />
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-20 rounded-full" />
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <Skeleton className="h-8 w-20 rounded-full" />
+      </div>
+    </div>
+  );
+
+  const GroupSkeleton = () => (
+    <div className="min-w-[200px] max-w-[200px] rounded-2xl border border-border p-4 space-y-3">
+      <Skeleton className="h-12 w-12 rounded-xl" />
+      <Skeleton className="h-5 w-full" />
+      <Skeleton className="h-4 w-24" />
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-16 rounded-full" />
+        <Skeleton className="h-6 w-14 rounded-full" />
+      </div>
+    </div>
+  );
+
   return (
     <AppLayout>
       {/* Header */}
       <CommunityHeader />
 
       {/* Search */}
-      <SearchBar />
+      <SearchBar 
+        onSearch={handleSearch}
+        loading={searchLoading}
+      />
+
+      {/* Search Results */}
+      {query && hasResults && (
+        <div className="mb-6 p-4 bg-secondary rounded-xl">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground">Risultati per "{query}"</h3>
+            <button 
+              onClick={clearSearch}
+              className="text-sm text-muted hover:text-foreground"
+            >
+              Chiudi
+            </button>
+          </div>
+          <div className="space-y-2">
+            {results.sessions.map(s => (
+              <div key={s.id} className="text-sm p-2 bg-background rounded-lg">
+                📅 {s.title}
+              </div>
+            ))}
+            {results.groups.map(g => (
+              <div key={g.id} className="text-sm p-2 bg-background rounded-lg">
+                👥 {g.name}
+              </div>
+            ))}
+            {results.spots.map(s => (
+              <div key={s.id} className="text-sm p-2 bg-background rounded-lg">
+                📍 {s.name} - {s.location}
+              </div>
+            ))}
+            {results.profiles.map(p => (
+              <div key={p.id} className="text-sm p-2 bg-background rounded-lg">
+                👤 {p.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Sessions near you */}
       <SectionHeader 
         title={t("sessionsNearYou")} 
         actionLabel={t("viewAll")}
-        onAction={() => {}}
+        onAction={() => navigate("/spots")}
       />
       <div className="scroll-row">
-        {nearYouSessions.map((session) => (
-          <SessionCard
-            key={session.id}
-            {...session}
-            showJoinButton={session.id === "1"}
+        {sessionsLoading ? (
+          <>
+            <SessionSkeleton />
+            <SessionSkeleton />
+          </>
+        ) : sessions.length > 0 ? (
+          sessions.map((session) => (
+            <SessionCard
+              key={session.id}
+              {...session}
+              showJoinButton={!session.isJoined && session.spotsAvailable > 0}
+              onJoin={() => handleJoinSession(session.id)}
+            />
+          ))
+        ) : (
+          <EmptyCard
+            message="Nessuna sessione disponibile vicino a te."
+            actionLabel="Crea una sessione"
+            onAction={() => navigate("/create")}
           />
-        ))}
+        )}
       </div>
 
       {/* From people you follow */}
@@ -134,19 +230,27 @@ const Community = () => {
           onAction={() => {}}
         />
         <div className="scroll-row">
-          {followingSessions.map((session) => (
-            <SessionCard
-              key={session.id}
-              {...session}
-              showJoinButton={true}
-              onJoin={() => {}}
+          {followingLoading ? (
+            <>
+              <SessionSkeleton />
+              <SessionSkeleton />
+            </>
+          ) : followingSessions.length > 0 ? (
+            followingSessions.map((session) => (
+              <SessionCard
+                key={session.id}
+                {...session}
+                showJoinButton={true}
+                onJoin={() => handleJoinSession(session.id)}
+              />
+            ))
+          ) : (
+            <EmptyCard
+              message={t("noMoreSessions")}
+              actionLabel={t("exploreFreedivers")}
+              onAction={() => {}}
             />
-          ))}
-          <EmptyCard
-            message={t("noMoreSessions")}
-            actionLabel={t("exploreFreedivers")}
-            onAction={() => {}}
-          />
+          )}
         </div>
       </div>
 
@@ -155,15 +259,29 @@ const Community = () => {
         <SectionHeader 
           title={t("groupsNearYou")} 
           actionLabel={t("viewAllGroups")}
-          onAction={() => {}}
+          onAction={() => navigate("/groups")}
         />
         <div className="scroll-row">
-          {nearYouGroups.map((group) => (
-            <GroupCard
-              key={group.id}
-              {...group}
+          {groupsLoading ? (
+            <>
+              <GroupSkeleton />
+              <GroupSkeleton />
+            </>
+          ) : groups.length > 0 ? (
+            groups.map((group) => (
+              <GroupCard
+                key={group.id}
+                {...group}
+                onJoin={!group.isMember ? () => handleJoinGroup(group.id) : undefined}
+              />
+            ))
+          ) : (
+            <EmptyCard
+              message="Nessun gruppo disponibile."
+              actionLabel="Crea un gruppo"
+              onAction={() => navigate("/create")}
             />
-          ))}
+          )}
         </div>
       </div>
     </AppLayout>

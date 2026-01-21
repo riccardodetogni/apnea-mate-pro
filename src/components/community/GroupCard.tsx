@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 
 interface GroupCardProps {
+  id?: string;
   name: string;
   initial: string;
   memberCount: number;
   activityType: string;
   tags: string[];
-  distanceKm: number;
+  distanceKm?: number;
+  isMember?: boolean;
   onJoin?: () => void;
 }
 
@@ -18,6 +20,7 @@ export const GroupCard = ({
   activityType,
   tags,
   distanceKm,
+  isMember = false,
   onJoin,
 }: GroupCardProps) => {
   return (
@@ -39,14 +42,22 @@ export const GroupCard = ({
       </div>
 
       {/* Action button */}
-      <Button variant="pill" className="mt-1.5" onClick={onJoin}>
-        {t("joinGroup")}
-      </Button>
+      {isMember ? (
+        <Button variant="outline" className="mt-1.5" disabled>
+          Membro
+        </Button>
+      ) : onJoin ? (
+        <Button variant="pill" className="mt-1.5" onClick={onJoin}>
+          {t("joinGroup")}
+        </Button>
+      ) : null}
 
       {/* Distance */}
-      <p className="text-xs text-muted mt-0.5">
-        {t("distanceAway")} {distanceKm} {t("km")}
-      </p>
+      {distanceKm !== undefined && (
+        <p className="text-xs text-muted mt-0.5">
+          {t("distanceAway")} {distanceKm} {t("km")}
+        </p>
+      )}
     </div>
   );
 };
