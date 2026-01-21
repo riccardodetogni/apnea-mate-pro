@@ -29,11 +29,14 @@ const Community = () => {
     filters,
     toggleNearbyFilter,
     canJoinSession,
+    isWithinRadius,
+    getDistanceKm,
   } = useCommunityContext();
 
   // Data hooks
   const { 
     sessions, 
+    rawSessions,
     loading: sessionsLoading, 
     joinSession,
     refetch: refetchSessions,
@@ -41,6 +44,7 @@ const Community = () => {
   
   const { 
     sessions: followingSessions, 
+    rawSessions: rawFollowingSessions,
     loading: followingLoading,
     joinSession: joinFollowingSession,
     refetch: refetchFollowingSessions,
@@ -217,9 +221,43 @@ const Community = () => {
     return null;
   }
 
-  // Filter sessions that aren't already joined and have availability
-  const availableSessions = sessions.filter(s => !s.isJoined);
-  const availableFollowingSessions = followingSessions.filter(s => !s.isJoined);
+  // Filter and sort sessions
+
+  // Filter and sort sessions
+  const getFilteredSortedSessions = (sessionsList: typeof sessions, rawSessionsList: typeof rawSessions) => {
+    // Map formatted sessions to their raw data for location info
+    const rawMap = new Map(rawSessionsList.map(s => [s.id, s]));
+    
+    // Add distance info to each session
+    const withDistance = sessionsList
+      .filter(s => !s.isJoined)
+      .map(s => {
+        const raw = rawMap.get(s.id);
+        const lat = raw?.spot?.latitude ?? null;
+        const lon = raw?.spot?.longitude ?? null;
+        const distance = getDistanceKm(lat, lon);
+        return { ...s, distanceKm: distance, lat, lon };
+      });
+
+    // Apply radius filter only if nearbyOnly is enabled
+    const filtered = filters.nearbyOnly 
+      ? withDistance.filter(s => isWithinRadius(s.lat, s.lon))
+      : withDistance;
+
+    // Sort by distance (if available), then by date
+    return filtered.sort((a, b) => {
+      // Sessions with known distance come first
+      if (a.distanceKm !== null && b.distanceKm !== null) {
+        return a.distanceKm - b.distanceKm;
+      }
+      if (a.distanceKm !== null) return -1;
+      if (b.distanceKm !== null) return 1;
+      return 0; // Keep original order (by date from query)
+    });
+  };
+
+  const availableSessions = getFilteredSortedSessions(sessions, rawSessions);
+  const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
   const availableGroups = groups.filter(g => !g.isMember);
 
   const SessionSkeleton = () => (
