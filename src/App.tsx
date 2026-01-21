@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Community from "./pages/Community";
 import Spots from "./pages/Spots";
@@ -29,6 +30,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Navigate to="/community" replace />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/community" element={<Community />} />
               <Route path="/spots" element={<Spots />} />
