@@ -80,6 +80,26 @@ const Onboarding = () => {
       return;
     }
 
+    // Validate step 3 - certification details required if user is certified
+    if (step === 3 && isCertified === true) {
+      if (!agency) {
+        toast({
+          title: "Agenzia richiesta",
+          description: "Seleziona l'agenzia di certificazione",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!level.trim()) {
+        toast({
+          title: "Livello richiesto",
+          description: "Inserisci il livello di certificazione",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (step < 4) {
       if (step === 2 && isCertified === false) {
         setStep(4);
