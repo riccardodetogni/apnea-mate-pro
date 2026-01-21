@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CommunityHeader } from "@/components/community/CommunityHeader";
 import { SearchBar } from "@/components/community/SearchBar";
@@ -7,35 +7,50 @@ import { SectionHeader } from "@/components/community/SectionHeader";
 import { SessionCard } from "@/components/community/SessionCard";
 import { GroupCard } from "@/components/community/GroupCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
-import { useAuth } from "@/contexts/AuthContext";
-import { useSessions, useSessionsFromFollowing } from "@/hooks/useSessions";
-import { useGroups } from "@/hooks/useGroups";
+import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
+import { useSessions, useSessionsFromFollowing, SessionWithDetails } from "@/hooks/useSessions";
+import { useGroups, GroupWithDetails } from "@/hooks/useGroups";
 import { useSearch } from "@/hooks/useSearch";
+import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Community = () => {
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   
+  // Community context with user info, location, and permissions
+  const {
+    user,
+    loading: contextLoading,
+    isCertified,
+    filters,
+    toggleNearbyFilter,
+    canJoinSession,
+  } = useCommunityContext();
+
+  // Data hooks
   const { 
     sessions, 
     loading: sessionsLoading, 
-    joinSession, 
-    leaveSession 
-  } = useSessions();
+    joinSession,
+    refetch: refetchSessions,
+  } = useSessions({ excludeJoined: false });
   
   const { 
     sessions: followingSessions, 
-    loading: followingLoading 
+    loading: followingLoading,
+    joinSession: joinFollowingSession,
+    refetch: refetchFollowingSessions,
   } = useSessionsFromFollowing();
   
   const { 
     groups, 
     loading: groupsLoading, 
-    joinGroup 
+    joinGroup,
+    refetch: refetchGroups,
   } = useGroups();
   
   const { 
@@ -47,45 +62,122 @@ const Community = () => {
     clearSearch 
   } = useSearch();
 
+  // Local state
   const [joiningSession, setJoiningSession] = useState<string | null>(null);
   const [joiningGroup, setJoiningGroup] = useState<string | null>(null);
+  const [safetyModal, setSafetyModal] = useState<{
+    open: boolean;
+    session: SessionWithDetails | null;
+    fromFollowing: boolean;
+  }>({ open: false, session: null, fromFollowing: false });
 
+  // Redirect to auth if not logged in
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!contextLoading && !user) {
       navigate("/auth");
     }
-  }, [user, authLoading, navigate]);
+  }, [user, contextLoading, navigate]);
 
-  const handleJoinSession = async (sessionId: string) => {
-    setJoiningSession(sessionId);
-    const { error } = await joinSession(sessionId);
+  // Refresh data when returning from child pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refetchSessions();
+        refetchFollowingSessions();
+        refetchGroups();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refetchSessions, refetchFollowingSessions, refetchGroups]);
+
+  // Also refresh on route change back to community
+  useEffect(() => {
+    if (location.pathname === '/community') {
+      refetchSessions();
+      refetchFollowingSessions();
+      refetchGroups();
+    }
+  }, [location.pathname, refetchSessions, refetchFollowingSessions, refetchGroups]);
+
+  // Handle session join with safety check
+  const handleJoinSession = useCallback((session: SessionWithDetails, fromFollowing = false) => {
+    const { requiresWarning } = canJoinSession(session.rawLevel);
+    
+    if (requiresWarning) {
+      setSafetyModal({ open: true, session, fromFollowing });
+    } else {
+      // Show safety warning for all sessions (safety-first)
+      setSafetyModal({ open: true, session, fromFollowing });
+    }
+  }, [canJoinSession]);
+
+  // Confirm join after safety acknowledgement
+  const confirmJoinSession = async () => {
+    if (!safetyModal.session) return;
+    
+    setJoiningSession(safetyModal.session.id);
+    
+    const joinFn = safetyModal.fromFollowing ? joinFollowingSession : joinSession;
+    const { error } = await joinFn(safetyModal.session.id);
+    
     setJoiningSession(null);
+    setSafetyModal({ open: false, session: null, fromFollowing: false });
     
     if (error) {
-      toast({
-        title: "Errore",
-        description: "Impossibile unirsi alla sessione",
-        variant: "destructive",
-      });
+      // Check for specific errors
+      if (error.message?.includes('duplicate')) {
+        toast({
+          title: "Già iscritto",
+          description: "Sei già iscritto a questa sessione",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: "Impossibile unirsi alla sessione",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Iscritto!",
-        description: "Ti sei unito alla sessione",
+        description: "Ti sei unito alla sessione. Buona immersione!",
       });
     }
   };
 
-  const handleJoinGroup = async (groupId: string) => {
-    setJoiningGroup(groupId);
-    const { error } = await joinGroup(groupId);
+  const handleJoinGroup = async (group: GroupWithDetails) => {
+    if (group.requiresApproval) {
+      toast({
+        title: "Richiesta inviata",
+        description: "L'amministratore del gruppo valuterà la tua richiesta",
+      });
+      // TODO: Implement request-based join
+      return;
+    }
+
+    setJoiningGroup(group.id);
+    const { error } = await joinGroup(group.id);
     setJoiningGroup(null);
     
     if (error) {
-      toast({
-        title: "Errore",
-        description: "Impossibile unirsi al gruppo",
-        variant: "destructive",
-      });
+      if (error.message?.includes('duplicate')) {
+        toast({
+          title: "Già membro",
+          description: "Sei già membro di questo gruppo",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: "Impossibile unirsi al gruppo",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Iscritto!",
@@ -94,11 +186,26 @@ const Community = () => {
     }
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     search(query);
+  }, [search]);
+
+  const handleSessionClick = (sessionId: string) => {
+    // TODO: Navigate to session details page
+    // navigate(`/sessions/${sessionId}`);
   };
 
-  if (authLoading) {
+  const handleGroupClick = (groupId: string) => {
+    // TODO: Navigate to group page
+    // navigate(`/groups/${groupId}`);
+  };
+
+  const handleProfileClick = (userId: string) => {
+    // TODO: Navigate to user profile
+    // navigate(`/profile/${userId}`);
+  };
+
+  if (contextLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted">{t("loading")}</div>
@@ -109,6 +216,11 @@ const Community = () => {
   if (!user) {
     return null;
   }
+
+  // Filter sessions that aren't already joined and have availability
+  const availableSessions = sessions.filter(s => !s.isJoined);
+  const availableFollowingSessions = followingSessions.filter(s => !s.isJoined);
+  const availableGroups = groups.filter(g => !g.isMember);
 
   const SessionSkeleton = () => (
     <div className="min-w-[280px] max-w-[280px] rounded-2xl border border-border p-4 space-y-3">
@@ -153,6 +265,8 @@ const Community = () => {
       <SearchBar 
         onSearch={handleSearch}
         loading={searchLoading}
+        nearbyFilterActive={filters.nearbyOnly}
+        onToggleNearbyFilter={toggleNearbyFilter}
       />
 
       {/* Search Results */}
@@ -169,14 +283,22 @@ const Community = () => {
           </div>
           <div className="space-y-2">
             {results.sessions.map(s => (
-              <div key={s.id} className="text-sm p-2 bg-background rounded-lg">
+              <button
+                key={s.id}
+                onClick={() => handleSessionClick(s.id)}
+                className="w-full text-left text-sm p-2 bg-background rounded-lg hover:bg-secondary transition-colors"
+              >
                 📅 {s.title}
-              </div>
+              </button>
             ))}
             {results.groups.map(g => (
-              <div key={g.id} className="text-sm p-2 bg-background rounded-lg">
+              <button
+                key={g.id}
+                onClick={() => handleGroupClick(g.id)}
+                className="w-full text-left text-sm p-2 bg-background rounded-lg hover:bg-secondary transition-colors"
+              >
                 👥 {g.name}
-              </div>
+              </button>
             ))}
             {results.spots.map(s => (
               <div key={s.id} className="text-sm p-2 bg-background rounded-lg">
@@ -184,9 +306,13 @@ const Community = () => {
               </div>
             ))}
             {results.profiles.map(p => (
-              <div key={p.id} className="text-sm p-2 bg-background rounded-lg">
+              <button
+                key={p.id}
+                onClick={() => handleProfileClick(p.id)}
+                className="w-full text-left text-sm p-2 bg-background rounded-lg hover:bg-secondary transition-colors"
+              >
                 👤 {p.name}
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -204,13 +330,14 @@ const Community = () => {
             <SessionSkeleton />
             <SessionSkeleton />
           </>
-        ) : sessions.length > 0 ? (
-          sessions.map((session) => (
+        ) : availableSessions.length > 0 ? (
+          availableSessions.map((session) => (
             <SessionCard
               key={session.id}
               {...session}
-              showJoinButton={!session.isJoined && session.spotsAvailable > 0}
-              onJoin={() => handleJoinSession(session.id)}
+              showJoinButton={!session.isFull && !session.isJoined}
+              onJoin={() => handleJoinSession(session, false)}
+              onDetails={() => handleSessionClick(session.id)}
             />
           ))
         ) : (
@@ -235,20 +362,21 @@ const Community = () => {
               <SessionSkeleton />
               <SessionSkeleton />
             </>
-          ) : followingSessions.length > 0 ? (
-            followingSessions.map((session) => (
+          ) : availableFollowingSessions.length > 0 ? (
+            availableFollowingSessions.map((session) => (
               <SessionCard
                 key={session.id}
                 {...session}
-                showJoinButton={true}
-                onJoin={() => handleJoinSession(session.id)}
+                showJoinButton={!session.isFull && !session.isJoined}
+                onJoin={() => handleJoinSession(session, true)}
+                onDetails={() => handleSessionClick(session.id)}
               />
             ))
           ) : (
             <EmptyCard
               message={t("noMoreSessions")}
               actionLabel={t("exploreFreedivers")}
-              onAction={() => {}}
+              onAction={() => navigate("/profile")}
             />
           )}
         </div>
@@ -267,14 +395,20 @@ const Community = () => {
               <GroupSkeleton />
               <GroupSkeleton />
             </>
-          ) : groups.length > 0 ? (
-            groups.map((group) => (
+          ) : availableGroups.length > 0 ? (
+            availableGroups.map((group) => (
               <GroupCard
                 key={group.id}
                 {...group}
-                onJoin={!group.isMember ? () => handleJoinGroup(group.id) : undefined}
+                onJoin={() => handleJoinGroup(group)}
               />
             ))
+          ) : groups.length > 0 ? (
+            <EmptyCard
+              message="Sei già membro di tutti i gruppi!"
+              actionLabel="Crea un gruppo"
+              onAction={() => navigate("/create")}
+            />
           ) : (
             <EmptyCard
               message="Nessun gruppo disponibile."
@@ -284,6 +418,17 @@ const Community = () => {
           )}
         </div>
       </div>
+
+      {/* Safety Warning Modal */}
+      <SafetyWarningModal
+        open={safetyModal.open}
+        onClose={() => setSafetyModal({ open: false, session: null, fromFollowing: false })}
+        onConfirm={confirmJoinSession}
+        sessionTitle={safetyModal.session?.title || ""}
+        sessionLevel={safetyModal.session?.rawLevel || "all_levels"}
+        userCertified={isCertified}
+        loading={!!joiningSession}
+      />
     </AppLayout>
   );
 };

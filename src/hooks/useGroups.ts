@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -8,13 +8,18 @@ export interface Group {
   description: string | null;
   activity_type: string;
   location: string;
+  latitude: number | null;
+  longitude: number | null;
   avatar_url: string | null;
   is_public: boolean;
+  requires_approval?: boolean;
   created_by: string;
   created_at: string;
   member_count?: number;
   tags?: string[];
   is_member?: boolean;
+  distance_km?: number | null;
+  creator_is_instructor?: boolean;
 }
 
 export interface GroupWithDetails {
@@ -26,6 +31,8 @@ export interface GroupWithDetails {
   tags: string[];
   distanceKm?: number;
   isMember: boolean;
+  requiresApproval: boolean;
+  isInstructorLed: boolean;
 }
 
 export const useGroups = () => {
@@ -33,6 +40,7 @@ export const useGroups = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchGroups = useCallback(async () => {
     try {
@@ -45,15 +53,17 @@ export const useGroups = () => {
         .select("*")
         .eq("is_public", true)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(30);
 
       if (groupsError) throw groupsError;
 
       const groupIds = groupsData?.map(g => g.id) || [];
+      const creatorIds = [...new Set(groupsData?.map(g => g.created_by) || [])];
       
       let memberCounts: Record<string, number> = {};
       let userMemberships: Set<string> = new Set();
       let groupTags: Record<string, string[]> = {};
+      let creatorRoles: Record<string, string> = {};
 
       if (groupIds.length > 0) {
         // Fetch member counts
@@ -87,11 +97,30 @@ export const useGroups = () => {
         }
       }
 
+      // Fetch creator roles to identify instructor-led groups
+      if (creatorIds.length > 0) {
+        const { data: rolesData } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", creatorIds);
+
+        if (rolesData) {
+          rolesData.forEach(r => {
+            const current = creatorRoles[r.user_id];
+            if (!current || r.role === "instructor" || r.role === "admin") {
+              creatorRoles[r.user_id] = r.role;
+            }
+          });
+        }
+      }
+
       const enrichedGroups = groupsData?.map(group => ({
         ...group,
         member_count: memberCounts[group.id] || 0,
         tags: groupTags[group.id] || [],
         is_member: userMemberships.has(group.id),
+        creator_is_instructor: creatorRoles[group.created_by] === "instructor" || 
+                               creatorRoles[group.created_by] === "admin",
       })) || [];
 
       setGroups(enrichedGroups);
@@ -103,8 +132,30 @@ export const useGroups = () => {
     }
   }, [user]);
 
+  // Set up realtime subscription
   useEffect(() => {
     fetchGroups();
+
+    channelRef.current = supabase
+      .channel('group-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'group_members',
+        },
+        () => {
+          fetchGroups();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
   }, [fetchGroups]);
 
   const joinGroup = async (groupId: string) => {
@@ -118,10 +169,6 @@ export const useGroups = () => {
         role: "member",
       });
 
-    if (!error) {
-      await fetchGroups();
-    }
-
     return { error };
   };
 
@@ -134,10 +181,6 @@ export const useGroups = () => {
       .eq("group_id", groupId)
       .eq("user_id", user.id);
 
-    if (!error) {
-      await fetchGroups();
-    }
-
     return { error };
   };
 
@@ -149,7 +192,10 @@ export const useGroups = () => {
     memberCount: group.member_count || 0,
     activityType: group.activity_type,
     tags: group.tags || [],
+    distanceKm: group.distance_km ?? undefined,
     isMember: group.is_member || false,
+    requiresApproval: group.requires_approval || false,
+    isInstructorLed: group.creator_is_instructor || false,
   }));
 
   return {

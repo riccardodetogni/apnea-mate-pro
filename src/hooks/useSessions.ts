@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -21,13 +21,18 @@ export interface Session {
     name: string;
     environment_type: string;
     location: string;
+    latitude?: number | null;
+    longitude?: number | null;
   } | null;
   creator?: {
     name: string;
     avatar_url: string | null;
+    user_id: string;
   } | null;
+  creatorRole?: "user" | "instructor" | "instructorF";
   participants_count?: number;
   is_joined?: boolean;
+  distance_km?: number | null;
 }
 
 export interface SessionWithDetails {
@@ -43,7 +48,11 @@ export interface SessionWithDetails {
   creatorName: string;
   creatorInitial: string;
   creatorRole: "user" | "instructor" | "instructorF";
+  creatorId: string;
   isJoined: boolean;
+  isFull: boolean;
+  distanceKm: number | null;
+  rawLevel: string;
 }
 
 const formatSessionDateTime = (dateTime: string, durationMinutes: number): string => {
@@ -104,36 +113,65 @@ const mapEnvironmentType = (type: string): string => {
   }
 };
 
-export const useSessions = () => {
+interface UseSessionsOptions {
+  excludeJoined?: boolean;
+  filterByFollowing?: boolean;
+}
+
+export const useSessions = (options: UseSessionsOptions = {}) => {
+  const { excludeJoined = false, filterByFollowing = false } = options;
   const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch sessions with spot info
-      const { data: sessionsData, error: sessionsError } = await supabase
+      let followingIds: string[] = [];
+      if (filterByFollowing && user) {
+        const { data: followsData } = await supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", user.id);
+        followingIds = followsData?.map(f => f.following_id) || [];
+        
+        if (followingIds.length === 0) {
+          setSessions([]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Build query
+      let query = supabase
         .from("sessions")
         .select(`
           *,
-          spot:spots(id, name, environment_type, location)
+          spot:spots(id, name, environment_type, location, latitude, longitude)
         `)
         .eq("status", "active")
         .gte("date_time", new Date().toISOString())
         .order("date_time", { ascending: true })
-        .limit(20);
+        .limit(30);
 
+      if (filterByFollowing && followingIds.length > 0) {
+        query = query.in("creator_id", followingIds);
+      }
+
+      const { data: sessionsData, error: sessionsError } = await query;
       if (sessionsError) throw sessionsError;
 
       // Get unique creator IDs
       const creatorIds = [...new Set(sessionsData?.map(s => s.creator_id) || [])];
       
-      // Fetch creator profiles
-      let creatorProfiles: Record<string, { name: string; avatar_url: string | null }> = {};
+      // Fetch creator profiles and roles
+      let creatorProfiles: Record<string, { name: string; avatar_url: string | null; user_id: string }> = {};
+      let creatorRoles: Record<string, string> = {};
+      
       if (creatorIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
@@ -142,14 +180,35 @@ export const useSessions = () => {
 
         if (profilesData) {
           profilesData.forEach(p => {
-            creatorProfiles[p.user_id] = { name: p.name, avatar_url: p.avatar_url };
+            creatorProfiles[p.user_id] = { 
+              name: p.name, 
+              avatar_url: p.avatar_url,
+              user_id: p.user_id 
+            };
+          });
+        }
+
+        // Fetch roles
+        const { data: rolesData } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", creatorIds);
+
+        if (rolesData) {
+          rolesData.forEach(r => {
+            // Keep highest role
+            const current = creatorRoles[r.user_id];
+            if (!current || 
+                (r.role === "instructor" && current !== "admin") ||
+                (r.role === "admin")) {
+              creatorRoles[r.user_id] = r.role;
+            }
           });
         }
       }
 
-      // Fetch participant counts for each session
+      // Fetch participant counts and user participations
       const sessionIds = sessionsData?.map(s => s.id) || [];
-      
       let participantCounts: Record<string, number> = {};
       let userParticipations: Set<string> = new Set();
 
@@ -170,12 +229,26 @@ export const useSessions = () => {
         }
       }
 
-      const enrichedSessions = sessionsData?.map(session => ({
-        ...session,
-        creator: creatorProfiles[session.creator_id] || null,
-        participants_count: participantCounts[session.id] || 0,
-        is_joined: userParticipations.has(session.id),
-      })) || [];
+      let enrichedSessions = sessionsData?.map(session => {
+        const role = creatorRoles[session.creator_id];
+        let creatorRole: "user" | "instructor" | "instructorF" = "user";
+        if (role === "instructor" || role === "admin") {
+          creatorRole = "instructor";
+        }
+
+        return {
+          ...session,
+          creator: creatorProfiles[session.creator_id] || null,
+          creatorRole,
+          participants_count: participantCounts[session.id] || 0,
+          is_joined: userParticipations.has(session.id),
+        };
+      }) || [];
+
+      // Filter out joined sessions if requested
+      if (excludeJoined) {
+        enrichedSessions = enrichedSessions.filter(s => !s.is_joined);
+      }
 
       setSessions(enrichedSessions as Session[]);
     } catch (err) {
@@ -184,10 +257,46 @@ export const useSessions = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, excludeJoined, filterByFollowing]);
 
+  // Set up realtime subscription
   useEffect(() => {
     fetchSessions();
+
+    // Subscribe to session_participants changes for realtime updates
+    channelRef.current = supabase
+      .channel('session-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'session_participants',
+        },
+        () => {
+          // Refetch sessions when participants change
+          fetchSessions();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sessions',
+        },
+        () => {
+          // Refetch when sessions change
+          fetchSessions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
   }, [fetchSessions]);
 
   const joinSession = async (sessionId: string) => {
@@ -201,10 +310,7 @@ export const useSessions = () => {
         status: "confirmed",
       });
 
-    if (!error) {
-      await fetchSessions();
-    }
-
+    // Don't need to manually refetch - realtime will handle it
     return { error };
   };
 
@@ -216,10 +322,6 @@ export const useSessions = () => {
       .delete()
       .eq("session_id", sessionId)
       .eq("user_id", user.id);
-
-    if (!error) {
-      await fetchSessions();
-    }
 
     return { error };
   };
@@ -233,12 +335,16 @@ export const useSessions = () => {
     dateTime: formatSessionDateTime(session.date_time, session.duration_minutes),
     title: session.title,
     level: mapLevelToType(session.level),
-    spotsAvailable: session.max_participants - (session.participants_count || 0),
+    spotsAvailable: Math.max(0, session.max_participants - (session.participants_count || 0)),
     spotsTotal: session.max_participants,
     creatorName: session.creator?.name || "Utente",
     creatorInitial: (session.creator?.name || "U").charAt(0).toUpperCase(),
-    creatorRole: "user" as const, // TODO: Get from user_roles
+    creatorRole: session.creatorRole || "user",
+    creatorId: session.creator_id,
     isJoined: session.is_joined || false,
+    isFull: (session.participants_count || 0) >= session.max_participants,
+    distanceKm: session.distance_km || null,
+    rawLevel: session.level,
   }));
 
   return {
@@ -253,91 +359,5 @@ export const useSessions = () => {
 };
 
 export const useSessionsFromFollowing = () => {
-  const { user } = useAuth();
-  const [sessions, setSessions] = useState<SessionWithDetails[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchFollowingSessions = async () => {
-      if (!user) {
-        setSessions([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Get list of users this user follows
-        const { data: followsData } = await supabase
-          .from("follows")
-          .select("following_id")
-          .eq("follower_id", user.id);
-
-        const followingIds = followsData?.map(f => f.following_id) || [];
-
-        if (followingIds.length === 0) {
-          setSessions([]);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch sessions from followed users
-        const { data: sessionsData } = await supabase
-          .from("sessions")
-          .select(`
-            *,
-            spot:spots(id, name, environment_type, location)
-          `)
-          .in("creator_id", followingIds)
-          .eq("status", "active")
-          .gte("date_time", new Date().toISOString())
-          .order("date_time", { ascending: true })
-          .limit(10);
-
-        // Fetch creator profiles
-        const creatorIds = [...new Set(sessionsData?.map(s => s.creator_id) || [])];
-        let creatorProfiles: Record<string, { name: string; avatar_url: string | null }> = {};
-        if (creatorIds.length > 0) {
-          const { data: profilesData } = await supabase
-            .from("profiles")
-            .select("user_id, name, avatar_url")
-            .in("user_id", creatorIds);
-
-          if (profilesData) {
-            profilesData.forEach(p => {
-              creatorProfiles[p.user_id] = { name: p.name, avatar_url: p.avatar_url };
-            });
-          }
-        }
-
-        const formattedSessions: SessionWithDetails[] = (sessionsData || []).map(session => {
-          const creator = creatorProfiles[session.creator_id];
-          return {
-            id: session.id,
-            spotName: session.spot?.name || "Spot sconosciuto",
-            environmentType: mapEnvironmentType(session.spot?.environment_type || "sea"),
-            sessionType: mapSessionType(session.session_type),
-            dateTime: formatSessionDateTime(session.date_time, session.duration_minutes),
-            title: session.title,
-            level: mapLevelToType(session.level),
-            spotsAvailable: session.max_participants,
-            spotsTotal: session.max_participants,
-            creatorName: creator?.name || "Utente",
-            creatorInitial: (creator?.name || "U").charAt(0).toUpperCase(),
-            creatorRole: "user" as const,
-            isJoined: false,
-          };
-        });
-
-        setSessions(formattedSessions);
-      } catch (err) {
-        console.error("Error fetching following sessions:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFollowingSessions();
-  }, [user]);
-
-  return { sessions, loading };
+  return useSessions({ filterByFollowing: true, excludeJoined: true });
 };
