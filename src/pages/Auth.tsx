@@ -6,10 +6,10 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
-import { Waves, Mail, Loader2 } from "lucide-react";
+import { Waves, Mail, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "forgotPassword";
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -17,6 +17,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -43,13 +44,29 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    if (!trimmedEmail || !password) {
       toast({
         title: "Errore",
         description: "Inserisci email e password",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validateEmail(trimmedEmail)) {
+      toast({
+        title: "Errore",
+        description: "Inserisci un indirizzo email valido",
         variant: "destructive",
       });
       return;
@@ -77,7 +94,7 @@ const Auth = () => {
 
     try {
       if (mode === "login") {
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(trimmedEmail, password);
         if (error) {
           toast({
             title: "Errore di accesso",
@@ -88,7 +105,7 @@ const Auth = () => {
           });
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(trimmedEmail, password);
         if (error) {
           if (error.message.includes("already registered")) {
             toast({
@@ -121,6 +138,160 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const trimmedEmail = email.trim().toLowerCase();
+    
+    if (!trimmedEmail) {
+      toast({
+        title: "Errore",
+        description: "Inserisci la tua email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validateEmail(trimmedEmail)) {
+      toast({
+        title: "Errore",
+        description: "Inserisci un indirizzo email valido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast({
+          title: "Errore",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setResetEmailSent(true);
+        toast({
+          title: t("resetLinkSent"),
+          description: t("resetLinkSentDesc"),
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore. Riprova.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchToLogin = () => {
+    setMode("login");
+    setResetEmailSent(false);
+  };
+
+  // Forgot Password View
+  if (mode === "forgotPassword") {
+    if (resetEmailSent) {
+      return (
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+          <div className="w-full max-w-[380px] animate-fade-in text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold text-foreground mb-2">
+              {t("resetLinkSent")}
+            </h1>
+            <p className="text-sm text-muted mb-6">
+              {t("resetLinkSentDesc")}
+            </p>
+            <p className="text-sm text-muted mb-6">
+              Abbiamo inviato un'email a <strong className="text-foreground">{email}</strong>
+            </p>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full h-12"
+              onClick={switchToLogin}
+            >
+              <ArrowLeft className="w-5 h-5" />
+              {t("backToLogin")}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-[380px] animate-fade-in">
+          {/* Logo and title */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center shadow-elevated">
+              <Waves className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">
+              {t("resetPassword")}
+            </h1>
+            <p className="text-sm text-muted mt-1">
+              {t("resetPasswordSubtitle")}
+            </p>
+          </div>
+
+          {/* Email form */}
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t("email")}</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="mario@esempio.it"
+                className="rounded-xl h-12"
+                autoFocus
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              variant="primaryGradient"
+              size="lg"
+              className="w-full h-12 text-base"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Mail className="w-5 h-5" />
+              )}
+              {loading ? t("loading") : t("sendResetLink")}
+            </Button>
+          </form>
+
+          <p className="text-center text-sm mt-6">
+            <button
+              type="button"
+              onClick={switchToLogin}
+              className="text-primary font-medium hover:underline flex items-center justify-center gap-2 mx-auto"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t("backToLogin")}
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Login/Register View
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-[380px] animate-fade-in">
@@ -209,7 +380,8 @@ const Auth = () => {
           <p className="text-center text-sm mt-3">
             <button
               type="button"
-              className="text-muted hover:text-foreground"
+              onClick={() => setMode("forgotPassword")}
+              className="text-muted hover:text-foreground transition-colors"
             >
               {t("forgotPassword")}
             </button>

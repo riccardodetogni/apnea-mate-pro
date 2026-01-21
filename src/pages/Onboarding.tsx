@@ -62,13 +62,23 @@ const Onboarding = () => {
   }, [profile]);
 
   const handleNext = () => {
-    if (step === 1 && !name.trim()) {
-      toast({
-        title: "Nome richiesto",
-        description: "Inserisci il tuo nome per continuare",
-        variant: "destructive",
-      });
-      return;
+    if (step === 1) {
+      if (!name.trim()) {
+        toast({
+          title: "Nome richiesto",
+          description: "Inserisci il tuo nome per continuare",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!location.trim()) {
+        toast({
+          title: "Località richiesta",
+          description: "Inserisci la tua città o regione per continuare",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (step === 2 && isCertified === null) {
