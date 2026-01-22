@@ -195,18 +195,17 @@ const Community = () => {
   }, [search]);
 
   const handleSessionClick = (sessionId: string) => {
-    // TODO: Navigate to session details page
-    // navigate(`/sessions/${sessionId}`);
+    navigate(`/sessions/${sessionId}`);
   };
 
   const handleGroupClick = (groupId: string) => {
     // TODO: Navigate to group page
-    // navigate(`/groups/${groupId}`);
+    navigate(`/groups/${groupId}`);
   };
 
   const handleProfileClick = (userId: string) => {
     // TODO: Navigate to user profile
-    // navigate(`/profile/${userId}`);
+    navigate(`/profile/${userId}`);
   };
 
   if (contextLoading) {

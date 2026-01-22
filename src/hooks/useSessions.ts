@@ -213,15 +213,19 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
       let userParticipations: Set<string> = new Set();
 
       if (sessionIds.length > 0) {
+        // Count both pending and confirmed as they both reserve capacity
         const { data: participantsData } = await supabase
           .from("session_participants")
-          .select("session_id, user_id")
+          .select("session_id, user_id, status")
           .in("session_id", sessionIds)
-          .eq("status", "confirmed");
+          .in("status", ["pending", "confirmed"]);
 
         if (participantsData) {
           participantsData.forEach(p => {
-            participantCounts[p.session_id] = (participantCounts[p.session_id] || 0) + 1;
+            // Only count confirmed for display, but track user participation for both
+            if (p.status === "confirmed") {
+              participantCounts[p.session_id] = (participantCounts[p.session_id] || 0) + 1;
+            }
             if (user && p.user_id === user.id) {
               userParticipations.add(p.session_id);
             }
@@ -307,7 +311,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
       .insert({
         session_id: sessionId,
         user_id: user.id,
-        status: "confirmed",
+        status: "pending", // Requests start as pending, session creator must approve
       });
 
     // Don't need to manually refetch - realtime will handle it
