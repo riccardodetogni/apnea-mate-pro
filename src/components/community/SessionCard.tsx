@@ -123,19 +123,20 @@ export const SessionCard = ({
       </div>
 
       {/* Bottom - creator and action */}
-      <div className="flex justify-between items-center mt-1 gap-2.5">
-        <div className="flex items-center gap-2">
-          <div className="avatar-creator">{creatorInitial}</div>
-          <div className="flex flex-col gap-px">
-            <span className="text-[13px] font-medium text-foreground">{creatorName}</span>
+      <div className="flex justify-between items-center mt-1 gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
+          <div className="flex flex-col gap-px min-w-0">
+            <span className="text-[13px] font-medium text-foreground truncate">{creatorName}</span>
             <span className="text-[11px] text-muted">{t(creatorRole)}</span>
           </div>
         </div>
         
         <Button 
           variant={getButtonVariant()} 
+          size="pill"
           onClick={handleButtonClick}
-          className={isPending ? "bg-warning/10 text-warning border-warning/30" : isJoined ? "bg-success/10 text-success border-success/30" : ""}
+          className={`flex-shrink-0 text-xs ${isPending ? "bg-warning/10 text-warning border-warning/30" : isJoined ? "bg-success/10 text-success border-success/30" : ""}`}
         >
           {getButtonContent()}
         </Button>
