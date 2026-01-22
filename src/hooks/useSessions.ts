@@ -50,6 +50,7 @@ export interface SessionWithDetails {
   creatorRole: "user" | "instructor" | "instructorF";
   creatorId: string;
   isJoined: boolean;
+  isPending: boolean;
   isFull: boolean;
   distanceKm: number | null;
   rawLevel: string;
@@ -210,7 +211,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
       // Fetch participant counts and user participations
       const sessionIds = sessionsData?.map(s => s.id) || [];
       let participantCounts: Record<string, number> = {};
-      let userParticipations: Set<string> = new Set();
+      let userParticipations: Map<string, "pending" | "confirmed"> = new Map();
 
       if (sessionIds.length > 0) {
         // Count both pending and confirmed as they both reserve capacity
@@ -227,7 +228,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
               participantCounts[p.session_id] = (participantCounts[p.session_id] || 0) + 1;
             }
             if (user && p.user_id === user.id) {
-              userParticipations.add(p.session_id);
+              userParticipations.set(p.session_id, p.status as "pending" | "confirmed");
             }
           });
         }
@@ -240,12 +241,15 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
           creatorRole = "instructor";
         }
 
+        const participationStatus = userParticipations.get(session.id);
+
         return {
           ...session,
           creator: creatorProfiles[session.creator_id] || null,
           creatorRole,
           participants_count: participantCounts[session.id] || 0,
-          is_joined: userParticipations.has(session.id),
+          is_joined: participationStatus === "confirmed",
+          is_pending: participationStatus === "pending",
         };
       }) || [];
 
@@ -346,6 +350,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     creatorRole: session.creatorRole || "user",
     creatorId: session.creator_id,
     isJoined: session.is_joined || false,
+    isPending: (session as any).is_pending || false,
     isFull: (session.participants_count || 0) >= session.max_participants,
     distanceKm: session.distance_km || null,
     rawLevel: session.level,

@@ -222,21 +222,19 @@ const Community = () => {
 
   // Filter and sort sessions
 
-  // Filter and sort sessions
+  // Filter and sort sessions (keep all sessions, don't filter out joined)
   const getFilteredSortedSessions = (sessionsList: typeof sessions, rawSessionsList: typeof rawSessions) => {
     // Map formatted sessions to their raw data for location info
     const rawMap = new Map(rawSessionsList.map(s => [s.id, s]));
     
-    // Add distance info to each session
-    const withDistance = sessionsList
-      .filter(s => !s.isJoined)
-      .map(s => {
-        const raw = rawMap.get(s.id);
-        const lat = raw?.spot?.latitude ?? null;
-        const lon = raw?.spot?.longitude ?? null;
-        const distance = getDistanceKm(lat, lon);
-        return { ...s, distanceKm: distance, lat, lon };
-      });
+    // Add distance info to each session (don't filter out joined sessions)
+    const withDistance = sessionsList.map(s => {
+      const raw = rawMap.get(s.id);
+      const lat = raw?.spot?.latitude ?? null;
+      const lon = raw?.spot?.longitude ?? null;
+      const distance = getDistanceKm(lat, lon);
+      return { ...s, distanceKm: distance, lat, lon };
+    });
 
     // Apply radius filter only if nearbyOnly is enabled
     const filtered = filters.nearbyOnly 
@@ -372,9 +370,10 @@ const Community = () => {
             <SessionCard
               key={session.id}
               {...session}
-              showJoinButton={!session.isFull && !session.isJoined}
+              showJoinButton={!session.isFull && !session.isJoined && !session.isPending}
               onJoin={() => handleJoinSession(session, false)}
               onDetails={() => handleSessionClick(session.id)}
+              onClick={() => handleSessionClick(session.id)}
             />
           ))
         ) : (
@@ -404,9 +403,10 @@ const Community = () => {
               <SessionCard
                 key={session.id}
                 {...session}
-                showJoinButton={!session.isFull && !session.isJoined}
+                showJoinButton={!session.isFull && !session.isJoined && !session.isPending}
                 onJoin={() => handleJoinSession(session, true)}
                 onDetails={() => handleSessionClick(session.id)}
+                onClick={() => handleSessionClick(session.id)}
               />
             ))
           ) : (
