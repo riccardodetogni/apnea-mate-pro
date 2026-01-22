@@ -30,6 +30,20 @@ const createOptions = [
 const Create = () => {
   const navigate = useNavigate();
 
+  const handleOptionClick = (id: string) => {
+    switch (id) {
+      case "session":
+        navigate("/create/session");
+        break;
+      case "group":
+        // TODO: implement group creation
+        break;
+      case "training":
+        navigate("/training");
+        break;
+    }
+  };
+
   return (
     <AppLayout>
       <header className="mb-8 text-center pt-4">
@@ -40,7 +54,7 @@ const Create = () => {
         {createOptions.map(({ id, icon: Icon, label, description, color }) => (
           <button
             key={id}
-            onClick={() => {}}
+            onClick={() => handleOptionClick(id)}
             className="w-full p-4 rounded-2xl bg-card border hover:border-primary/30 transition-all text-left flex items-center gap-4"
           >
             <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}>

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Calendar } from "lucide-react";
 
 export const CommunityHeader = () => {
   const { user } = useAuth();
@@ -29,15 +30,27 @@ export const CommunityHeader = () => {
         </span>
       </div>
 
-      {/* New session button */}
-      <Button 
-        variant="primaryGradient" 
-        size="pill"
-        onClick={() => navigate("/create")}
-        className="text-[13px] py-2 px-3.5"
-      >
-        {t("newSession")}
-      </Button>
+      {/* Action buttons */}
+      <div className="flex items-center gap-2">
+        {/* My Sessions button */}
+        <button
+          onClick={() => navigate("/my-sessions")}
+          className="w-10 h-10 rounded-full bg-card border flex items-center justify-center hover:bg-secondary transition-colors"
+          title="Le mie sessioni"
+        >
+          <Calendar className="w-5 h-5 text-primary" />
+        </button>
+
+        {/* New session button */}
+        <Button 
+          variant="primaryGradient" 
+          size="pill"
+          onClick={() => navigate("/create")}
+          className="text-[13px] py-2 px-3.5"
+        >
+          {t("newSession")}
+        </Button>
+      </div>
     </header>
   );
 };
