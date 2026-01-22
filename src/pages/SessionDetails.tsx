@@ -134,10 +134,23 @@ const SessionDetails = () => {
         title: "Richiesta inviata!",
         description: "L'organizzatore riceverà la tua richiesta di partecipazione",
       });
+
+      // Send notification email to session creator
+      try {
+        await supabase.functions.invoke("send-session-notification", {
+          body: {
+            type: "join_request",
+            sessionId: session.id,
+            participantUserId: user.id,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send notification:", e);
+      }
     }
   };
 
-  const handleApprove = async (participantId: string) => {
+  const handleApprove = async (participantId: string, participantUserId: string) => {
     setActionLoading(participantId);
     const { error } = await approveParticipant(participantId);
     setActionLoading(null);
@@ -146,10 +159,23 @@ const SessionDetails = () => {
       toast({ title: "Errore", description: "Impossibile approvare", variant: "destructive" });
     } else {
       toast({ title: "Approvato!", description: "Partecipante confermato" });
+
+      // Send approval notification email
+      try {
+        await supabase.functions.invoke("send-session-notification", {
+          body: {
+            type: "request_approved",
+            sessionId: session!.id,
+            participantUserId,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send notification:", e);
+      }
     }
   };
 
-  const handleReject = async (participantId: string) => {
+  const handleReject = async (participantId: string, participantUserId: string) => {
     setActionLoading(participantId);
     const { error } = await rejectParticipant(participantId);
     setActionLoading(null);
@@ -158,6 +184,19 @@ const SessionDetails = () => {
       toast({ title: "Errore", description: "Impossibile rifiutare", variant: "destructive" });
     } else {
       toast({ title: "Rifiutato", description: "Richiesta rifiutata" });
+
+      // Send rejection notification email
+      try {
+        await supabase.functions.invoke("send-session-notification", {
+          body: {
+            type: "request_rejected",
+            sessionId: session!.id,
+            participantUserId,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to send notification:", e);
+      }
     }
   };
 
@@ -356,7 +395,7 @@ const SessionDetails = () => {
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8 text-success hover:bg-success/20"
-                          onClick={() => handleApprove(p.id)}
+                          onClick={() => handleApprove(p.id, p.user_id)}
                           disabled={!!actionLoading}
                         >
                           {actionLoading === p.id ? (
@@ -369,7 +408,7 @@ const SessionDetails = () => {
                           size="icon"
                           variant="ghost"
                           className="h-8 w-8 text-destructive hover:bg-destructive/20"
-                          onClick={() => handleReject(p.id)}
+                          onClick={() => handleReject(p.id, p.user_id)}
                           disabled={!!actionLoading}
                         >
                           <X className="w-4 h-4" />
