@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
+import { Check, Clock } from "lucide-react";
 
 interface SessionCardProps {
   spotName: string;
@@ -13,9 +14,13 @@ interface SessionCardProps {
   creatorName: string;
   creatorInitial: string;
   creatorRole: "instructor" | "instructorF" | "user";
+  isJoined?: boolean;
+  isPending?: boolean;
+  isFull?: boolean;
   showJoinButton?: boolean;
   onJoin?: () => void;
   onDetails?: () => void;
+  onClick?: () => void;
 }
 
 const levelLabels = {
@@ -37,12 +42,68 @@ export const SessionCard = ({
   creatorName,
   creatorInitial,
   creatorRole,
+  isJoined = false,
+  isPending = false,
+  isFull = false,
   showJoinButton = true,
   onJoin,
   onDetails,
+  onClick,
 }: SessionCardProps) => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on button
+    if ((e.target as HTMLElement).closest('button')) return;
+    onClick?.();
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isJoined || isPending || isFull || !showJoinButton) {
+      onDetails?.();
+    } else {
+      onJoin?.();
+    }
+  };
+
+  // Determine button state
+  const getButtonContent = () => {
+    if (isPending) {
+      return (
+        <>
+          <Clock className="w-3.5 h-3.5" />
+          In attesa
+        </>
+      );
+    }
+    if (isJoined) {
+      return (
+        <>
+          <Check className="w-3.5 h-3.5" />
+          Iscritto
+        </>
+      );
+    }
+    if (isFull) {
+      return t("details");
+    }
+    if (showJoinButton) {
+      return t("join");
+    }
+    return t("details");
+  };
+
+  const getButtonVariant = () => {
+    if (isPending) return "pillOutline" as const;
+    if (isJoined) return "pill" as const;
+    if (isFull || !showJoinButton) return "pillOutline" as const;
+    return "pill" as const;
+  };
+
   return (
-    <div className="card-session min-w-[260px] animate-fade-in">
+    <div 
+      className="card-session min-w-[260px] animate-fade-in cursor-pointer hover:border-primary/30 transition-colors"
+      onClick={handleCardClick}
+    >
       {/* Top section - tags and meta */}
       <div className="flex flex-col gap-0.5 text-xs text-muted">
         <div className="flex gap-1.5 flex-wrap">
@@ -71,15 +132,13 @@ export const SessionCard = ({
           </div>
         </div>
         
-        {showJoinButton ? (
-          <Button variant="pill" onClick={onJoin}>
-            {t("join")}
-          </Button>
-        ) : (
-          <Button variant="pillOutline" onClick={onDetails}>
-            {t("details")}
-          </Button>
-        )}
+        <Button 
+          variant={getButtonVariant()} 
+          onClick={handleButtonClick}
+          className={isPending ? "bg-warning/10 text-warning border-warning/30" : isJoined ? "bg-success/10 text-success border-success/30" : ""}
+        >
+          {getButtonContent()}
+        </Button>
       </div>
     </div>
   );
