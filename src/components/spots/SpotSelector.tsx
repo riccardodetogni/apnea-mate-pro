@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MapPin, Search, Map, List } from "lucide-react";
+import { MapPin, Search, Map, List, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,12 +18,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Spot } from "@/hooks/useSpots";
 import SpotMap from "./SpotMap";
-
+import SpotCreator from "./SpotCreator";
 interface SpotSelectorProps {
   spots: Spot[];
   selectedSpotId: string;
   onSelect: (spotId: string) => void;
   loading?: boolean;
+  onSpotCreated?: () => void;
 }
 
 const SpotSelector = ({
@@ -31,9 +32,11 @@ const SpotSelector = ({
   selectedSpotId,
   onSelect,
   loading = false,
+  onSpotCreated,
 }: SpotSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [showCreator, setShowCreator] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const selectedSpot = useMemo(
@@ -57,21 +60,48 @@ const SpotSelector = ({
     setShowMap(false);
   };
 
+  const handleSpotCreated = (spotId: string) => {
+    onSelect(spotId);
+    setShowCreator(false);
+    onSpotCreated?.();
+  };
+
+  if (showCreator) {
+    return (
+      <SpotCreator
+        onSpotCreated={handleSpotCreated}
+        onCancel={() => setShowCreator(false)}
+      />
+    );
+  }
+
   if (showMap) {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Seleziona sulla mappa</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowMap(false)}
-            className="gap-2"
-          >
-            <List className="w-4 h-4" />
-            Lista
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCreator(true)}
+              className="gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              Nuovo
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMap(false)}
+              className="gap-2"
+            >
+              <List className="w-4 h-4" />
+              Lista
+            </Button>
+          </div>
         </div>
         <div className="relative">
           <div className="absolute top-2 left-2 right-2 z-[1000]">
@@ -179,6 +209,16 @@ const SpotSelector = ({
           title="Mostra mappa"
         >
           <Map className="w-4 h-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => setShowCreator(true)}
+          className="shrink-0"
+          title="Aggiungi spot"
+        >
+          <Plus className="w-4 h-4" />
         </Button>
       </div>
     </div>
