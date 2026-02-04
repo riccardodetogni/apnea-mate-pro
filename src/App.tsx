@@ -24,6 +24,7 @@ import UserProfile from "./pages/UserProfile";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import DiscoverFreedivers from "./pages/DiscoverFreedivers";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/users/:id" element={<UserProfile />} />
               <Route path="/search" element={<Search />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/discover" element={<DiscoverFreedivers />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

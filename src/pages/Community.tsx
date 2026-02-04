@@ -413,7 +413,7 @@ const Community = () => {
             <EmptyCard
               message={t("noMoreSessions")}
               actionLabel={t("exploreFreedivers")}
-              onAction={() => navigate("/profile")}
+              onAction={() => navigate("/discover")}
             />
           )}
         </div>
