@@ -133,12 +133,9 @@ const Spots = () => {
 
   const handleViewSpotDetails = useCallback(() => {
     if (currentSpot) {
-      // Navigate to spot details (future: /spots/:id)
-      toast.info(`${t("viewSpotDetails")}: ${currentSpot.name}`, {
-        description: t("comingSoon"),
-      });
+      navigate(`/spots/${currentSpot.id}`);
     }
-  }, [currentSpot]);
+  }, [currentSpot, navigate]);
 
   const handleAddFavorite = useCallback(() => {
     if (!user) {

@@ -10,6 +10,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Community from "./pages/Community";
 import Spots from "./pages/Spots";
+import SpotDetails from "./pages/SpotDetails";
 import Create from "./pages/Create";
 import CreateSession from "./pages/CreateSession";
 import SessionDetails from "./pages/SessionDetails";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/community" element={<Community />} />
               <Route path="/spots" element={<Spots />} />
+              <Route path="/spots/:id" element={<SpotDetails />} />
               <Route path="/create" element={<Create />} />
               <Route path="/create/session" element={<CreateSession />} />
               <Route path="/sessions/:id" element={<SessionDetails />} />
