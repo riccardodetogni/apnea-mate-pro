@@ -19,9 +19,10 @@ interface SpotMiniMapProps {
   latitude: number | null;
   longitude: number | null;
   className?: string;
+  onClick?: () => void;
 }
 
-export const SpotMiniMap = ({ latitude, longitude, className }: SpotMiniMapProps) => {
+export const SpotMiniMap = ({ latitude, longitude, className, onClick }: SpotMiniMapProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -77,5 +78,11 @@ export const SpotMiniMap = ({ latitude, longitude, className }: SpotMiniMapProps
     return () => window.clearTimeout(t);
   }, [latitude, longitude]);
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div 
+      ref={containerRef} 
+      className={`${className} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    />
+  );
 };
