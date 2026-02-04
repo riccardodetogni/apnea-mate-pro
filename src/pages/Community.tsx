@@ -254,6 +254,7 @@ const Community = () => {
 
   const availableSessions = getFilteredSortedSessions(sessions, rawSessions);
   const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
+  const myGroups = groups.filter(g => g.isMember);
   const availableGroups = groups.filter(g => !g.isMember);
 
   const SessionSkeleton = () => (
@@ -418,6 +419,26 @@ const Community = () => {
         </div>
       </div>
 
+      {/* Your groups */}
+      {myGroups.length > 0 && (
+        <div className="mt-4">
+          <SectionHeader 
+            title={t("yourGroups")} 
+            actionLabel={t("viewAllGroups")}
+            onAction={() => navigate("/groups")}
+          />
+          <div className="scroll-row">
+            {myGroups.map((group) => (
+              <GroupCard
+                key={group.id}
+                {...group}
+                onViewProfile={() => handleGroupClick(group.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Groups near you */}
       <div className="mt-4">
         <SectionHeader 
@@ -440,17 +461,11 @@ const Community = () => {
                 onViewProfile={() => handleGroupClick(group.id)}
               />
             ))
-          ) : groups.length > 0 ? (
-            <EmptyCard
-              message="Sei già membro di tutti i gruppi!"
-              actionLabel="Crea un gruppo"
-              onAction={() => navigate("/create")}
-            />
           ) : (
             <EmptyCard
-              message="Nessun gruppo disponibile."
+              message={myGroups.length > 0 ? "Nessun altro gruppo da unirsi." : "Nessun gruppo disponibile."}
               actionLabel="Crea un gruppo"
-              onAction={() => navigate("/create")}
+              onAction={() => navigate("/create/group")}
             />
           )}
         </div>
