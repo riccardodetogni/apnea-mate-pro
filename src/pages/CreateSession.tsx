@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useSpots } from "@/hooks/useSpots";
+import { useMyGroups } from "@/hooks/useMyGroups";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -25,6 +27,7 @@ import {
   Users,
   Loader2,
   AlertTriangle,
+  UsersRound,
 } from "lucide-react";
 
 const sessionTypes = [
@@ -47,13 +50,16 @@ const CreateSession = () => {
   const { user } = useAuth();
   const { isCertified, isInstructor, loading: profileLoading } = useProfile();
   const { spots, loading: spotsLoading } = useSpots();
+  const { groups: myGroups, loading: groupsLoading } = useMyGroups();
   const { toast } = useToast();
 
   const [submitting, setSubmitting] = useState(false);
+  const [creatorJoins, setCreatorJoins] = useState(true);
   const [form, setForm] = useState({
     title: "",
     description: "",
     spot_id: "",
+    group_id: "",
     session_type: "sea_trip",
     level: "all_levels",
     date: "",
@@ -98,27 +104,45 @@ const CreateSession = () => {
 
     setSubmitting(true);
 
-    const { data, error } = await supabase
-      .from("sessions")
-      .insert({
-        title: form.title.trim(),
-        description: form.description.trim() || null,
-        spot_id: form.spot_id,
-        session_type: form.session_type,
-        level: form.level,
-        date_time: dateTime.toISOString(),
-        duration_minutes: form.duration_minutes,
-        max_participants: form.max_participants,
-        creator_id: user.id,
-        is_public: true,
-        status: "active",
-      })
-      .select("id")
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("sessions")
+        .insert({
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          spot_id: form.spot_id,
+          group_id: form.group_id || null,
+          session_type: form.session_type,
+          level: form.level,
+          date_time: dateTime.toISOString(),
+          duration_minutes: form.duration_minutes,
+          max_participants: form.max_participants,
+          creator_id: user.id,
+          is_public: true,
+          status: "active",
+        })
+        .select("id")
+        .single();
 
-    setSubmitting(false);
+      if (error) throw error;
 
-    if (error) {
+      // If creator wants to join, add as confirmed participant
+      if (creatorJoins && data) {
+        await supabase
+          .from("session_participants")
+          .insert({
+            session_id: data.id,
+            user_id: user.id,
+            status: "confirmed", // Creator is auto-confirmed
+          });
+      }
+
+      toast({
+        title: "Sessione creata!",
+        description: "La tua sessione è stata pubblicata",
+      });
+      navigate(`/sessions/${data.id}`);
+    } catch (error: any) {
       console.error("Error creating session:", error);
       if (error.message?.includes("row-level security")) {
         toast({
@@ -133,12 +157,8 @@ const CreateSession = () => {
           variant: "destructive",
         });
       }
-    } else {
-      toast({
-        title: "Sessione creata!",
-        description: "La tua sessione è stata pubblicata",
-      });
-      navigate(`/sessions/${data.id}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -231,6 +251,38 @@ const CreateSession = () => {
               </Select>
             </div>
 
+            {/* Group (optional) */}
+            {myGroups.length > 0 && (
+              <div className="space-y-2">
+                <Label>Gruppo (opzionale)</Label>
+                <Select value={form.group_id} onValueChange={(v) => setForm({ ...form, group_id: v === "none" ? "" : v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Nessun gruppo">
+                      {form.group_id ? (
+                        <span className="flex items-center gap-2">
+                          <UsersRound className="w-4 h-4" />
+                          {myGroups.find(g => g.id === form.group_id)?.name}
+                        </span>
+                      ) : (
+                        "Nessun gruppo"
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nessun gruppo</SelectItem>
+                    {myGroups.map(group => (
+                      <SelectItem key={group.id} value={group.id}>
+                        <span className="flex items-center gap-2">
+                          <UsersRound className="w-4 h-4" />
+                          {group.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Type & Level */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -321,6 +373,21 @@ const CreateSession = () => {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Creator joins as participant */}
+            <div className="flex items-center space-x-3 py-2">
+              <Checkbox
+                id="creatorJoins"
+                checked={creatorJoins}
+                onCheckedChange={(checked) => setCreatorJoins(checked === true)}
+              />
+              <label
+                htmlFor="creatorJoins"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Partecipo anch'io alla sessione
+              </label>
             </div>
 
             {/* Submit */}
