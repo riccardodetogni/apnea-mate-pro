@@ -26,9 +26,11 @@ const Groups = () => {
       toast({ title: "Devi accedere per unirti", variant: "destructive" });
       return;
     }
-    const { error } = await joinGroup(groupId);
+    const { error, isPending } = await joinGroup(groupId);
     if (error) {
       toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else if (isPending) {
+      toast({ title: "Richiesta inviata", description: "In attesa di approvazione" });
     } else {
       toast({ title: "Iscrizione effettuata!" });
     }
@@ -63,11 +65,11 @@ const Groups = () => {
     return result;
   }, [groups, filter, searchQuery]);
 
-  // Separate into sections
-  const certifiedGroups = filteredGroups.filter(g => g.isInstructorLed);
-  const myGroups = filteredGroups.filter(g => g.isMember);
+  // Separate into sections - use isVerified for certified groups
+  const certifiedGroups = filteredGroups.filter(g => g.isVerified || g.isInstructorLed);
+  const myGroups = filteredGroups.filter(g => g.isMember || g.isPending);
   const popularGroups = filteredGroups
-    .filter(g => !g.isMember && !g.isInstructorLed)
+    .filter(g => !g.isMember && !g.isPending && !g.isVerified && !g.isInstructorLed)
     .sort((a, b) => b.memberCount - a.memberCount);
 
   return (
@@ -130,7 +132,10 @@ const Groups = () => {
                       tags={group.tags}
                       distanceKm={group.distanceKm}
                       isMember={group.isMember}
-                      isVerified
+                      isPending={group.isPending}
+                      isVerified={group.isVerified}
+                      isInstructorLed={group.isInstructorLed}
+                      groupType={group.groupType}
                       onViewProfile={() => navigate(`/groups/${group.id}`)}
                     />
                   </div>
@@ -154,7 +159,11 @@ const Groups = () => {
                       activityType={group.activityType}
                       tags={group.tags}
                       distanceKm={group.distanceKm}
-                      isMember
+                      isMember={group.isMember}
+                      isPending={group.isPending}
+                      isVerified={group.isVerified}
+                      isInstructorLed={group.isInstructorLed}
+                      groupType={group.groupType}
                       onViewProfile={() => navigate(`/groups/${group.id}`)}
                     />
                   </div>
@@ -179,6 +188,10 @@ const Groups = () => {
                       tags={group.tags}
                       distanceKm={group.distanceKm}
                       isMember={group.isMember}
+                      isPending={group.isPending}
+                      isVerified={group.isVerified}
+                      isInstructorLed={group.isInstructorLed}
+                      groupType={group.groupType}
                       onJoin={() => handleJoinGroup(group.id)}
                       onViewProfile={() => navigate(`/groups/${group.id}`)}
                     />
@@ -192,7 +205,7 @@ const Groups = () => {
           {filter === "schools" && certifiedGroups.length > 0 && (
             <section>
               <div className="space-y-3">
-                {certifiedGroups.map(group => (
+              {certifiedGroups.map(group => (
                   <div key={group.id} className="animate-fade-in">
                     <GroupCard
                       id={group.id}
@@ -203,8 +216,11 @@ const Groups = () => {
                       tags={group.tags}
                       distanceKm={group.distanceKm}
                       isMember={group.isMember}
-                      isVerified
-                      onJoin={!group.isMember ? () => handleJoinGroup(group.id) : undefined}
+                      isPending={group.isPending}
+                      isVerified={group.isVerified}
+                      isInstructorLed={group.isInstructorLed}
+                      groupType={group.groupType}
+                      onJoin={!group.isMember && !group.isPending ? () => handleJoinGroup(group.id) : undefined}
                       onViewProfile={() => navigate(`/groups/${group.id}`)}
                     />
                   </div>

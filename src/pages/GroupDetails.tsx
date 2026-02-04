@@ -6,7 +6,7 @@ import { GroupMembersSection } from "@/components/groups/GroupMembersSection";
 import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2 } from "lucide-react";
+import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -15,7 +15,7 @@ const GroupDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { group, members, sessions, loading, error, joinGroup, leaveGroup } = useGroupDetails(id);
+  const { group, members, sessions, loading, error, joinGroup, leaveGroup, approveMember, rejectMember } = useGroupDetails(id);
 
   const handleShare = async () => {
     try {
@@ -31,9 +31,11 @@ const GroupDetails = () => {
   };
 
   const handleJoin = async () => {
-    const { error } = await joinGroup();
+    const { error, isPending } = await joinGroup();
     if (error) {
       toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else if (isPending) {
+      toast({ title: "Richiesta inviata", description: "In attesa di approvazione" });
     } else {
       toast({ title: "Iscrizione effettuata!" });
     }
@@ -82,9 +84,9 @@ const GroupDetails = () => {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div className="flex-1" />
-        {group.is_admin && (
+        {group.is_owner && (
           <button
-            onClick={() => {/* TODO: manage group */}}
+            onClick={() => navigate(`/groups/${id}/manage`)}
             className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center hover:bg-muted/50 transition-colors"
           >
             <Settings className="w-5 h-5 text-foreground" />
@@ -99,19 +101,24 @@ const GroupDetails = () => {
         memberCount={group.member_count}
         activityType={group.activity_type}
         avatarUrl={group.avatar_url}
-        isVerified={group.creator_is_instructor}
+        isVerified={group.verified}
         isInstructorLed={group.creator_is_instructor}
         groupType={group.group_type}
       />
 
       {/* Action Buttons */}
       <div className="flex gap-3 mt-4">
-        {user && !group.is_member ? (
+        {user && !group.is_member && !group.is_pending ? (
           <Button onClick={handleJoin} className="flex-1 gap-2">
             <UserPlus className="w-4 h-4" />
-            {group.requires_approval ? t("joinGroup") : t("join")}
+            {group.requires_approval ? "Richiedi iscrizione" : t("join")}
           </Button>
-        ) : user && group.is_member && !group.is_admin ? (
+        ) : user && group.is_pending ? (
+          <Button variant="outline" className="flex-1 gap-2" disabled>
+            <Clock className="w-4 h-4" />
+            In attesa di approvazione
+          </Button>
+        ) : user && group.is_member && !group.is_owner ? (
           <Button onClick={handleLeave} variant="outline" className="flex-1 gap-2">
             <UserMinus className="w-4 h-4" />
             Lascia gruppo
@@ -122,6 +129,18 @@ const GroupDetails = () => {
           Condividi
         </Button>
       </div>
+
+      {/* Pending requests notice for owners */}
+      {group.is_owner && group.pending_count > 0 && (
+        <div 
+          onClick={() => navigate(`/groups/${id}/manage`)}
+          className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/30 cursor-pointer hover:bg-warning/20 transition-colors"
+        >
+          <p className="text-sm text-warning font-medium">
+            {group.pending_count} richieste in attesa di approvazione
+          </p>
+        </div>
+      )}
 
       {/* Description */}
       {group.description && (

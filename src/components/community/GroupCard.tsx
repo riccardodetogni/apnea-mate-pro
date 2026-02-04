@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { CheckCircle, Award } from "lucide-react";
+import { CheckCircle, Award, Clock, Building2 } from "lucide-react";
 
 interface GroupCardProps {
   id?: string;
@@ -11,8 +11,10 @@ interface GroupCardProps {
   tags: string[];
   distanceKm?: number;
   isMember?: boolean;
+  isPending?: boolean;
   isVerified?: boolean;
   isInstructorLed?: boolean;
+  groupType?: string;
   onJoin?: () => void;
   onViewProfile?: () => void;
 }
@@ -25,11 +27,42 @@ export const GroupCard = ({
   tags,
   distanceKm,
   isMember = false,
+  isPending = false,
   isVerified = false,
   isInstructorLed = false,
+  groupType = 'community',
   onJoin,
   onViewProfile,
 }: GroupCardProps) => {
+  // Determine badge type based on verified status and group type
+  const getBadge = () => {
+    if (isVerified) {
+      if (groupType === 'scuola_club') {
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
+            <Building2 className="w-3 h-3" />
+            Scuola partner
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-medium">
+          <CheckCircle className="w-3 h-3" />
+          {t("verifiedClub")}
+        </span>
+      );
+    }
+    if (isInstructorLed) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
+          <Award className="w-3 h-3" />
+          {t("instructor")}
+        </span>
+      );
+    }
+    return null;
+  };
+
   return (
     <div 
       className="card-group min-w-[260px] animate-fade-in cursor-pointer hover:border-primary/30 transition-colors"
@@ -50,20 +83,9 @@ export const GroupCard = ({
       </div>
 
       {/* Badges */}
-      {(isVerified || isInstructorLed) && (
+      {getBadge() && (
         <div className="flex flex-wrap gap-1.5">
-          {isVerified && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-medium">
-              <CheckCircle className="w-3 h-3" />
-              {t("verifiedClub")}
-            </span>
-          )}
-          {isInstructorLed && !isVerified && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
-              <Award className="w-3 h-3" />
-              {t("instructor")}
-            </span>
-          )}
+          {getBadge()}
         </div>
       )}
 
@@ -81,6 +103,11 @@ export const GroupCard = ({
         {isMember ? (
           <Button variant="outline" size="sm" disabled>
             Membro
+          </Button>
+        ) : isPending ? (
+          <Button variant="outline" size="sm" disabled className="gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            In attesa
           </Button>
         ) : onJoin ? (
           <Button variant="pill" size="sm" onClick={onJoin}>

@@ -31,8 +31,11 @@ export interface GroupWithDetails {
   tags: string[];
   distanceKm?: number;
   isMember: boolean;
+  isPending: boolean;
   requiresApproval: boolean;
   isInstructorLed: boolean;
+  isVerified: boolean;
+  groupType: string;
 }
 
 export const useGroups = () => {
@@ -61,22 +64,25 @@ export const useGroups = () => {
       const creatorIds = [...new Set(groupsData?.map(g => g.created_by) || [])];
       
       let memberCounts: Record<string, number> = {};
-      let userMemberships: Set<string> = new Set();
+      let userMemberships: Map<string, string> = new Map(); // group_id -> status
       let groupTags: Record<string, string[]> = {};
       let creatorRoles: Record<string, string> = {};
 
       if (groupIds.length > 0) {
-        // Fetch member counts
+        // Fetch member counts (only approved members)
         const { data: membersData } = await supabase
           .from("group_members")
-          .select("group_id, user_id")
+          .select("group_id, user_id, status")
           .in("group_id", groupIds);
 
         if (membersData) {
           membersData.forEach(m => {
-            memberCounts[m.group_id] = (memberCounts[m.group_id] || 0) + 1;
+            // Only count approved members
+            if (m.status === 'approved') {
+              memberCounts[m.group_id] = (memberCounts[m.group_id] || 0) + 1;
+            }
             if (user && m.user_id === user.id) {
-              userMemberships.add(m.group_id);
+              userMemberships.set(m.group_id, m.status);
             }
           });
         }
@@ -114,14 +120,18 @@ export const useGroups = () => {
         }
       }
 
-      const enrichedGroups = groupsData?.map(group => ({
-        ...group,
-        member_count: memberCounts[group.id] || 0,
-        tags: groupTags[group.id] || [],
-        is_member: userMemberships.has(group.id),
-        creator_is_instructor: creatorRoles[group.created_by] === "instructor" || 
-                               creatorRoles[group.created_by] === "admin",
-      })) || [];
+      const enrichedGroups = groupsData?.map(group => {
+        const membershipStatus = userMemberships.get(group.id);
+        return {
+          ...group,
+          member_count: memberCounts[group.id] || 0,
+          tags: groupTags[group.id] || [],
+          is_member: membershipStatus === 'approved',
+          is_pending: membershipStatus === 'pending',
+          creator_is_instructor: creatorRoles[group.created_by] === "instructor" || 
+                                 creatorRoles[group.created_by] === "admin",
+        };
+      }) || [];
 
       setGroups(enrichedGroups);
     } catch (err) {
@@ -161,15 +171,20 @@ export const useGroups = () => {
   const joinGroup = async (groupId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
 
+    // Check if group requires approval
+    const group = groups.find(g => g.id === groupId);
+    const status = group?.requires_approval ? 'pending' : 'approved';
+
     const { error } = await supabase
       .from("group_members")
       .insert({
         group_id: groupId,
         user_id: user.id,
         role: "member",
+        status,
       });
 
-    return { error };
+    return { error, isPending: status === 'pending' };
   };
 
   const leaveGroup = async (groupId: string) => {
@@ -194,8 +209,11 @@ export const useGroups = () => {
     tags: group.tags || [],
     distanceKm: group.distance_km ?? undefined,
     isMember: group.is_member || false,
+    isPending: (group as any).is_pending || false,
     requiresApproval: group.requires_approval || false,
     isInstructorLed: group.creator_is_instructor || false,
+    isVerified: (group as any).verified || false,
+    groupType: (group as any).group_type || 'community',
   }));
 
   return {
