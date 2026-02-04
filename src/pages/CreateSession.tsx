@@ -21,7 +21,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronLeft,
-  MapPin,
   Calendar,
   Clock,
   Users,
@@ -29,6 +28,7 @@ import {
   AlertTriangle,
   UsersRound,
 } from "lucide-react";
+import SpotSelector from "@/components/spots/SpotSelector";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
@@ -223,32 +223,12 @@ const CreateSession = () => {
             {/* Spot */}
             <div className="space-y-2">
               <Label>Spot *</Label>
-              <Select value={form.spot_id} onValueChange={(v) => setForm({ ...form, spot_id: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona uno spot">
-                    {form.spot_id && (
-                      <span className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        {spots.find(s => s.id === form.spot_id)?.name}
-                      </span>
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {spotsLoading ? (
-                    <div className="p-2 text-center text-sm text-muted">Caricamento...</div>
-                  ) : (
-                    spots.map(spot => (
-                      <SelectItem key={spot.id} value={spot.id}>
-                        <span className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
-                          {spot.name} · {spot.location}
-                        </span>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <SpotSelector
+                spots={spots}
+                selectedSpotId={form.spot_id}
+                onSelect={(spotId) => setForm({ ...form, spot_id: spotId })}
+                loading={spotsLoading}
+              />
             </div>
 
             {/* Group (optional) */}
