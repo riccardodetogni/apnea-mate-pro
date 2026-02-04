@@ -120,9 +120,9 @@ const GroupDetails = () => {
             {group.requires_approval ? "Richiedi iscrizione" : t("join")}
           </Button>
         ) : user && group.is_pending ? (
-          <Button variant="outline" className="flex-1 gap-2" disabled>
+          <Button onClick={handleLeave} variant="outline" className="flex-1 gap-2">
             <Clock className="w-4 h-4" />
-            In attesa di approvazione
+            Annulla richiesta
           </Button>
         ) : user && group.is_member && !group.is_owner ? (
           <Button onClick={handleLeave} variant="outline" className="flex-1 gap-2">
