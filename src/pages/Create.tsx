@@ -36,7 +36,7 @@ const Create = () => {
         navigate("/create/session");
         break;
       case "group":
-        // TODO: implement group creation
+        navigate("/create/group");
         break;
       case "training":
         navigate("/training");
