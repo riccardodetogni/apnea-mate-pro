@@ -204,8 +204,7 @@ const Community = () => {
   };
 
   const handleProfileClick = (userId: string) => {
-    // TODO: Navigate to user profile
-    navigate(`/profile/${userId}`);
+    navigate(`/users/${userId}`);
   };
 
   if (contextLoading) {
