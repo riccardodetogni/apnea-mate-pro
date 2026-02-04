@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { GroupCard } from "@/components/community/GroupCard";
 import { GroupFilterChips, GroupFilter } from "@/components/groups/GroupFilterChips";
-import { SectionHeader } from "@/components/community/SectionHeader";
+
 import { Input } from "@/components/ui/input";
 import { t } from "@/lib/i18n";
 import { useGroups } from "@/hooks/useGroups";
@@ -65,13 +65,6 @@ const Groups = () => {
     return result;
   }, [groups, filter, searchQuery]);
 
-  // Separate into sections - use isVerified for certified groups
-  const certifiedGroups = filteredGroups.filter(g => g.isVerified || g.isInstructorLed);
-  const myGroups = filteredGroups.filter(g => g.isMember || g.isPending);
-  const popularGroups = filteredGroups
-    .filter(g => !g.isMember && !g.isPending && !g.isVerified && !g.isInstructorLed)
-    .sort((a, b) => b.memberCount - a.memberCount);
-
   return (
     <AppLayout>
       {/* Header */}
@@ -115,119 +108,27 @@ const Groups = () => {
           <p className="text-muted">Nessun gruppo trovato</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Certified Schools Section */}
-          {filter === "all" && certifiedGroups.length > 0 && (
-            <section>
-              <SectionHeader title={t("schoolClubCertified")} />
-              <div className="space-y-3">
-                {certifiedGroups.map(group => (
-                  <div key={group.id} className="animate-fade-in">
-                    <GroupCard
-                      id={group.id}
-                      name={group.name}
-                      initial={group.initial}
-                      memberCount={group.memberCount}
-                      activityType={group.activityType}
-                      tags={group.tags}
-                      distanceKm={group.distanceKm}
-                      isMember={group.isMember}
-                      isPending={group.isPending}
-                      isVerified={group.isVerified}
-                      isInstructorLed={group.isInstructorLed}
-                      groupType={group.groupType}
-                      onViewProfile={() => navigate(`/groups/${group.id}`)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* My Groups Section */}
-          {(filter === "all" || filter === "myGroups") && myGroups.length > 0 && (
-            <section>
-              <SectionHeader title={t("yourGroups")} />
-              <div className="space-y-3">
-                {myGroups.map(group => (
-                  <div key={group.id} className="animate-fade-in">
-                    <GroupCard
-                      id={group.id}
-                      name={group.name}
-                      initial={group.initial}
-                      memberCount={group.memberCount}
-                      activityType={group.activityType}
-                      tags={group.tags}
-                      distanceKm={group.distanceKm}
-                      isMember={group.isMember}
-                      isPending={group.isPending}
-                      isVerified={group.isVerified}
-                      isInstructorLed={group.isInstructorLed}
-                      groupType={group.groupType}
-                      onViewProfile={() => navigate(`/groups/${group.id}`)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Popular Groups Section */}
-          {(filter === "all" || filter === "nearby") && popularGroups.length > 0 && (
-            <section>
-              <SectionHeader title={t("popularGroups")} />
-              <div className="space-y-3">
-                {popularGroups.map(group => (
-                  <div key={group.id} className="animate-fade-in">
-                    <GroupCard
-                      id={group.id}
-                      name={group.name}
-                      initial={group.initial}
-                      memberCount={group.memberCount}
-                      activityType={group.activityType}
-                      tags={group.tags}
-                      distanceKm={group.distanceKm}
-                      isMember={group.isMember}
-                      isPending={group.isPending}
-                      isVerified={group.isVerified}
-                      isInstructorLed={group.isInstructorLed}
-                      groupType={group.groupType}
-                      onJoin={() => handleJoinGroup(group.id)}
-                      onViewProfile={() => navigate(`/groups/${group.id}`)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Schools filter - show all certified */}
-          {filter === "schools" && certifiedGroups.length > 0 && (
-            <section>
-              <div className="space-y-3">
-              {certifiedGroups.map(group => (
-                  <div key={group.id} className="animate-fade-in">
-                    <GroupCard
-                      id={group.id}
-                      name={group.name}
-                      initial={group.initial}
-                      memberCount={group.memberCount}
-                      activityType={group.activityType}
-                      tags={group.tags}
-                      distanceKm={group.distanceKm}
-                      isMember={group.isMember}
-                      isPending={group.isPending}
-                      isVerified={group.isVerified}
-                      isInstructorLed={group.isInstructorLed}
-                      groupType={group.groupType}
-                      onJoin={!group.isMember && !group.isPending ? () => handleJoinGroup(group.id) : undefined}
-                      onViewProfile={() => navigate(`/groups/${group.id}`)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+        <div className="space-y-3">
+          {filteredGroups.map(group => (
+            <div key={group.id} className="animate-fade-in">
+              <GroupCard
+                id={group.id}
+                name={group.name}
+                initial={group.initial}
+                memberCount={group.memberCount}
+                activityType={group.activityType}
+                tags={group.tags}
+                distanceKm={group.distanceKm}
+                isMember={group.isMember}
+                isPending={group.isPending}
+                isVerified={group.isVerified}
+                isInstructorLed={group.isInstructorLed}
+                groupType={group.groupType}
+                onJoin={!group.isMember && !group.isPending ? () => handleJoinGroup(group.id) : undefined}
+                onViewProfile={() => navigate(`/groups/${group.id}`)}
+              />
+            </div>
+          ))}
         </div>
       )}
     </AppLayout>
