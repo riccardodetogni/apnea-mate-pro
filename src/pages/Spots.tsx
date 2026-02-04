@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import SpotMap from "@/components/spots/SpotMap";
 
-type QuickFilterType = "all" | "sea" | "lake" | "pool" | "favorites";
+type QuickFilterType = "all" | "sea" | "lake" | "pool" | "deep_pool" | "favorites";
 
 const initialFilters = {
   waterTypes: [] as string[],
@@ -27,6 +27,7 @@ const filterOptions: { id: QuickFilterType; label: string; icon?: React.ReactNod
   { id: "sea", label: "filterSea" },
   { id: "lake", label: "filterLake" },
   { id: "pool", label: "filterPool" },
+  { id: "deep_pool", label: "filterDeepPool" },
   { id: "favorites", label: "filterFavorites", icon: <Heart className="w-3.5 h-3.5" /> },
 ];
 
