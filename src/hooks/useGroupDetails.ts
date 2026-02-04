@@ -294,6 +294,22 @@ export const useGroupDetails = (groupId: string | undefined) => {
     return { error };
   };
 
+  // Update group details
+  const updateGroup = async (updates: Partial<Pick<GroupDetails, "name" | "description" | "avatar_url">>) => {
+    if (!user || !groupId) return { error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("groups")
+      .update(updates)
+      .eq("id", groupId);
+
+    if (!error) {
+      setGroup(prev => prev ? { ...prev, ...updates } : null);
+    }
+
+    return { error };
+  };
+
   return {
     group,
     members,
@@ -307,5 +323,6 @@ export const useGroupDetails = (groupId: string | undefined) => {
     rejectMember,
     promoteMember,
     removeMember,
+    updateGroup,
   };
 };

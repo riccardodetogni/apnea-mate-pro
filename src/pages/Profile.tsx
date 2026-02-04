@@ -83,9 +83,17 @@ const Profile = () => {
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
         <div className="bg-card rounded-2xl border p-6 text-center mb-6">
-          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center text-2xl font-bold text-primary-foreground mb-4">
-            {profile.name.charAt(0).toUpperCase()}
-          </div>
+          {profile.avatar_url ? (
+            <img 
+              src={profile.avatar_url} 
+              alt={profile.name}
+              className="w-20 h-20 mx-auto rounded-full object-cover border-2 border-card mb-4"
+            />
+          ) : (
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center text-2xl font-bold text-primary-foreground mb-4">
+              {profile.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           
           <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
           
