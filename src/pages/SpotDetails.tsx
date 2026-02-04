@@ -45,11 +45,11 @@ const SpotDetails = () => {
     }
   };
 
-  const handleGetDirections = () => {
+  const getDirectionsUrl = () => {
     if (spot?.latitude && spot?.longitude) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}`;
-      window.open(url, "_blank");
+      return `https://www.google.com/maps/dir/?api=1&destination=${spot.latitude},${spot.longitude}`;
     }
+    return null;
   };
 
   const formatSessionDate = (dateStr: string) => {
@@ -136,9 +136,18 @@ const SpotDetails = () => {
 
       {/* Mini map */}
       {spot.latitude && spot.longitude && (
-        <div className="rounded-2xl overflow-hidden border mb-4">
-          <SpotMiniMap latitude={spot.latitude} longitude={spot.longitude} className="h-40 w-full" />
-        </div>
+        <a 
+          href={getDirectionsUrl() || '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block rounded-2xl overflow-hidden border mb-4"
+        >
+          <SpotMiniMap 
+            latitude={spot.latitude} 
+            longitude={spot.longitude} 
+            className="h-40 w-full cursor-pointer" 
+          />
+        </a>
       )}
 
       {/* Action buttons */}
@@ -151,10 +160,12 @@ const SpotDetails = () => {
           <Heart className={`w-4 h-4 ${spotIsFavorite ? "fill-current" : ""}`} />
           {spotIsFavorite ? "Preferito" : t("addToFavorites")}
         </Button>
-        {spot.latitude && spot.longitude && (
-          <Button variant="outline" className="flex-1 gap-2" onClick={handleGetDirections}>
-            <Navigation className="w-4 h-4" />
-            {t("getDirections")}
+        {spot.latitude && spot.longitude && getDirectionsUrl() && (
+          <Button variant="outline" className="flex-1 gap-2" asChild>
+            <a href={getDirectionsUrl()!} target="_blank" rel="noopener noreferrer">
+              <Navigation className="w-4 h-4" />
+              {t("getDirections")}
+            </a>
           </Button>
         )}
       </div>
