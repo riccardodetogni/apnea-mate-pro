@@ -353,9 +353,9 @@ const Community = () => {
         </div>
       )}
 
-      {/* Sessions near you */}
+      {/* Sessions for you */}
       <SectionHeader 
-        title={t("sessionsNearYou")} 
+        title={t("sessionsForYou")}
         actionLabel={t("viewAll")}
         onAction={() => navigate("/spots")}
       />
@@ -378,7 +378,7 @@ const Community = () => {
           ))
         ) : filters.nearbyOnly ? (
           <EmptyCard
-            message={`Nessuna sessione entro ${filters.radiusKm}km. Disattiva il filtro "Vicino a te" per vedere tutte.`}
+            message={`Nessuna sessione entro ${filters.radiusKm}km. Disattiva il filtro per vedere tutte.`}
             actionLabel="Mostra tutte"
             onAction={toggleNearbyFilter}
           />
