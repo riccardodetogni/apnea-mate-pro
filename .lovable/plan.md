@@ -1,257 +1,202 @@
 
+# V1 Gap Analysis - What's Done vs. What's Missing
 
-# Spots Page - Complete Implementation Plan
-
-Based on the HTML mockups and current codebase analysis, here's the comprehensive plan to transform the placeholder Spots page into a fully functional map-based spot discovery feature.
-
----
-
-## Current State Analysis
-
-**What exists:**
-- `spots` table with: id, name, environment_type, location, latitude, longitude, description, created_by
-- `useSpots.ts` hook with basic fetch logic
-- `SpotMap.tsx` component (used in session creation, not suitable for full-page view)
-- `SpotCreator.tsx` component for adding new spots
-- `Spots.tsx` page showing static grid cards as placeholder
-
-**What the mockups show:**
-
-1. **Main Spots Page (6.0):**
-   - Full-screen interactive map with dark theme
-   - Floating search bar at top
-   - Quick filter chips (Tutti, Mare, Lago, Piscina, Preferiti)
-   - Filter settings button
-   - Colored map pins based on spot type
-   - Bottom card carousel with spot details
-   - Pagination indicator
-
-2. **Filters Sheet (6.1):**
-   - Bottom sheet modal
-   - Multi-select filter sections for various attributes
-   - Reset and Apply buttons
+Based on the Core Product Rules and the codebase analysis, here is a detailed breakdown:
 
 ---
 
-## Database Schema Considerations
+## 1) People/Buddy System
 
-The mockups show filter options for:
-- Max depth
-- Access type (easy, boat only)
-- Safety features (buoy present, safety staff)
-- Amenities (parking, showers)
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| Users can FOLLOW other users | Partial | `follows` table exists with RLS, but no UI to follow users |
+| NO friends list by city | OK | Not implemented (correct) |
+| People discovered via global search | Partial | Search exists but returns all profiles (no visibility filter) |
+| `search_visibility` flag | Missing | Column does NOT exist in `profiles` table |
+| Public user profile page (`/profile/:userId`) | Missing | Only self-profile exists (`/profile`) |
+| Show only sessions CREATED by user on profile | Missing | No implementation |
 
-**Option 1 (Recommended for V1):** Work with existing schema
-- Use `environment_type` for water type filtering
-- Skip advanced filters for now (depth, access, safety, services)
-- Add these columns in a future iteration when needed
-
-**Option 2:** Extend database with new columns
-- Would require migration for: `max_depth`, `access_type`, `has_buoy`, `has_safety_staff`, `has_parking`, `has_showers`
-
-For V1, I recommend **Option 1** to avoid scope creep. The filters sheet can show the sections but some will be "coming soon" or we filter client-side based on available data.
-
----
-
-## Implementation Plan
-
-### Phase 1: Spots Page Refactor
-
-**File: `src/pages/Spots.tsx`**
-
-Complete redesign from placeholder to map-centric view:
-- Full-screen map (no AppLayout wrapper - custom layout for immersive experience)
-- Floating search bar at top
-- Quick filter chips below search
-- Settings button for filters sheet
-- Map fills the screen
-- Bottom spot card carousel
-
-Key features:
-- Use vanilla Leaflet (as per existing pattern in SpotMap.tsx)
-- Custom colored markers based on environment_type
-- Selected spot highlighting
-- Swipe between spots with bottom card
+**Missing Work:**
+- Add `search_visibility` boolean column to `profiles` table
+- Create public user profile page at `/users/:id` or `/profile/:id`
+- Add Follow button on user profiles
+- Filter profile search by `search_visibility = true`
+- Show sessions created by user on their public profile
 
 ---
 
-### Phase 2: New Components
+## 2) Groups
 
-| Component | Description |
-|-----------|-------------|
-| `src/components/spots/SpotsMap.tsx` | Full-screen map component with colored markers |
-| `src/components/spots/SpotCard.tsx` | Bottom carousel card showing spot details |
-| `src/components/spots/SpotFiltersSheet.tsx` | Bottom sheet with filter options |
-| `src/components/spots/SpotSearchBar.tsx` | Floating search input with filter chips |
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| Groups represent ALL communities | Done | Both spontaneous + schools use same table |
+| Users JOIN groups | Done | `group_members` table, join logic works |
+| Users FOLLOW groups (secondary) | Missing | No group follows implementation |
+| Verified badge for schools/clubs | Partial | UI shows instructor badge, but no `verified` column |
+| Partner schools are admin-created | Missing | No backend flag `verified=true` on groups |
+| UI differentiates badges | Partial | Shows instructor-led, but not "Verified club" / "Scuola partner" |
+| Group creation is for spontaneous groups | Done | Any user can create |
+| Request-to-join for approval groups | Partial | `requires_approval` exists, but no pending membership flow |
 
----
-
-### Phase 3: Component Details
-
-**SpotsMap.tsx:**
-- Full-screen Leaflet map
-- Custom marker colors:
-  - Blue (#2563EB) for sea/lake
-  - Green (#22C55E) for deep_pool
-  - Orange (#F97316) for pool
-- Click marker to select spot
-- Fit bounds to show all spots
-
-**SpotCard.tsx:**
-- Swipeable card at bottom
-- Shows: photo placeholder, type, name, location, tags
-- Buttons: "Vedi dettagli spot", "Aggiungi ai preferiti"
-- Pagination indicator (1 di N)
-
-**SpotFiltersSheet.tsx:**
-- Uses existing Sheet component
-- Filter sections matching mockup
-- For V1: only environment_type filter is functional
-- Other sections shown with disabled state or "coming soon"
-
-**SpotSearchBar.tsx:**
-- Floating search input
-- Filters spots by name/location
-- Quick chip toggles for environment types
+**Missing Work:**
+- Add `verified` boolean column to `groups` table (admin-only)
+- Remove "Focus del gruppo" from create form per requirements
+- Implement pending membership for `requires_approval` groups
+- Optional: Group follow system (secondary action)
 
 ---
 
-### Phase 4: State Management
+## 3) Sessions
 
-The Spots page will manage:
-- `selectedSpotId` - currently selected spot
-- `activeFilters` - environment types, favorites (future)
-- `searchQuery` - text search
-- `showFilters` - filters sheet visibility
-- `spotIndex` - for pagination in bottom cards
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| Any user can create session | Partial | Only certified/instructor can create (RLS policy) |
+| Session privacy: PUBLIC or GROUP-ONLY | Partial | `is_public` exists but no GROUP-ONLY visibility logic |
+| Sessions linked to groups | Done | `group_id` column exists |
+| No in-app payments | OK | Not implemented (correct) |
 
----
-
-### Phase 5: Favorites System (Future)
-
-The mockup shows "Preferiti" (Favorites) filter. This would require:
-- New `spot_favorites` table (user_id, spot_id)
-- Toggle favorite on spot card
-- Filter by favorites
-
-For V1, we'll show the UI but make it non-functional or skip it.
+**Missing Work:**
+- Clarify: should non-certified users create sessions? Current RLS requires certification
+- Implement GROUP-ONLY visibility: sessions with `group_id` AND `is_public=false` should only be visible to group members
+- Add UI toggle in session creation for "Visible only to group members"
 
 ---
 
-### Phase 6: i18n Updates
+## 4) Search
 
-Add translation keys for spots page:
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| Global Search in Community | Done | Searches People, Groups, Sessions, Spots |
+| People search by name/nickname | Done | Works |
+| People preview snippet (next session / shared group) | Missing | Only shows name |
+| `search_visibility` filter on people | Missing | Not implemented |
+| Groups tab local search | Done | Works |
+| Spots tab local search | Done | Works |
+| Dedicated search results page with tabs | Missing | Results show inline, no tabbed UI |
 
-```typescript
-// Spots page
-searchSpotPlaceholder: "Cerca spot o zona",
-filterAll: "Tutti",
-filterSea: "Mare",
-filterLake: "Lago",
-filterPool: "Piscina",
-filterFavorites: "Preferiti",
-filtersTitle: "Filtri spot",
-filtersSubtitle: "Affina gli spot visibili sulla mappa.",
-waterType: "Tipologia acqua",
-waterTypeHelp: "Puoi selezionare più opzioni.",
-maxDepth: "Profondità massima",
-maxDepthHelp: "Indicativa, basata sulle informazioni disponibili.",
-depth0to20: "0–20 m",
-depth20to40: "20–40 m",
-depth40plus: "40+ m",
-accessType: "Accesso",
-accessEasy: "Accesso facile",
-accessBoatOnly: "Solo barca",
-safety: "Sicurezza",
-buoyPresent: "Boa presente",
-safetyStaff: "Safety spot / staff",
-amenities: "Servizi",
-parkingNearby: "Parcheggio vicino",
-showersAvailable: "Docce / servizi",
-resetFilters: "Reset filtri",
-applyFilters: "Applica filtri",
-viewSpotDetails: "Vedi dettagli spot",
-addToFavorites: "Aggiungi ai preferiti",
-spotOf: "di",
-comingSoon: "Prossimamente",
+**Missing Work:**
+- Add route `/search?type=people&q=...` with tabbed results (Persone / Gruppi / Sessioni / Spot)
+- Create People result cards with:
+  - Avatar, name, coarse location
+  - Pills: level + preference
+  - Preview row: next public session OR shared group OR recent activity
+  - Actions: "Segui" + "Vai al profilo"
+- Filter by `search_visibility=true`
+
+---
+
+## 5) Privacy & Safety
+
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| People not browsable by geography | OK | Not implemented (correct) |
+| `search_visibility` option | Missing | Column not in profiles |
+| Profiles show safe info only | OK | Current profile shows name, location, level |
+| Don't expose session participation history | OK | Not shown |
+| Show sessions CREATED by user on profile | Missing | Not implemented |
+
+**Missing Work:**
+- Add `search_visibility` to profiles + settings toggle in Profile page
+- Public profile shows sessions created by that user
+
+---
+
+## 6) Routes & Pages
+
+| Page | Route | Status |
+|------|-------|--------|
+| Groups Home | `/groups` | Done |
+| Create Group | `/create/group` | Done (needs minor update: remove Focus tags) |
+| Group Detail | `/groups/:id` | Done |
+| Global Search | `/search` | Missing |
+| User Profile (public) | `/users/:id` or `/profile/:id` | Missing |
+| Spots | `/spots` | Done |
+| Community | `/community` | Done |
+| Create Session | `/create/session` | Done |
+| Training | `/training` | Placeholder (correct for V1) |
+
+---
+
+## Summary of Missing Features (Priority Order)
+
+### High Priority (Core Functionality)
+1. **Search visibility** - Add `search_visibility` column to profiles + settings UI
+2. **Public user profile page** - Create `/users/:id` with Follow button, sessions created
+3. **Global Search page** - Tabbed results at `/search` with People cards per mockup
+4. **Follow button on user profiles** - UI to follow/unfollow users
+5. **Group-only session visibility** - Sessions with `group_id` + `is_public=false` visible only to members
+
+### Medium Priority (Polish)
+6. **Verified groups flag** - Add `verified` column for admin-managed schools/clubs
+7. **Pending group membership** - For `requires_approval` groups, show pending state
+8. **Remove Focus tags from Create Group** - Per simplified requirements
+9. **People search preview snippets** - Show next session / shared group
+
+### Low Priority (Deferred)
+10. **Group follow system** - Optional secondary action on groups
+
+---
+
+## Database Changes Required
+
+```sql
+-- 1. Add search_visibility to profiles
+ALTER TABLE public.profiles 
+ADD COLUMN search_visibility boolean NOT NULL DEFAULT true;
+
+-- 2. Add verified flag to groups
+ALTER TABLE public.groups 
+ADD COLUMN verified boolean NOT NULL DEFAULT false;
 ```
 
 ---
 
-### Phase 7: Routing Update
-
-The Spots page doesn't need new routes for V1, but we should prepare for:
-- `/spots/:id` - Spot detail page (future)
-
----
-
-## Files to Create
+## New Files to Create
 
 | File | Description |
 |------|-------------|
-| `src/components/spots/SpotsMap.tsx` | Full-screen map with colored markers |
-| `src/components/spots/SpotCard.tsx` | Bottom card carousel item |
-| `src/components/spots/SpotFiltersSheet.tsx` | Filters bottom sheet |
-| `src/components/spots/SpotSearchBar.tsx` | Floating search with chips |
+| `src/pages/UserProfile.tsx` | Public user profile page |
+| `src/pages/Search.tsx` | Global search with tabbed results |
+| `src/hooks/useUserProfile.ts` | Fetch user profile + sessions created |
+| `src/hooks/useFollow.ts` | Follow/unfollow users |
+| `src/components/search/PersonResultCard.tsx` | People search result card |
+| `src/components/search/SearchTabs.tsx` | Tab navigation for search |
 
 ## Files to Update
 
 | File | Changes |
 |------|---------|
-| `src/pages/Spots.tsx` | Complete rewrite to map-based UI |
-| `src/lib/i18n.ts` | Add spots-related translations |
-| `src/hooks/useSpots.ts` | Add filtering support |
+| `src/pages/Profile.tsx` | Add search_visibility toggle in settings |
+| `src/pages/CreateGroup.tsx` | Remove "Focus del gruppo" section |
+| `src/hooks/useSearch.ts` | Add search_visibility filter, add preview data |
+| `src/hooks/useSessions.ts` | Add group-only visibility logic |
+| `src/App.tsx` | Add new routes |
+| `src/lib/i18n.ts` | Add new translations |
 
 ---
 
-## UI/UX Details
+## Implementation Order
 
-**Map styling:**
-- Dark gradient background matching mockup
-- OpenStreetMap tiles (or dark theme tiles if available)
-- Custom circular markers with icons
+**Phase 1: Database + Privacy Foundation**
+- Add `search_visibility` to profiles
+- Add `verified` to groups
+- Update Profile page with visibility toggle
 
-**Bottom card:**
-- Glass-morphism style (semi-transparent white background)
-- Rounded corners (18px)
-- Shadow for elevation
-- Horizontal swipe for pagination (using existing carousel or custom)
+**Phase 2: User Profiles & Following**
+- Create public user profile page
+- Create follow hook
+- Add Follow button UI
 
-**Filters sheet:**
-- Slides up from bottom
-- Handle bar at top
-- Matches mockup exactly
-- Chips toggle on/off
+**Phase 3: Search Enhancement**
+- Create Search page with tabs
+- Create People result cards with previews
+- Filter by visibility
 
----
+**Phase 4: Session Visibility**
+- Implement group-only session logic
+- Add toggle in session creation
 
-## Technical Architecture
-
-```text
-Spots Page
-├── SpotsMap (full screen)
-│   └── Leaflet with custom markers
-├── SpotSearchBar (floating, z-index above map)
-│   ├── Search input
-│   ├── Filter chips
-│   └── Settings button
-├── SpotCard (bottom overlay)
-│   ├── Pagination indicator
-│   └── Card content
-└── SpotFiltersSheet (bottom sheet modal)
-    └── Filter sections
-```
-
----
-
-## Summary
-
-This plan transforms the Spots page from a placeholder grid into an immersive map-based discovery experience:
-
-1. **Full-screen map** with colored markers for each spot type
-2. **Floating search** with quick filter chips
-3. **Bottom card carousel** showing spot details
-4. **Filters sheet** for advanced filtering (V1: environment type only)
-
-The implementation follows existing patterns (vanilla Leaflet, Sheet component) and maintains the dark gradient aesthetic from the mockups.
-
+**Phase 5: Groups Polish**
+- Remove Focus tags from Create Group
+- Implement pending membership flow
+- Add verified badge logic
