@@ -45,7 +45,7 @@ export const CommunityHeader = () => {
         <Button 
           variant="primaryGradient" 
           size="pill"
-          onClick={() => navigate("/create")}
+          onClick={() => navigate("/create/session")}
           className="text-[13px] py-2 px-3.5"
         >
           {t("newSession")}
