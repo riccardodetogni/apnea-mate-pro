@@ -1,13 +1,16 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { BottomNav } from "@/components/layout/BottomNav";
-import SpotsMap from "@/components/spots/SpotsMap";
+import { AppLayout } from "@/components/layout/AppLayout";
 import SpotCard from "@/components/spots/SpotCard";
 import SpotFiltersSheet from "@/components/spots/SpotFiltersSheet";
-import SpotSearchBar from "@/components/spots/SpotSearchBar";
 import { useSpots } from "@/hooks/useSpots";
-import { Loader2 } from "lucide-react";
+import { useSpotFavorites } from "@/hooks/useSpotFavorites";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2, Search, SlidersHorizontal, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import SpotMap from "@/components/spots/SpotMap";
 
 type QuickFilterType = "all" | "sea" | "lake" | "pool" | "favorites";
 
@@ -19,9 +22,19 @@ const initialFilters = {
   amenities: [] as string[],
 };
 
+const filterOptions: { id: QuickFilterType; label: string; icon?: React.ReactNode }[] = [
+  { id: "all", label: "filterAll" },
+  { id: "sea", label: "filterSea" },
+  { id: "lake", label: "filterLake" },
+  { id: "pool", label: "filterPool" },
+  { id: "favorites", label: "filterFavorites", icon: <Heart className="w-3.5 h-3.5" /> },
+];
+
 const Spots = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { spots, loading, error } = useSpots();
+  const { favoriteIds, toggleFavorite, isFavorite } = useSpotFavorites();
 
   // State
   const [selectedSpotId, setSelectedSpotId] = useState<string | undefined>();
@@ -35,7 +48,9 @@ const Spots = () => {
     let result = spots;
 
     // Quick filter
-    if (quickFilter !== "all" && quickFilter !== "favorites") {
+    if (quickFilter === "favorites") {
+      result = result.filter((spot) => favoriteIds.includes(spot.id));
+    } else if (quickFilter !== "all") {
       result = result.filter((spot) => spot.environment_type === quickFilter);
     }
 
@@ -57,7 +72,7 @@ const Spots = () => {
     }
 
     return result;
-  }, [spots, quickFilter, advancedFilters.waterTypes, searchQuery]);
+  }, [spots, quickFilter, advancedFilters.waterTypes, searchQuery, favoriteIds]);
 
   // Current spot index for bottom card
   const currentSpotIndex = useMemo(() => {
@@ -97,6 +112,8 @@ const Spots = () => {
 
   const handleQuickFilterChange = useCallback((filter: QuickFilterType) => {
     setQuickFilter(filter);
+    // Reset selection when changing filters
+    setSelectedSpotId(undefined);
     // Reset advanced water types when using quick filter
     if (filter !== "all") {
       setAdvancedFilters((prev) => ({ ...prev, waterTypes: [] }));
@@ -116,64 +133,139 @@ const Spots = () => {
 
   const handleViewSpotDetails = useCallback(() => {
     if (currentSpot) {
-      // Future: navigate to spot details page
-      // navigate(`/spots/${currentSpot.id}`);
-      console.log("View details for:", currentSpot.name);
+      // Navigate to spot details (future: /spots/:id)
+      toast.info(`${t("viewSpotDetails")}: ${currentSpot.name}`, {
+        description: t("comingSoon"),
+      });
     }
   }, [currentSpot]);
 
   const handleAddFavorite = useCallback(() => {
-    if (currentSpot) {
-      // Future: toggle favorite
-      console.log("Toggle favorite for:", currentSpot.name);
+    if (!user) {
+      toast.error("Accedi per salvare i preferiti");
+      return;
     }
-  }, [currentSpot]);
+    if (currentSpot) {
+      toggleFavorite(currentSpot.id);
+      const isFav = isFavorite(currentSpot.id);
+      toast.success(isFav ? "Rimosso dai preferiti" : "Aggiunto ai preferiti");
+    }
+  }, [currentSpot, user, toggleFavorite, isFavorite]);
 
   // Loading state
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background p-4">
-        <p className="text-destructive mb-4">{t("error")}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="text-primary underline"
-        >
-          {t("retry")}
-        </button>
-      </div>
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="text-destructive mb-4">{t("error")}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-primary underline"
+          >
+            {t("retry")}
+          </button>
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="h-screen w-screen relative overflow-hidden">
-      {/* Full-screen map */}
-      <SpotsMap
-        spots={filteredSpots}
-        selectedSpotId={selectedSpotId}
-        onSelectSpot={handleSelectSpot}
-      />
+    <AppLayout>
+      {/* Header */}
+      <header className="mb-4">
+        <h1 className="text-2xl font-bold text-foreground">{t("discoverSpots")}</h1>
+      </header>
 
-      {/* Floating search bar */}
-      <SpotSearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        activeFilter={quickFilter}
-        onFilterChange={handleQuickFilterChange}
-        onOpenFilters={() => setShowFiltersSheet(true)}
-      />
+      {/* Search bar */}
+      <div className="flex gap-2 mb-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <Input
+            type="text"
+            placeholder={t("searchSpotPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-4 h-11 rounded-full"
+          />
+        </div>
+        <button
+          onClick={() => setShowFiltersSheet(true)}
+          className="w-11 h-11 rounded-full bg-card border flex items-center justify-center hover:bg-secondary transition-colors"
+        >
+          <SlidersHorizontal className="w-4 h-4 text-foreground" />
+        </button>
+      </div>
 
-      {/* Bottom spot card */}
+      {/* Filter chips */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3 mb-4">
+        {filterOptions.map((filter) => {
+          const isActive = quickFilter === filter.id;
+          return (
+            <button
+              key={filter.id}
+              onClick={() => handleQuickFilterChange(filter.id)}
+              className={`
+                flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors
+                ${isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card border text-foreground hover:border-primary/50"
+                }
+              `}
+            >
+              {filter.icon}
+              {t(filter.label as any)}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Map - contained */}
+      <div className="rounded-2xl overflow-hidden border mb-4">
+        <SpotMap
+          spots={filteredSpots}
+          selectedSpotId={selectedSpotId}
+          onSelectSpot={handleSelectSpot}
+        />
+      </div>
+
+      {/* Spot card navigation */}
       {currentSpot && (
-        <div className="absolute bottom-20 left-0 right-0 z-10">
+        <div className="bg-card rounded-2xl border p-4">
+          {/* Pagination controls */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={handlePreviousSpot}
+              disabled={currentSpotIndex === 0}
+              className="p-2 rounded-full hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-muted" />
+            </button>
+            
+            <span className="text-sm text-muted">
+              {currentSpotIndex + 1} {t("spotOf")} {filteredSpots.length}
+            </span>
+            
+            <button
+              onClick={handleNextSpot}
+              disabled={currentSpotIndex === filteredSpots.length - 1}
+              className="p-2 rounded-full hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-muted" />
+            </button>
+          </div>
+
+          {/* Spot info */}
           <SpotCard
             spot={currentSpot}
             currentIndex={currentSpotIndex}
@@ -182,16 +274,20 @@ const Spots = () => {
             onNext={handleNextSpot}
             onViewDetails={handleViewSpotDetails}
             onAddFavorite={handleAddFavorite}
+            isFavorite={isFavorite(currentSpot.id)}
+            hideNavigation
           />
         </div>
       )}
 
       {/* Empty state */}
       {filteredSpots.length === 0 && !loading && (
-        <div className="absolute bottom-20 left-0 right-0 z-10 mx-4 mb-4">
-          <div className="bg-card/95 backdrop-blur-xl rounded-[18px] border shadow-lg p-6 text-center">
-            <p className="text-muted">{t("noMoreSessions")}</p>
-          </div>
+        <div className="bg-card rounded-2xl border p-6 text-center">
+          <p className="text-muted">
+            {quickFilter === "favorites"
+              ? "Nessuno spot nei preferiti"
+              : "Nessuno spot trovato"}
+          </p>
         </div>
       )}
 
@@ -204,10 +300,7 @@ const Spots = () => {
         onReset={handleResetFilters}
         onApply={handleApplyFilters}
       />
-
-      {/* Bottom navigation */}
-      <BottomNav />
-    </div>
+    </AppLayout>
   );
 };
 

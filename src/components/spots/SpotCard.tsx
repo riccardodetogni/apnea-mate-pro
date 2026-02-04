@@ -11,6 +11,8 @@ interface SpotCardProps {
   onNext: () => void;
   onViewDetails?: () => void;
   onAddFavorite?: () => void;
+  isFavorite?: boolean;
+  hideNavigation?: boolean;
 }
 
 const getEnvironmentLabel = (type: string): string => {
@@ -51,31 +53,35 @@ const SpotCard = ({
   onNext,
   onViewDetails,
   onAddFavorite,
+  isFavorite = false,
+  hideNavigation = false,
 }: SpotCardProps) => {
   return (
-    <div className="bg-card/95 backdrop-blur-xl rounded-[18px] border shadow-lg p-4 mx-4 mb-4">
-      {/* Pagination indicator */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={onPrevious}
-          disabled={currentIndex === 0}
-          className="p-2 rounded-full hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 text-muted" />
-        </button>
-        
-        <span className="text-sm text-muted">
-          {currentIndex + 1} {t("spotOf")} {totalCount}
-        </span>
-        
-        <button
-          onClick={onNext}
-          disabled={currentIndex === totalCount - 1}
-          className="p-2 rounded-full hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronRight className="w-5 h-5 text-muted" />
-        </button>
-      </div>
+    <div>
+      {/* Navigation - only show if not hidden */}
+      {!hideNavigation && (
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={onPrevious}
+            disabled={currentIndex === 0}
+            className="p-2 rounded-full hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-muted" />
+          </button>
+          
+          <span className="text-sm text-muted">
+            {currentIndex + 1} {t("spotOf")} {totalCount}
+          </span>
+          
+          <button
+            onClick={onNext}
+            disabled={currentIndex === totalCount - 1}
+            className="p-2 rounded-full hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 text-muted" />
+          </button>
+        </div>
+      )}
 
       {/* Spot info */}
       <div className="flex gap-3">
@@ -121,12 +127,12 @@ const SpotCard = ({
           {t("viewSpotDetails")}
         </Button>
         <Button
-          variant="pillOutline"
+          variant={isFavorite ? "pill" : "pillOutline"}
           size="icon"
           className="w-10 h-10 rounded-full flex-shrink-0"
           onClick={onAddFavorite}
         >
-          <Heart className="w-4 h-4" />
+          <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
         </Button>
       </div>
     </div>
