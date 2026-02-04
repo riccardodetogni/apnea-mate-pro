@@ -1,44 +1,213 @@
-import { AppLayout } from "@/components/layout/AppLayout";
+import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/layout/BottomNav";
+import SpotsMap from "@/components/spots/SpotsMap";
+import SpotCard from "@/components/spots/SpotCard";
+import SpotFiltersSheet from "@/components/spots/SpotFiltersSheet";
+import SpotSearchBar from "@/components/spots/SpotSearchBar";
+import { useSpots } from "@/hooks/useSpots";
+import { Loader2 } from "lucide-react";
 import { t } from "@/lib/i18n";
-import { Waves, Mountain, Droplets, CircleDot } from "lucide-react";
 
-const spotTypes = [
-  { id: "sea", icon: Waves, label: "Mare", count: 24 },
-  { id: "lake", icon: Mountain, label: "Lago", count: 8 },
-  { id: "pool", icon: Droplets, label: "Piscina", count: 15 },
-  { id: "deepPool", icon: CircleDot, label: "Deep pool", count: 6 },
-];
+type QuickFilterType = "all" | "sea" | "lake" | "pool" | "favorites";
+
+const initialFilters = {
+  waterTypes: [] as string[],
+  depthRanges: [] as string[],
+  accessTypes: [] as string[],
+  safetyFeatures: [] as string[],
+  amenities: [] as string[],
+};
 
 const Spots = () => {
+  const navigate = useNavigate();
+  const { spots, loading, error } = useSpots();
+
+  // State
+  const [selectedSpotId, setSelectedSpotId] = useState<string | undefined>();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
+  const [showFiltersSheet, setShowFiltersSheet] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState(initialFilters);
+
+  // Filter spots based on search and filters
+  const filteredSpots = useMemo(() => {
+    let result = spots;
+
+    // Quick filter
+    if (quickFilter !== "all" && quickFilter !== "favorites") {
+      result = result.filter((spot) => spot.environment_type === quickFilter);
+    }
+
+    // Advanced water type filter (only if quick filter is "all")
+    if (quickFilter === "all" && advancedFilters.waterTypes.length > 0) {
+      result = result.filter((spot) =>
+        advancedFilters.waterTypes.includes(spot.environment_type)
+      );
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (spot) =>
+          spot.name.toLowerCase().includes(query) ||
+          spot.location.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [spots, quickFilter, advancedFilters.waterTypes, searchQuery]);
+
+  // Current spot index for bottom card
+  const currentSpotIndex = useMemo(() => {
+    if (!selectedSpotId) return 0;
+    const index = filteredSpots.findIndex((s) => s.id === selectedSpotId);
+    return index >= 0 ? index : 0;
+  }, [filteredSpots, selectedSpotId]);
+
+  // Current spot to display
+  const currentSpot = filteredSpots[currentSpotIndex];
+
+  // Auto-select first spot when filter changes
+  useMemo(() => {
+    if (filteredSpots.length > 0 && !selectedSpotId) {
+      setSelectedSpotId(filteredSpots[0].id);
+    } else if (filteredSpots.length > 0 && !filteredSpots.find((s) => s.id === selectedSpotId)) {
+      setSelectedSpotId(filteredSpots[0].id);
+    }
+  }, [filteredSpots, selectedSpotId]);
+
+  // Handlers
+  const handleSelectSpot = useCallback((spotId: string) => {
+    setSelectedSpotId(spotId);
+  }, []);
+
+  const handlePreviousSpot = useCallback(() => {
+    if (currentSpotIndex > 0) {
+      setSelectedSpotId(filteredSpots[currentSpotIndex - 1].id);
+    }
+  }, [currentSpotIndex, filteredSpots]);
+
+  const handleNextSpot = useCallback(() => {
+    if (currentSpotIndex < filteredSpots.length - 1) {
+      setSelectedSpotId(filteredSpots[currentSpotIndex + 1].id);
+    }
+  }, [currentSpotIndex, filteredSpots]);
+
+  const handleQuickFilterChange = useCallback((filter: QuickFilterType) => {
+    setQuickFilter(filter);
+    // Reset advanced water types when using quick filter
+    if (filter !== "all") {
+      setAdvancedFilters((prev) => ({ ...prev, waterTypes: [] }));
+    }
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
+    setAdvancedFilters(initialFilters);
+  }, []);
+
+  const handleApplyFilters = useCallback(() => {
+    // If water types selected in advanced, reset quick filter
+    if (advancedFilters.waterTypes.length > 0) {
+      setQuickFilter("all");
+    }
+  }, [advancedFilters.waterTypes]);
+
+  const handleViewSpotDetails = useCallback(() => {
+    if (currentSpot) {
+      // Future: navigate to spot details page
+      // navigate(`/spots/${currentSpot.id}`);
+      console.log("View details for:", currentSpot.name);
+    }
+  }, [currentSpot]);
+
+  const handleAddFavorite = useCallback(() => {
+    if (currentSpot) {
+      // Future: toggle favorite
+      console.log("Toggle favorite for:", currentSpot.name);
+    }
+  }, [currentSpot]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background p-4">
+        <p className="text-destructive mb-4">{t("error")}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="text-primary underline"
+        >
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <AppLayout>
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">{t("discoverSpots")}</h1>
-        <p className="text-sm text-muted mt-1">{t("filterByType")}</p>
-      </header>
+    <div className="h-screen w-screen relative overflow-hidden">
+      {/* Full-screen map */}
+      <SpotsMap
+        spots={filteredSpots}
+        selectedSpotId={selectedSpotId}
+        onSelectSpot={handleSelectSpot}
+      />
 
-      {/* Spot type filters */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {spotTypes.map(({ id, icon: Icon, label, count }) => (
-          <button
-            key={id}
-            className="p-4 rounded-2xl bg-card border hover:border-primary/50 transition-colors text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-              <Icon className="w-5 h-5 text-primary" />
-            </div>
-            <h3 className="font-semibold text-foreground">{label}</h3>
-            <p className="text-sm text-muted">{count} spot</p>
-          </button>
-        ))}
-      </div>
+      {/* Floating search bar */}
+      <SpotSearchBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        activeFilter={quickFilter}
+        onFilterChange={handleQuickFilterChange}
+        onOpenFilters={() => setShowFiltersSheet(true)}
+      />
 
-      {/* Placeholder for spot list */}
-      <div className="p-8 rounded-2xl border-2 border-dashed border-border text-center text-muted">
-        <Waves className="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p>La lista degli spot sarà disponibile presto</p>
-      </div>
-    </AppLayout>
+      {/* Bottom spot card */}
+      {currentSpot && (
+        <div className="absolute bottom-20 left-0 right-0 z-10">
+          <SpotCard
+            spot={currentSpot}
+            currentIndex={currentSpotIndex}
+            totalCount={filteredSpots.length}
+            onPrevious={handlePreviousSpot}
+            onNext={handleNextSpot}
+            onViewDetails={handleViewSpotDetails}
+            onAddFavorite={handleAddFavorite}
+          />
+        </div>
+      )}
+
+      {/* Empty state */}
+      {filteredSpots.length === 0 && !loading && (
+        <div className="absolute bottom-20 left-0 right-0 z-10 mx-4 mb-4">
+          <div className="bg-card/95 backdrop-blur-xl rounded-[18px] border shadow-lg p-6 text-center">
+            <p className="text-muted">{t("noMoreSessions")}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Filters sheet */}
+      <SpotFiltersSheet
+        open={showFiltersSheet}
+        onOpenChange={setShowFiltersSheet}
+        filters={advancedFilters}
+        onFiltersChange={setAdvancedFilters}
+        onReset={handleResetFilters}
+        onApply={handleApplyFilters}
+      />
+
+      {/* Bottom navigation */}
+      <BottomNav />
+    </div>
   );
 };
 
