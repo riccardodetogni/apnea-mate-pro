@@ -172,7 +172,10 @@ const Profile = () => {
             <span className="text-sm text-muted uppercase">{language}</span>
           </button>
 
-          <button className="w-full p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors border-b">
+          <button
+            onClick={() => navigate("/settings")}
+            className="w-full p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors border-b"
+          >
             <Settings className="w-5 h-5 text-muted" />
             <span className="text-foreground">{t("settings")}</span>
           </button>

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { t } from "@/lib/i18n";
-import { Calendar, Users, BarChart3 } from "lucide-react";
+import { Calendar, Users, BarChart3, ChevronLeft } from "lucide-react";
 
 const createOptions = [
   { 
@@ -46,8 +46,16 @@ const Create = () => {
 
   return (
     <AppLayout>
-      <header className="mb-8 text-center pt-4">
-        <h1 className="text-2xl font-bold text-foreground">{t("whatCreate")}</h1>
+      <header className="mb-6 pt-4">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-foreground">{t("whatCreate")}</h1>
+        </div>
       </header>
 
       <div className="space-y-3">

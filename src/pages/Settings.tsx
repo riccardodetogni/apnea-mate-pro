@@ -1,0 +1,145 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useProfile } from "@/hooks/useProfile";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/lib/i18n";
+import { ChevronLeft, Loader2, Save, User, MapPin } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const Settings = () => {
+  const navigate = useNavigate();
+  const { profile, loading, updateProfile } = useProfile();
+  const { language } = useLanguage();
+  const { toast } = useToast();
+  
+  const [name, setName] = useState(profile?.name || "");
+  const [location, setLocation] = useState(profile?.location || "");
+  const [saving, setSaving] = useState(false);
+
+  // Sync state when profile loads
+  useState(() => {
+    if (profile) {
+      setName(profile.name);
+      setLocation(profile.location || "");
+    }
+  });
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      toast({
+        title: language === "it" ? "Errore" : "Error",
+        description: language === "it" ? "Il nome è obbligatorio" : "Name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await updateProfile({
+      name: name.trim(),
+      location: location.trim() || null,
+    });
+    setSaving(false);
+
+    if (error) {
+      toast({
+        title: language === "it" ? "Errore" : "Error",
+        description: language === "it" ? "Impossibile salvare le modifiche" : "Failed to save changes",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: language === "it" ? "Salvato" : "Saved",
+        description: language === "it" ? "Profilo aggiornato con successo" : "Profile updated successfully",
+      });
+      navigate("/profile");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <h1 className="font-semibold text-lg">{t("settings")}</h1>
+      </header>
+
+      <div className="px-4 py-6 max-w-[430px] mx-auto space-y-6">
+        {/* Edit Profile Section */}
+        <div className="bg-card rounded-2xl border p-6">
+          <h2 className="text-lg font-semibold mb-4">
+            {language === "it" ? "Modifica Profilo" : "Edit Profile"}
+          </h2>
+
+          <div className="space-y-4">
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="flex items-center gap-2">
+                <User className="w-4 h-4 text-muted-foreground" />
+                {language === "it" ? "Nome" : "Name"}
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={language === "it" ? "Il tuo nome" : "Your name"}
+              />
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location" className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-muted-foreground" />
+                {language === "it" ? "Località" : "Location"}
+              </Label>
+              <Input
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={language === "it" ? "Es. Roma, Italia" : "E.g. Rome, Italy"}
+              />
+            </div>
+          </div>
+
+          <Button
+            className="w-full mt-6 gap-2"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {language === "it" ? "Salva modifiche" : "Save changes"}
+          </Button>
+        </div>
+
+        {/* Future settings sections can go here */}
+        <p className="text-sm text-muted text-center">
+          {language === "it" 
+            ? "Altre impostazioni saranno disponibili presto" 
+            : "More settings coming soon"}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Settings;
