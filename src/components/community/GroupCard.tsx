@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
+import { CheckCircle, Award } from "lucide-react";
 
 interface GroupCardProps {
   id?: string;
@@ -10,7 +11,10 @@ interface GroupCardProps {
   tags: string[];
   distanceKm?: number;
   isMember?: boolean;
+  isVerified?: boolean;
+  isInstructorLed?: boolean;
   onJoin?: () => void;
+  onViewProfile?: () => void;
 }
 
 export const GroupCard = ({
@@ -21,36 +25,69 @@ export const GroupCard = ({
   tags,
   distanceKm,
   isMember = false,
+  isVerified = false,
+  isInstructorLed = false,
   onJoin,
+  onViewProfile,
 }: GroupCardProps) => {
   return (
-    <div className="card-group min-w-[260px] animate-fade-in">
+    <div 
+      className="card-group min-w-[260px] animate-fade-in cursor-pointer hover:border-primary/30 transition-colors"
+      onClick={onViewProfile}
+    >
       {/* Top - avatar and info */}
       <div className="flex items-center gap-2.5">
         <div className="avatar-group">{initial}</div>
-        <div>
-          <h3 className="text-[15px] font-semibold text-foreground">{name}</h3>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-[15px] font-semibold text-foreground truncate">{name}</h3>
+            {isVerified && (
+              <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
+            )}
+          </div>
           <p className="text-[13px] text-muted">{memberCount} {t("members")} · {activityType}</p>
         </div>
       </div>
 
+      {/* Badges */}
+      {(isVerified || isInstructorLed) && (
+        <div className="flex flex-wrap gap-1.5">
+          {isVerified && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-medium">
+              <CheckCircle className="w-3 h-3" />
+              {t("verifiedClub")}
+            </span>
+          )}
+          {isInstructorLed && !isVerified && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
+              <Award className="w-3 h-3" />
+              {t("instructor")}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Tags */}
-      <div className="flex flex-wrap gap-1.5">
-        {tags.map((tag, index) => (
-          <span key={index} className="badge-tag">{tag}</span>
-        ))}
-      </div>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((tag, index) => (
+            <span key={index} className="badge-tag">{tag}</span>
+          ))}
+        </div>
+      )}
 
       {/* Action button */}
-      {isMember ? (
-        <Button variant="outline" className="mt-1.5" disabled>
-          Membro
-        </Button>
-      ) : onJoin ? (
-        <Button variant="pill" className="mt-1.5" onClick={onJoin}>
-          {t("joinGroup")}
-        </Button>
-      ) : null}
+      <div className="flex gap-2 mt-1.5" onClick={e => e.stopPropagation()}>
+        {isMember ? (
+          <Button variant="outline" size="sm" disabled>
+            Membro
+          </Button>
+        ) : onJoin ? (
+          <Button variant="pill" size="sm" onClick={onJoin}>
+            {t("joinGroup")}
+          </Button>
+        ) : null}
+      </div>
 
       {/* Distance */}
       {distanceKm !== undefined && (
