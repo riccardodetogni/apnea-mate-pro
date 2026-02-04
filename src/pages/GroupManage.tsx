@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGroupDetails, GroupMember } from "@/hooks/useGroupDetails";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -13,7 +16,9 @@ import {
   Shield, 
   User,
   MoreVertical,
-  UserMinus
+  UserMinus,
+  Save,
+  Settings
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -24,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
 
 const GroupManage = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,13 +44,47 @@ const GroupManage = () => {
     approveMember, 
     rejectMember, 
     promoteMember, 
-    removeMember 
+    removeMember,
+    updateGroup
   } = useGroupDetails(id);
 
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [groupName, setGroupName] = useState(group?.name || "");
+  const [groupDescription, setGroupDescription] = useState(group?.description || "");
+  const [groupAvatarUrl, setGroupAvatarUrl] = useState(group?.avatar_url || null);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Sync group settings when loaded
+  useState(() => {
+    if (group) {
+      setGroupName(group.name);
+      setGroupDescription(group.description || "");
+      setGroupAvatarUrl(group.avatar_url);
+    }
+  });
 
   const pendingMembers = members.filter(m => m.status === 'pending');
   const approvedMembers = members.filter(m => m.status === 'approved');
+
+  const handleSaveSettings = async () => {
+    if (!groupName.trim()) {
+      toast({ title: "Errore", description: "Il nome del gruppo è obbligatorio", variant: "destructive" });
+      return;
+    }
+
+    setSavingSettings(true);
+    const { error } = await updateGroup({
+      name: groupName.trim(),
+      description: groupDescription.trim() || null,
+    });
+    setSavingSettings(false);
+
+    if (error) {
+      toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Impostazioni salvate!" });
+    }
+  };
 
   const handleApprove = async (userId: string) => {
     setProcessingIds(prev => new Set(prev).add(userId));
@@ -294,7 +334,7 @@ const GroupManage = () => {
 
       <div className="px-4 py-4 max-w-[430px] mx-auto">
         <Tabs defaultValue={pendingMembers.length > 0 ? "pending" : "members"}>
-          <TabsList className="w-full grid grid-cols-2 mb-4">
+          <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="pending" className="relative">
               Richieste
               {pendingMembers.length > 0 && (
@@ -305,6 +345,10 @@ const GroupManage = () => {
             </TabsTrigger>
             <TabsTrigger value="members">
               Membri ({approvedMembers.length})
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="w-4 h-4 mr-1" />
+              Impostazioni
             </TabsTrigger>
           </TabsList>
 
@@ -337,6 +381,61 @@ const GroupManage = () => {
                   <MemberCard key={member.id} member={member} />
                 ))
             )}
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4">
+            <div className="bg-card rounded-xl border p-4">
+              {/* Group Avatar Upload */}
+              <div className="flex flex-col items-center gap-2 mb-4">
+                <AvatarUpload
+                  currentUrl={groupAvatarUrl}
+                  name={group?.name || "G"}
+                  uploadPath={`groups/${id}`}
+                  onUpload={async (url) => {
+                    setGroupAvatarUrl(url);
+                    await updateGroup({ avatar_url: url });
+                  }}
+                  size="lg"
+                />
+                <p className="text-xs text-muted">Tocca per cambiare foto</p>
+              </div>
+
+              {/* Group Name */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="groupName">Nome del gruppo</Label>
+                <Input
+                  id="groupName"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Nome del gruppo"
+                />
+              </div>
+
+              {/* Group Description */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="groupDesc">Descrizione</Label>
+                <Textarea
+                  id="groupDesc"
+                  value={groupDescription}
+                  onChange={(e) => setGroupDescription(e.target.value)}
+                  placeholder="Descrivi il tuo gruppo..."
+                  rows={3}
+                />
+              </div>
+
+              <Button
+                className="w-full gap-2"
+                onClick={handleSaveSettings}
+                disabled={savingSettings}
+              >
+                {savingSettings ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Salva impostazioni
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

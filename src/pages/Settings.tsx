@@ -1,31 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProfile } from "@/hooks/useProfile";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Save, User, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
   const { language } = useLanguage();
   const { toast } = useToast();
   
   const [name, setName] = useState(profile?.name || "");
   const [location, setLocation] = useState(profile?.location || "");
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || null);
   const [saving, setSaving] = useState(false);
 
   // Sync state when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setName(profile.name);
       setLocation(profile.location || "");
+      setAvatarUrl(profile.avatar_url);
     }
-  });
+  }, [profile]);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -88,6 +93,23 @@ const Settings = () => {
           </h2>
 
           <div className="space-y-4">
+            {/* Avatar Upload */}
+            <div className="flex flex-col items-center gap-2 mb-2">
+              <AvatarUpload
+                currentUrl={avatarUrl}
+                name={profile?.name || "U"}
+                uploadPath={user?.id || ""}
+                onUpload={async (url) => {
+                  setAvatarUrl(url);
+                  await updateProfile({ avatar_url: url });
+                }}
+                size="lg"
+              />
+              <p className="text-xs text-muted">
+                {language === "it" ? "Tocca per cambiare foto" : "Tap to change photo"}
+              </p>
+            </div>
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="flex items-center gap-2">
