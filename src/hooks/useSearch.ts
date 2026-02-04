@@ -76,10 +76,11 @@ export const useSearch = () => {
         .or(`name.ilike.${searchPattern},location.ilike.${searchPattern}`)
         .limit(5);
 
-      // Search profiles
+      // Search profiles (only those with search_visibility = true)
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("id, name")
+        .select("id, name, user_id")
+        .eq("search_visibility", true)
         .ilike("name", searchPattern)
         .limit(5);
 

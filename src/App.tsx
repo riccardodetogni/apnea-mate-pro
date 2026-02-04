@@ -19,6 +19,8 @@ import GroupDetails from "./pages/GroupDetails";
 import CreateGroup from "./pages/CreateGroup";
 import Training from "./pages/Training";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
+import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +50,8 @@ const App = () => (
               <Route path="/create/group" element={<CreateGroup />} />
               <Route path="/training" element={<Training />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/users/:id" element={<UserProfile />} />
+              <Route path="/search" element={<Search />} />
               <Route path="/admin" element={<Admin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
