@@ -438,6 +438,7 @@ const Community = () => {
                 key={group.id}
                 {...group}
                 onJoin={() => handleJoinGroup(group)}
+                onViewProfile={() => handleGroupClick(group.id)}
               />
             ))
           ) : groups.length > 0 ? (
