@@ -21,6 +21,7 @@ import GroupManage from "./pages/GroupManage";
 import CreateGroup from "./pages/CreateGroup";
 import Training from "./pages/Training";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/create/group" element={<CreateGroup />} />
               <Route path="/training" element={<Training />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/users/:id" element={<UserProfile />} />
               <Route path="/search" element={<Search />} />
               <Route path="/admin" element={<Admin />} />
