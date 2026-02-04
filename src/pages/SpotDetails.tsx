@@ -5,12 +5,10 @@ import { useSpotFavorites } from "@/hooks/useSpotFavorites";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SpotMiniMap } from "@/components/spots/SpotMiniMap";
 import { t } from "@/lib/i18n";
 import { ArrowLeft, Heart, Navigation, MapPin, Waves, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { format, isToday, isTomorrow } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -34,65 +32,6 @@ const SpotDetails = () => {
   const { user } = useAuth();
   const { spot, sessions, loading, error } = useSpotDetails(id);
   const { isFavorite, toggleFavorite } = useSpotFavorites();
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-
-  // Initialize mini map
-  useEffect(() => {
-    if (!spot?.latitude || !spot?.longitude || !mapRef.current) return;
-
-    // Cleanup previous map
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
-
-    const map = L.map(mapRef.current, {
-      zoomControl: false,
-      attributionControl: false,
-      dragging: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      touchZoom: false,
-    }).setView([spot.latitude, spot.longitude], 13);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-    // Custom marker
-    const markerColor = spot.environment_type === "sea" || spot.environment_type === "lake" 
-      ? "#3b82f6" 
-      : spot.environment_type === "deep_pool" 
-        ? "#22c55e" 
-        : "#f97316";
-
-    const customIcon = L.divIcon({
-      className: "custom-spot-marker",
-      html: `<div style="
-        width: 32px;
-        height: 32px;
-        background: ${markerColor};
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-      ">${environmentIcons[spot.environment_type] || "📍"}</div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-
-    L.marker([spot.latitude, spot.longitude], { icon: customIcon }).addTo(map);
-    mapInstanceRef.current = map;
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [spot]);
 
   const handleFavoriteToggle = () => {
     if (!user) {
@@ -198,7 +137,7 @@ const SpotDetails = () => {
       {/* Mini map */}
       {spot.latitude && spot.longitude && (
         <div className="rounded-2xl overflow-hidden border mb-4">
-          <div ref={mapRef} className="h-40 w-full" />
+          <SpotMiniMap latitude={spot.latitude} longitude={spot.longitude} className="h-40 w-full" />
         </div>
       )}
 
