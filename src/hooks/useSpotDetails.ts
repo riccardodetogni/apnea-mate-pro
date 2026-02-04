@@ -51,7 +51,13 @@ export const useSpotDetails = (spotId: string | undefined) => {
         .single();
 
       if (spotError) throw spotError;
-      setSpot(spotData);
+      
+      // Convert numeric strings to numbers for coordinates
+      setSpot({
+        ...spotData,
+        latitude: spotData.latitude ? Number(spotData.latitude) : null,
+        longitude: spotData.longitude ? Number(spotData.longitude) : null,
+      });
 
       // Fetch upcoming sessions at this spot
       const { data: sessionsData, error: sessionsError } = await supabase
