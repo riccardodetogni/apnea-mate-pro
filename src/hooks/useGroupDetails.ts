@@ -6,6 +6,7 @@ export interface GroupMember {
   id: string;
   user_id: string;
   role: string;
+  status: string;
   joined_at: string;
   profile: {
     name: string;
@@ -36,12 +37,15 @@ export interface GroupDetails {
   is_public: boolean;
   requires_approval: boolean;
   group_type: string;
+  verified: boolean;
   created_by: string;
   created_at: string;
   tags: string[];
   member_count: number;
+  pending_count: number;
   is_member: boolean;
-  is_admin: boolean;
+  is_pending: boolean;
+  is_owner: boolean;
   creator_is_instructor: boolean;
 }
 
@@ -78,10 +82,13 @@ export const useGroupDetails = (groupId: string | undefined) => {
       // Fetch members with profiles
       const { data: membersData } = await supabase
         .from("group_members")
-        .select("id, user_id, role, joined_at")
+        .select("id, user_id, role, status, joined_at")
         .eq("group_id", groupId);
 
       let memberProfiles: GroupMember[] = [];
+      let approvedCount = 0;
+      let pendingCount = 0;
+      
       if (membersData && membersData.length > 0) {
         const userIds = membersData.map(m => m.user_id);
         const { data: profilesData } = await supabase
@@ -91,10 +98,14 @@ export const useGroupDetails = (groupId: string | undefined) => {
 
         const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
         
-        memberProfiles = membersData.map(m => ({
-          ...m,
-          profile: profileMap.get(m.user_id) || null,
-        }));
+        memberProfiles = membersData.map(m => {
+          if (m.status === 'approved') approvedCount++;
+          if (m.status === 'pending') pendingCount++;
+          return {
+            ...m,
+            profile: profileMap.get(m.user_id) || null,
+          };
+        });
       }
 
       // Fetch upcoming sessions linked to this group
@@ -145,15 +156,21 @@ export const useGroupDetails = (groupId: string | undefined) => {
         .in("role", ["instructor", "admin"])
         .limit(1);
 
-      const isUserMember = membersData?.some(m => m.user_id === user?.id) || false;
-      const isUserAdmin = membersData?.some(m => m.user_id === user?.id && m.role === "admin") || false;
+      const userMembership = membersData?.find(m => m.user_id === user?.id);
+      const isUserMember = userMembership?.status === 'approved';
+      const isUserPending = userMembership?.status === 'pending';
+      const isUserOwner = userMembership?.role === 'owner' || 
+                          userMembership?.role === 'admin' || 
+                          groupData.created_by === user?.id;
 
       setGroup({
         ...groupData,
         tags: tagsData?.map(t => t.tag) || [],
-        member_count: membersData?.length || 0,
+        member_count: approvedCount,
+        pending_count: pendingCount,
         is_member: isUserMember,
-        is_admin: isUserAdmin,
+        is_pending: isUserPending,
+        is_owner: isUserOwner,
         creator_is_instructor: (creatorRole && creatorRole.length > 0) || false,
       });
 
@@ -172,7 +189,10 @@ export const useGroupDetails = (groupId: string | undefined) => {
   }, [fetchGroupDetails]);
 
   const joinGroup = async () => {
-    if (!user || !groupId) return { error: new Error("Not authenticated") };
+    if (!user || !groupId) return { error: new Error("Not authenticated"), isPending: false };
+
+    // Determine status based on requires_approval
+    const status = group?.requires_approval ? 'pending' : 'approved';
 
     const { error } = await supabase
       .from("group_members")
@@ -180,13 +200,14 @@ export const useGroupDetails = (groupId: string | undefined) => {
         group_id: groupId,
         user_id: user.id,
         role: "member",
+        status,
       });
 
     if (!error) {
       await fetchGroupDetails();
     }
 
-    return { error };
+    return { error, isPending: status === 'pending' };
   };
 
   const leaveGroup = async () => {
@@ -205,6 +226,74 @@ export const useGroupDetails = (groupId: string | undefined) => {
     return { error };
   };
 
+  // Approve a pending member
+  const approveMember = async (userId: string) => {
+    if (!user || !groupId) return { error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("group_members")
+      .update({ status: 'approved' })
+      .eq("group_id", groupId)
+      .eq("user_id", userId);
+
+    if (!error) {
+      await fetchGroupDetails();
+    }
+
+    return { error };
+  };
+
+  // Reject a pending member
+  const rejectMember = async (userId: string) => {
+    if (!user || !groupId) return { error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("group_id", groupId)
+      .eq("user_id", userId);
+
+    if (!error) {
+      await fetchGroupDetails();
+    }
+
+    return { error };
+  };
+
+  // Promote member to owner
+  const promoteMember = async (userId: string, newRole: 'owner' | 'admin' | 'member') => {
+    if (!user || !groupId) return { error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("group_members")
+      .update({ role: newRole })
+      .eq("group_id", groupId)
+      .eq("user_id", userId);
+
+    if (!error) {
+      await fetchGroupDetails();
+    }
+
+    return { error };
+  };
+
+  // Remove a member
+  const removeMember = async (userId: string) => {
+    if (!user || !groupId) return { error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("group_id", groupId)
+      .eq("user_id", userId);
+
+    if (!error) {
+      await fetchGroupDetails();
+    }
+
+    return { error };
+  };
+
   return {
     group,
     members,
@@ -214,5 +303,9 @@ export const useGroupDetails = (groupId: string | undefined) => {
     refetch: fetchGroupDetails,
     joinGroup,
     leaveGroup,
+    approveMember,
+    rejectMember,
+    promoteMember,
+    removeMember,
   };
 };

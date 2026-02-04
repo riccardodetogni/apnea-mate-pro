@@ -45,16 +45,18 @@
 
 ---
 
-## 🔲 Remaining Work (Phase 5)
+## ✅ Completed (Phase 5)
 
-### Phase 5: Groups Polish
-- [ ] Implement pending membership flow for `requires_approval` groups
-  - Create `group_membership_requests` table or add `status` column to `group_members`
-  - Show pending state to users
-  - Admin UI to approve/reject requests
-- [ ] Add verified badge logic in group cards
-  - Differentiate "Verified club" / "Scuola partner" badges
-- [ ] Optional: Group follow system (secondary action)
+### Groups Polish
+- ✅ Added `status` column to `group_members` (pending/approved/rejected)
+- ✅ Created `is_group_owner()` security definer function
+- ✅ Updated RLS policies for pending membership and owner management
+- ✅ Group owners can approve/reject pending members
+- ✅ Group owners can promote members to owner/admin roles
+- ✅ Group owners can remove members
+- ✅ Created `/groups/:id/manage` page for member management
+- ✅ Verified badge differentiation: "Verified club" vs "Scuola partner"
+- ✅ Pending state shown in group cards and detail pages
 
 ---
 
@@ -64,6 +66,7 @@
 |------|-------------|
 | `src/pages/UserProfile.tsx` | Public user profile page |
 | `src/pages/Search.tsx` | Global search with tabbed results |
+| `src/pages/GroupManage.tsx` | Group member management for owners |
 | `src/hooks/useUserProfile.ts` | Fetch user profile + sessions created |
 | `src/hooks/useFollow.ts` | Follow/unfollow users |
 
@@ -73,6 +76,11 @@
 |------|---------|
 | `src/pages/Profile.tsx` | Added search_visibility toggle |
 | `src/pages/CreateGroup.tsx` | Removed Focus tags section |
+| `src/pages/Groups.tsx` | Added isPending, isVerified, groupType props |
+| `src/pages/GroupDetails.tsx` | Pending state, owner management link |
 | `src/hooks/useProfile.ts` | Added search_visibility to Profile interface |
 | `src/hooks/useSearch.ts` | Filter profiles by search_visibility |
-| `src/App.tsx` | Added /users/:id and /search routes |
+| `src/hooks/useGroups.ts` | Added isPending, isVerified, status handling |
+| `src/hooks/useGroupDetails.ts` | Added owner/pending management functions |
+| `src/components/community/GroupCard.tsx` | Verified badge differentiation, pending state |
+| `src/App.tsx` | Added /users/:id, /search, /groups/:id/manage routes |

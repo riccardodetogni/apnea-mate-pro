@@ -16,6 +16,7 @@ import SessionDetails from "./pages/SessionDetails";
 import MySessions from "./pages/MySessions";
 import Groups from "./pages/Groups";
 import GroupDetails from "./pages/GroupDetails";
+import GroupManage from "./pages/GroupManage";
 import CreateGroup from "./pages/CreateGroup";
 import Training from "./pages/Training";
 import Profile from "./pages/Profile";
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/my-sessions" element={<MySessions />} />
               <Route path="/groups" element={<Groups />} />
               <Route path="/groups/:id" element={<GroupDetails />} />
+              <Route path="/groups/:id/manage" element={<GroupManage />} />
               <Route path="/create/group" element={<CreateGroup />} />
               <Route path="/training" element={<Training />} />
               <Route path="/profile" element={<Profile />} />
