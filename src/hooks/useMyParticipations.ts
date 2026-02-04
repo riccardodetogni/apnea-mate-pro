@@ -27,9 +27,26 @@ export interface MyParticipation {
   confirmed_count?: number;
 }
 
+export interface MyCreatedSession {
+  id: string;
+  title: string;
+  date_time: string;
+  duration_minutes: number;
+  level: string;
+  session_type: string;
+  max_participants: number;
+  spot?: {
+    name: string;
+    environment_type: string;
+  } | null;
+  pending_count: number;
+  confirmed_count: number;
+}
+
 export const useMyParticipations = () => {
   const { user } = useAuth();
   const [participations, setParticipations] = useState<MyParticipation[]>([]);
+  const [createdSessions, setCreatedSessions] = useState<MyCreatedSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -37,6 +54,7 @@ export const useMyParticipations = () => {
   const fetchParticipations = useCallback(async () => {
     if (!user) {
       setParticipations([]);
+      setCreatedSessions([]);
       setLoading(false);
       return;
     }
@@ -45,6 +63,7 @@ export const useMyParticipations = () => {
       setLoading(true);
       setError(null);
 
+      // Fetch participations
       const { data, error: fetchError } = await supabase
         .from("session_participants")
         .select(`
@@ -70,25 +89,53 @@ export const useMyParticipations = () => {
 
       if (fetchError) throw fetchError;
 
-      // Get session IDs to fetch confirmed counts
-      const sessionIds = data?.map(p => p.session_id) || [];
-      let confirmedCounts: Record<string, number> = {};
+      // Fetch sessions created by user (future sessions only)
+      const { data: createdData, error: createdError } = await supabase
+        .from("sessions")
+        .select(`
+          id,
+          title,
+          date_time,
+          duration_minutes,
+          level,
+          session_type,
+          max_participants,
+          spot:spots (name, environment_type)
+        `)
+        .eq("creator_id", user.id)
+        .eq("status", "active")
+        .gte("date_time", new Date().toISOString())
+        .order("date_time", { ascending: true });
 
-      if (sessionIds.length > 0) {
+      if (createdError) throw createdError;
+
+      // Get all session IDs (participations + created)
+      const participationSessionIds = data?.map(p => p.session_id) || [];
+      const createdSessionIds = createdData?.map(s => s.id) || [];
+      const allSessionIds = [...new Set([...participationSessionIds, ...createdSessionIds])];
+
+      let confirmedCounts: Record<string, number> = {};
+      let pendingCounts: Record<string, number> = {};
+
+      if (allSessionIds.length > 0) {
         const { data: countData } = await supabase
           .from("session_participants")
-          .select("session_id")
-          .in("session_id", sessionIds)
-          .eq("status", "confirmed");
+          .select("session_id, status")
+          .in("session_id", allSessionIds)
+          .in("status", ["pending", "confirmed"]);
 
         if (countData) {
           countData.forEach(c => {
-            confirmedCounts[c.session_id] = (confirmedCounts[c.session_id] || 0) + 1;
+            if (c.status === "confirmed") {
+              confirmedCounts[c.session_id] = (confirmedCounts[c.session_id] || 0) + 1;
+            } else if (c.status === "pending") {
+              pendingCounts[c.session_id] = (pendingCounts[c.session_id] || 0) + 1;
+            }
           });
         }
       }
 
-      // Get creator profiles
+      // Get creator profiles for participations
       const creatorIds = [...new Set(data?.map(p => (p.session as any)?.creator_id).filter(Boolean) || [])];
       let creatorProfiles: Record<string, { name: string }> = {};
 
@@ -105,7 +152,7 @@ export const useMyParticipations = () => {
         }
       }
 
-      const enriched = (data || []).map(p => {
+      const enrichedParticipations = (data || []).map(p => {
         const session = p.session as any;
         return {
           ...p,
@@ -117,7 +164,21 @@ export const useMyParticipations = () => {
         };
       }) as MyParticipation[];
 
-      setParticipations(enriched);
+      const enrichedCreated: MyCreatedSession[] = (createdData || []).map(s => ({
+        id: s.id,
+        title: s.title,
+        date_time: s.date_time,
+        duration_minutes: s.duration_minutes,
+        level: s.level,
+        session_type: s.session_type,
+        max_participants: s.max_participants,
+        spot: s.spot as any,
+        pending_count: pendingCounts[s.id] || 0,
+        confirmed_count: confirmedCounts[s.id] || 0,
+      }));
+
+      setParticipations(enrichedParticipations);
+      setCreatedSessions(enrichedCreated);
     } catch (err) {
       console.error("Error fetching participations:", err);
       setError(err as Error);
@@ -138,7 +199,18 @@ export const useMyParticipations = () => {
             event: "*",
             schema: "public",
             table: "session_participants",
-            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            fetchParticipations();
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "sessions",
+            filter: `creator_id=eq.${user.id}`,
           },
           () => {
             fetchParticipations();
@@ -169,10 +241,17 @@ export const useMyParticipations = () => {
   const pendingParticipations = participations.filter(p => p.status === "pending");
   const confirmedParticipations = participations.filter(p => p.status === "confirmed");
 
+  // Separate created sessions by pending requests
+  const createdWithPendingRequests = createdSessions.filter(s => s.pending_count > 0);
+  const createdWithoutPendingRequests = createdSessions.filter(s => s.pending_count === 0);
+
   return {
     participations,
     pendingParticipations,
     confirmedParticipations,
+    createdSessions,
+    createdWithPendingRequests,
+    createdWithoutPendingRequests,
     loading,
     error,
     refetch: fetchParticipations,

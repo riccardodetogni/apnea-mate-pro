@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMyParticipations } from "@/hooks/useMyParticipations";
+import { useMyParticipations, MyCreatedSession } from "@/hooks/useMyParticipations";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import {
   Check,
   Loader2,
   Plus,
+  Crown,
+  Bell,
 } from "lucide-react";
 
 const formatDate = (dateTime: string): string => {
@@ -42,7 +44,14 @@ const mapSessionType = (type: string): string => {
 const MySessions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { pendingParticipations, confirmedParticipations, loading, cancelParticipation } = useMyParticipations();
+  const { 
+    pendingParticipations, 
+    confirmedParticipations, 
+    createdWithPendingRequests,
+    createdWithoutPendingRequests,
+    loading, 
+    cancelParticipation 
+  } = useMyParticipations();
 
   useEffect(() => {
     if (!user && !loading) {
@@ -97,6 +106,61 @@ const MySessions = () => {
     );
   };
 
+  const CreatedSessionCard = ({ session }: { session: MyCreatedSession }) => {
+    return (
+      <button
+        onClick={() => navigate(`/sessions/${session.id}`)}
+        className="w-full bg-card rounded-2xl border p-4 text-left hover:border-primary/30 transition-colors"
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">{session.title}</h3>
+            {session.spot && (
+              <p className="text-sm text-muted flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3 h-3" />
+                {session.spot.name}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {session.pending_count > 0 && (
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                <Bell className="w-3 h-3 mr-1" />
+                {session.pending_count}
+              </Badge>
+            )}
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+              <Crown className="w-3 h-3 mr-1" />
+              Creata da te
+            </Badge>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-sm text-muted">
+          <span className="flex items-center gap-1">
+            <Calendar className="w-3.5 h-3.5" />
+            {formatDate(session.date_time)}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            {session.duration_minutes}min
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between mt-3 pt-3 border-t">
+          <span className="text-xs text-muted">
+            {mapSessionType(session.session_type)} · {session.confirmed_count}/{session.max_participants} confermati
+          </span>
+          {session.pending_count > 0 && (
+            <span className="text-xs text-warning font-medium">
+              {session.pending_count} richieste in attesa
+            </span>
+          )}
+        </div>
+      </button>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -114,7 +178,10 @@ const MySessions = () => {
     );
   }
 
-  const hasAny = pendingParticipations.length > 0 || confirmedParticipations.length > 0;
+  const hasAny = pendingParticipations.length > 0 || 
+                 confirmedParticipations.length > 0 ||
+                 createdWithPendingRequests.length > 0 ||
+                 createdWithoutPendingRequests.length > 0;
 
   return (
     <div className="min-h-screen bg-background pb-6">
@@ -142,7 +209,22 @@ const MySessions = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Pending */}
+            {/* Created sessions with pending requests (priority) */}
+            {createdWithPendingRequests.length > 0 && (
+              <div>
+                <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-warning" />
+                  Richieste in attesa ({createdWithPendingRequests.reduce((acc, s) => acc + s.pending_count, 0)})
+                </h2>
+                <div className="space-y-3">
+                  {createdWithPendingRequests.map(s => (
+                    <CreatedSessionCard key={s.id} session={s} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pending participations */}
             {pendingParticipations.length > 0 && (
               <div>
                 <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
@@ -157,7 +239,7 @@ const MySessions = () => {
               </div>
             )}
 
-            {/* Confirmed */}
+            {/* Confirmed participations */}
             {confirmedParticipations.length > 0 && (
               <div>
                 <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
@@ -167,6 +249,21 @@ const MySessions = () => {
                 <div className="space-y-3">
                   {confirmedParticipations.map(p => (
                     <SessionCard key={p.id} participation={p} isPending={false} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Created sessions without pending requests */}
+            {createdWithoutPendingRequests.length > 0 && (
+              <div>
+                <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-primary" />
+                  Create da te ({createdWithoutPendingRequests.length})
+                </h2>
+                <div className="space-y-3">
+                  {createdWithoutPendingRequests.map(s => (
+                    <CreatedSessionCard key={s.id} session={s} />
                   ))}
                 </div>
               </div>

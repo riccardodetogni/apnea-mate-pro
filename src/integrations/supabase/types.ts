@@ -255,6 +255,7 @@ export type Database = {
           date_time: string
           description: string | null
           duration_minutes: number
+          group_id: string | null
           id: string
           is_public: boolean
           level: string
@@ -271,6 +272,7 @@ export type Database = {
           date_time: string
           description?: string | null
           duration_minutes?: number
+          group_id?: string | null
           id?: string
           is_public?: boolean
           level: string
@@ -287,6 +289,7 @@ export type Database = {
           date_time?: string
           description?: string | null
           duration_minutes?: number
+          group_id?: string | null
           id?: string
           is_public?: boolean
           level?: string
@@ -298,6 +301,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sessions_spot_id_fkey"
             columns: ["spot_id"]
