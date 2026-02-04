@@ -175,6 +175,15 @@ const translations = {
     viewSpotDetails: "Vedi dettagli spot",
     addToFavorites: "Aggiungi ai preferiti",
     spotOf: "di",
+    spotDetails: "Dettagli spot",
+    sessionsAtSpot: "Sessioni in questo spot",
+    noSessionsAtSpot: "Nessuna sessione programmata qui",
+    getDirections: "Indicazioni",
+    groupMembersTitle: "Membri",
+    searchMembers: "Cerca membri...",
+    ownerBadge: "Owner",
+    adminBadge: "Admin",
+    memberBadge: "Membro",
     comingSoon: "Prossimamente",
     
     // Groups
@@ -413,6 +422,15 @@ const translations = {
     viewSpotDetails: "View spot details",
     addToFavorites: "Add to favorites",
     spotOf: "of",
+    spotDetails: "Spot details",
+    sessionsAtSpot: "Sessions at this spot",
+    noSessionsAtSpot: "No sessions scheduled here",
+    getDirections: "Get directions",
+    groupMembersTitle: "Members",
+    searchMembers: "Search members...",
+    ownerBadge: "Owner",
+    adminBadge: "Admin",
+    memberBadge: "Member",
     comingSoon: "Coming soon",
     
     // Groups

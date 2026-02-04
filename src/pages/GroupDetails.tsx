@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useGroupDetails } from "@/hooks/useGroupDetails";
 import { GroupHeroCard } from "@/components/groups/GroupHeroCard";
 import { GroupMembersSection } from "@/components/groups/GroupMembersSection";
+import { GroupMembersSheet } from "@/components/groups/GroupMembersSheet";
 import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
@@ -16,6 +18,10 @@ const GroupDetails = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { group, members, sessions, loading, error, joinGroup, leaveGroup, approveMember, rejectMember } = useGroupDetails(id);
+  const [showMembersSheet, setShowMembersSheet] = useState(false);
+
+  // Filter approved members for display
+  const approvedMembers = members.filter(m => m.status === 'approved');
 
   const handleShare = async () => {
     try {
@@ -175,11 +181,20 @@ const GroupDetails = () => {
       {/* Members */}
       <div className="mt-6 pb-6">
         <GroupMembersSection
-          members={members}
+          members={approvedMembers}
           totalCount={group.member_count}
-          onViewAll={() => {/* TODO: view all members */}}
+          onViewAll={() => setShowMembersSheet(true)}
         />
       </div>
+
+      {/* Members Sheet */}
+      <GroupMembersSheet
+        open={showMembersSheet}
+        onOpenChange={setShowMembersSheet}
+        members={approvedMembers}
+        totalCount={group.member_count}
+        ownerId={group.created_by}
+      />
     </AppLayout>
   );
 };
