@@ -55,6 +55,7 @@ const CreateSession = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [creatorJoins, setCreatorJoins] = useState(true);
+  const [groupOnly, setGroupOnly] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -105,6 +106,9 @@ const CreateSession = () => {
     setSubmitting(true);
 
     try {
+      // Determine visibility: group-only if checkbox is checked AND a group is selected
+      const isPublic = !(groupOnly && form.group_id);
+      
       const { data, error } = await supabase
         .from("sessions")
         .insert({
@@ -118,7 +122,7 @@ const CreateSession = () => {
           duration_minutes: form.duration_minutes,
           max_participants: form.max_participants,
           creator_id: user.id,
-          is_public: true,
+          is_public: isPublic,
           status: "active",
         })
         .select("id")
@@ -234,33 +238,59 @@ const CreateSession = () => {
 
             {/* Group (optional) */}
             {myGroups.length > 0 && (
-              <div className="space-y-2">
-                <Label>Gruppo (opzionale)</Label>
-                <Select value={form.group_id} onValueChange={(v) => setForm({ ...form, group_id: v === "none" ? "" : v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Nessun gruppo">
-                      {form.group_id ? (
-                        <span className="flex items-center gap-2">
-                          <UsersRound className="w-4 h-4" />
-                          {myGroups.find(g => g.id === form.group_id)?.name}
-                        </span>
-                      ) : (
-                        "Nessun gruppo"
-                      )}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nessun gruppo</SelectItem>
-                    {myGroups.map(group => (
-                      <SelectItem key={group.id} value={group.id}>
-                        <span className="flex items-center gap-2">
-                          <UsersRound className="w-4 h-4" />
-                          {group.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>Gruppo (opzionale)</Label>
+                  <Select value={form.group_id} onValueChange={(v) => {
+                    setForm({ ...form, group_id: v === "none" ? "" : v });
+                    // Reset groupOnly if no group selected
+                    if (v === "none") setGroupOnly(false);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nessun gruppo">
+                        {form.group_id ? (
+                          <span className="flex items-center gap-2">
+                            <UsersRound className="w-4 h-4" />
+                            {myGroups.find(g => g.id === form.group_id)?.name}
+                          </span>
+                        ) : (
+                          "Nessun gruppo"
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nessun gruppo</SelectItem>
+                      {myGroups.map(group => (
+                        <SelectItem key={group.id} value={group.id}>
+                          <span className="flex items-center gap-2">
+                            <UsersRound className="w-4 h-4" />
+                            {group.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Group-only visibility toggle - only shown when a group is selected */}
+                {form.group_id && (
+                  <div className="flex items-center space-x-3 py-2 px-3 bg-muted/50 rounded-lg">
+                    <Checkbox
+                      id="groupOnly"
+                      checked={groupOnly}
+                      onCheckedChange={(checked) => setGroupOnly(checked === true)}
+                    />
+                    <label
+                      htmlFor="groupOnly"
+                      className="text-sm leading-tight"
+                    >
+                      <span className="font-medium">Visibile solo ai membri del gruppo</span>
+                      <span className="block text-muted-foreground text-xs mt-0.5">
+                        La sessione non apparirà nella ricerca pubblica
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
             )}
 

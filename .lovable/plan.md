@@ -36,13 +36,16 @@
 
 ---
 
-## 🔲 Remaining Work (Phases 4-5)
+## ✅ Completed (Phase 4)
 
-### Phase 4: Session Visibility
-- [ ] Implement GROUP-ONLY visibility logic in session queries
-  - Sessions with `group_id` AND `is_public=false` visible only to group members
-- [ ] Update RLS policy to enforce group-only visibility
-- [ ] Add UI toggle in session creation: "Visible only to group members"
+### Session Visibility
+- ✅ Created `is_group_member()` security definer function
+- ✅ Updated RLS policy: sessions with `group_id` AND `is_public=false` visible only to group members
+- ✅ Added "Visibile solo ai membri del gruppo" toggle in session creation form
+
+---
+
+## 🔲 Remaining Work (Phase 5)
 
 ### Phase 5: Groups Polish
 - [ ] Implement pending membership flow for `requires_approval` groups
