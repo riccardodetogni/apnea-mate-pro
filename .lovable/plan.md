@@ -1,197 +1,187 @@
 
 
-# Groups Feature - Complete Implementation Plan
+# Spots Page - Complete Implementation Plan
 
-Based on the HTML mockups provided and analysis of the current codebase, here's a comprehensive plan to implement the full Groups feature.
+Based on the HTML mockups and current codebase analysis, here's the comprehensive plan to transform the placeholder Spots page into a fully functional map-based spot discovery feature.
 
 ---
 
 ## Current State Analysis
 
 **What exists:**
-- `groups` table in database with basic columns (id, name, description, activity_type, location, coordinates, avatar_url, is_public, created_by, timestamps)
-- `group_members` table for membership tracking
-- `group_tags` table for storing group tags
-- `useGroups.ts` hook with basic fetch/join/leave logic
-- `GroupCard.tsx` component (basic version)
-- `Groups.tsx` page using **hardcoded mock data** instead of the hook
+- `spots` table with: id, name, environment_type, location, latitude, longitude, description, created_by
+- `useSpots.ts` hook with basic fetch logic
+- `SpotMap.tsx` component (used in session creation, not suitable for full-page view)
+- `SpotCreator.tsx` component for adding new spots
+- `Spots.tsx` page showing static grid cards as placeholder
 
-**What's missing from the mockups:**
+**What the mockups show:**
 
-1. **Groups List Page (7.0):**
-   - Top bar with "Crea gruppo" button
-   - Search input with filter chips (Tutti, Scuole & club, I tuoi gruppi, Gruppi vicino)
-   - Multiple sections: "Scuole & Club Certificati", "I tuoi gruppi", "Gruppi popolari"
-   - Different badge types: verified, partner, admin, spontaneo
-   - Different action buttons per context
+1. **Main Spots Page (6.0):**
+   - Full-screen interactive map with dark theme
+   - Floating search bar at top
+   - Quick filter chips (Tutti, Mare, Lago, Piscina, Preferiti)
+   - Filter settings button
+   - Colored map pins based on spot type
+   - Bottom card carousel with spot details
+   - Pagination indicator
 
-2. **Group Details Page (7.1):**
-   - Hero card with gradient background
-   - Group info with badges
-   - Join/Share buttons
-   - Description section with tags
-   - Upcoming sessions list
-   - Active courses list (placeholder for V1)
-   - Members section with avatars
+2. **Filters Sheet (6.1):**
+   - Bottom sheet modal
+   - Multi-select filter sections for various attributes
+   - Reset and Apply buttons
 
-3. **Create Group Page (7.2):**
-   - Form with name, location, group type
-   - Multi-select focus tags (Profondità, Dinamica, Statica, etc.)
-   - Description textarea
-   - Visibility toggle (open vs request-to-join)
+---
 
-4. **Database additions needed:**
-   - `requires_approval` column in groups table
-   - `group_type` column (community vs school/club)
+## Database Schema Considerations
+
+The mockups show filter options for:
+- Max depth
+- Access type (easy, boat only)
+- Safety features (buoy present, safety staff)
+- Amenities (parking, showers)
+
+**Option 1 (Recommended for V1):** Work with existing schema
+- Use `environment_type` for water type filtering
+- Skip advanced filters for now (depth, access, safety, services)
+- Add these columns in a future iteration when needed
+
+**Option 2:** Extend database with new columns
+- Would require migration for: `max_depth`, `access_type`, `has_buoy`, `has_safety_staff`, `has_parking`, `has_showers`
+
+For V1, I recommend **Option 1** to avoid scope creep. The filters sheet can show the sections but some will be "coming soon" or we filter client-side based on available data.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Database Schema Updates
+### Phase 1: Spots Page Refactor
 
-Add missing columns to the `groups` table:
+**File: `src/pages/Spots.tsx`**
 
-```sql
-ALTER TABLE public.groups 
-ADD COLUMN requires_approval boolean NOT NULL DEFAULT false,
-ADD COLUMN group_type text NOT NULL DEFAULT 'community';
-```
+Complete redesign from placeholder to map-centric view:
+- Full-screen map (no AppLayout wrapper - custom layout for immersive experience)
+- Floating search bar at top
+- Quick filter chips below search
+- Settings button for filters sheet
+- Map fills the screen
+- Bottom spot card carousel
 
-Enable realtime for the groups table for live updates.
-
----
-
-### Phase 2: Groups List Page Refactor
-
-**File: `src/pages/Groups.tsx`**
-
-Transform from static mockup to fully functional:
-- Use `useGroups` hook instead of hardcoded data
-- Add top header with user avatar and "Crea gruppo" button
-- Add search bar with filter chips
-- Create three sections:
-  1. **Scuole & Club Certificati** - groups where `creator_is_instructor = true`
-  2. **I tuoi gruppi** - groups where user is member or creator
-  3. **Gruppi popolari** - remaining public groups sorted by member count
-- Loading/empty states
-
-**New Components:**
-- `GroupsHeader.tsx` - Top bar with title and create button
-- `GroupFilterChips.tsx` - Filter chips row
-
-**Update: `src/components/community/GroupCard.tsx`**
-
-Expand to support different contexts:
-- Add `isVerified`, `isPartner`, `isAdmin`, `isSpontaneous` badge props
-- Add `onViewProfile`, `onFollow`, `onManage`, `onViewMembers` action callbacks
-- Show different buttons based on membership/admin status
+Key features:
+- Use vanilla Leaflet (as per existing pattern in SpotMap.tsx)
+- Custom colored markers based on environment_type
+- Selected spot highlighting
+- Swipe between spots with bottom card
 
 ---
 
-### Phase 3: Group Details Page
+### Phase 2: New Components
 
-**New Route:** `/groups/:id`
-
-**New File: `src/pages/GroupDetails.tsx`**
-
-Sections:
-1. **Hero Card** - Gradient background with avatar, name, location, badges
-2. **Action Buttons** - Join/Leave, Share
-3. **Description** - With focus tags
-4. **Upcoming Sessions** - List of public sessions linked to this group
-5. **Courses** - Placeholder for V1 (coming soon message)
-6. **Members** - Avatar stack with count and "view all" link
-
-**New Hook: `src/hooks/useGroupDetails.ts`**
-
-Fetch single group with:
-- Member list with profiles
-- Sessions linked to this group
-- Check if current user is admin/member
+| Component | Description |
+|-----------|-------------|
+| `src/components/spots/SpotsMap.tsx` | Full-screen map component with colored markers |
+| `src/components/spots/SpotCard.tsx` | Bottom carousel card showing spot details |
+| `src/components/spots/SpotFiltersSheet.tsx` | Bottom sheet with filter options |
+| `src/components/spots/SpotSearchBar.tsx` | Floating search input with filter chips |
 
 ---
 
-### Phase 4: Create Group Page
+### Phase 3: Component Details
 
-**New Route:** `/create/group`
+**SpotsMap.tsx:**
+- Full-screen Leaflet map
+- Custom marker colors:
+  - Blue (#2563EB) for sea/lake
+  - Green (#22C55E) for deep_pool
+  - Orange (#F97316) for pool
+- Click marker to select spot
+- Fit bounds to show all spots
 
-**New File: `src/pages/CreateGroup.tsx`**
+**SpotCard.tsx:**
+- Swipeable card at bottom
+- Shows: photo placeholder, type, name, location, tags
+- Buttons: "Vedi dettagli spot", "Aggiungi ai preferiti"
+- Pagination indicator (1 di N)
 
-Form fields:
-- **Nome del gruppo** - text input
-- **Zona principale** - text input (location)
-- **Tipo di gruppo** - pill toggle: "Community spontanea" | "Scuola / club"
-- **Focus del gruppo** - multi-select pills: Profondità, Dinamica, Statica, Allenamento a secco, Ricreativo
-- **Descrizione** - textarea
-- **Visibilità** - pill toggle: "Gruppo aperto" | "Accesso su richiesta"
+**SpotFiltersSheet.tsx:**
+- Uses existing Sheet component
+- Filter sections matching mockup
+- For V1: only environment_type filter is functional
+- Other sections shown with disabled state or "coming soon"
 
-On submit:
-1. Insert into `groups` table
-2. Insert selected focus tags into `group_tags`
-3. Add creator as admin member in `group_members`
-4. Navigate to the new group details page
-
-**Update: `src/pages/Create.tsx`**
-- Link "group" option to `/create/group`
+**SpotSearchBar.tsx:**
+- Floating search input
+- Filters spots by name/location
+- Quick chip toggles for environment types
 
 ---
 
-### Phase 5: i18n Updates
+### Phase 4: State Management
 
-Add new translation keys:
+The Spots page will manage:
+- `selectedSpotId` - currently selected spot
+- `activeFilters` - environment types, favorites (future)
+- `searchQuery` - text search
+- `showFilters` - filters sheet visibility
+- `spotIndex` - for pagination in bottom cards
 
-```
-// Groups
-createGroupTitle: "Crea un gruppo",
-groupTypeLabel: "Tipo di gruppo",
-groupTypeCommunity: "Community spontanea",
-groupTypeSchool: "Scuola / club",
-groupFocusLabel: "Focus del gruppo",
-focusDepth: "Profondità",
-focusDynamic: "Dinamica",
-focusStatic: "Statica",
-focusDryTraining: "Allenamento a secco",
-focusRecreational: "Ricreativo",
-groupVisibility: "Visibilità",
-visibilityOpen: "Gruppo aperto",
-visibilityApproval: "Accesso su richiesta",
-groupDescription: "Descrizione",
-verifiedClub: "Verified club",
-schoolPartner: "Scuola partner",
-spontaneousGroup: "Gruppo spontaneo",
-youAreAdmin: "Sei admin",
-manageGroup: "Gestisci gruppo",
-viewMembers: "Vedi membri",
-followGroup: "Segui gruppo",
-goToProfile: "Vai al profilo",
-upcomingSessions: "Prossime sessioni",
-activeCourses: "Corsi attivi",
-membersSection: "Membri",
-allMembers: "Vedi tutti i membri",
-groupMainZone: "Zona principale",
-groupNamePlaceholder: "Es. Lago Lovers – Nord Italia",
-groupLocationPlaceholder: "Es. Lago di Garda · Nord Italia",
-groupDescPlaceholder: "Racconta in poche righe cosa fate...",
-schoolClubCertified: "Scuole & Club Certificati",
-yourGroups: "I tuoi gruppi",
-popularGroups: "Gruppi popolari",
-searchGroupsPlaceholder: "Cerca scuola o gruppo",
+---
+
+### Phase 5: Favorites System (Future)
+
+The mockup shows "Preferiti" (Favorites) filter. This would require:
+- New `spot_favorites` table (user_id, spot_id)
+- Toggle favorite on spot card
+- Filter by favorites
+
+For V1, we'll show the UI but make it non-functional or skip it.
+
+---
+
+### Phase 6: i18n Updates
+
+Add translation keys for spots page:
+
+```typescript
+// Spots page
+searchSpotPlaceholder: "Cerca spot o zona",
 filterAll: "Tutti",
-filterSchools: "Scuole & club",
-filterYourGroups: "I tuoi gruppi",
-filterNearby: "Gruppi vicino a te"
+filterSea: "Mare",
+filterLake: "Lago",
+filterPool: "Piscina",
+filterFavorites: "Preferiti",
+filtersTitle: "Filtri spot",
+filtersSubtitle: "Affina gli spot visibili sulla mappa.",
+waterType: "Tipologia acqua",
+waterTypeHelp: "Puoi selezionare più opzioni.",
+maxDepth: "Profondità massima",
+maxDepthHelp: "Indicativa, basata sulle informazioni disponibili.",
+depth0to20: "0–20 m",
+depth20to40: "20–40 m",
+depth40plus: "40+ m",
+accessType: "Accesso",
+accessEasy: "Accesso facile",
+accessBoatOnly: "Solo barca",
+safety: "Sicurezza",
+buoyPresent: "Boa presente",
+safetyStaff: "Safety spot / staff",
+amenities: "Servizi",
+parkingNearby: "Parcheggio vicino",
+showersAvailable: "Docce / servizi",
+resetFilters: "Reset filtri",
+applyFilters: "Applica filtri",
+viewSpotDetails: "Vedi dettagli spot",
+addToFavorites: "Aggiungi ai preferiti",
+spotOf: "di",
+comingSoon: "Prossimamente",
 ```
 
 ---
 
-### Phase 6: Navigation & Routing
+### Phase 7: Routing Update
 
-**Update `src/App.tsx`:**
-```tsx
-<Route path="/groups/:id" element={<GroupDetails />} />
-<Route path="/create/group" element={<CreateGroup />} />
-```
+The Spots page doesn't need new routes for V1, but we should prepare for:
+- `/spots/:id` - Spot detail page (future)
 
 ---
 
@@ -199,51 +189,69 @@ filterNearby: "Gruppi vicino a te"
 
 | File | Description |
 |------|-------------|
-| `src/pages/GroupDetails.tsx` | Group detail view page |
-| `src/pages/CreateGroup.tsx` | Group creation form page |
-| `src/hooks/useGroupDetails.ts` | Hook to fetch single group with members/sessions |
-| `src/components/groups/GroupHeroCard.tsx` | Gradient hero card component |
-| `src/components/groups/GroupFilterChips.tsx` | Filter chips for groups list |
-| `src/components/groups/GroupMembersSection.tsx` | Members avatar stack section |
-| `src/components/groups/GroupSessionsList.tsx` | List of upcoming sessions |
+| `src/components/spots/SpotsMap.tsx` | Full-screen map with colored markers |
+| `src/components/spots/SpotCard.tsx` | Bottom card carousel item |
+| `src/components/spots/SpotFiltersSheet.tsx` | Filters bottom sheet |
+| `src/components/spots/SpotSearchBar.tsx` | Floating search with chips |
 
 ## Files to Update
 
 | File | Changes |
 |------|---------|
-| `src/pages/Groups.tsx` | Replace mock data with real data, add sections |
-| `src/pages/Create.tsx` | Link to `/create/group` |
-| `src/components/community/GroupCard.tsx` | Add badge variants, action callbacks |
-| `src/hooks/useGroups.ts` | Add filtering by category, user membership |
-| `src/lib/i18n.ts` | Add new translation keys |
-| `src/App.tsx` | Add new routes |
+| `src/pages/Spots.tsx` | Complete rewrite to map-based UI |
+| `src/lib/i18n.ts` | Add spots-related translations |
+| `src/hooks/useSpots.ts` | Add filtering support |
 
 ---
 
-## Database Migration
+## UI/UX Details
 
-```sql
--- Add missing columns to groups table
-ALTER TABLE public.groups 
-ADD COLUMN IF NOT EXISTS requires_approval boolean NOT NULL DEFAULT false;
+**Map styling:**
+- Dark gradient background matching mockup
+- OpenStreetMap tiles (or dark theme tiles if available)
+- Custom circular markers with icons
 
-ALTER TABLE public.groups 
-ADD COLUMN IF NOT EXISTS group_type text NOT NULL DEFAULT 'community';
+**Bottom card:**
+- Glass-morphism style (semi-transparent white background)
+- Rounded corners (18px)
+- Shadow for elevation
+- Horizontal swipe for pagination (using existing carousel or custom)
 
--- Enable realtime for groups
-ALTER PUBLICATION supabase_realtime ADD TABLE public.groups;
+**Filters sheet:**
+- Slides up from bottom
+- Handle bar at top
+- Matches mockup exactly
+- Chips toggle on/off
+
+---
+
+## Technical Architecture
+
+```text
+Spots Page
+├── SpotsMap (full screen)
+│   └── Leaflet with custom markers
+├── SpotSearchBar (floating, z-index above map)
+│   ├── Search input
+│   ├── Filter chips
+│   └── Settings button
+├── SpotCard (bottom overlay)
+│   ├── Pagination indicator
+│   └── Card content
+└── SpotFiltersSheet (bottom sheet modal)
+    └── Filter sections
 ```
 
 ---
 
 ## Summary
 
-This plan implements the complete Groups feature as shown in the mockups:
+This plan transforms the Spots page from a placeholder grid into an immersive map-based discovery experience:
 
-1. **Groups List** with search, filters, and categorized sections
-2. **Group Details** with hero card, sessions, members
-3. **Create Group** form with all required fields
-4. **Database updates** for approval and group type tracking
+1. **Full-screen map** with colored markers for each spot type
+2. **Floating search** with quick filter chips
+3. **Bottom card carousel** showing spot details
+4. **Filters sheet** for advanced filtering (V1: environment type only)
 
-All components will follow the existing design system (card-group, badge-tag, etc.) and use the established patterns from sessions implementation.
+The implementation follows existing patterns (vanilla Leaflet, Sheet component) and maintains the dark gradient aesthetic from the mockups.
 
