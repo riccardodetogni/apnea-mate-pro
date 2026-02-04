@@ -342,7 +342,7 @@ const Community = () => {
             {results.profiles.map(p => (
               <button
                 key={p.id}
-                onClick={() => handleProfileClick(p.id)}
+                onClick={() => handleProfileClick(p.user_id)}
                 className="w-full text-left text-sm p-2 bg-background rounded-lg hover:bg-secondary transition-colors"
               >
                 👤 {p.name}
