@@ -376,11 +376,17 @@ const Community = () => {
               onClick={() => handleSessionClick(session.id)}
             />
           ))
+        ) : filters.nearbyOnly ? (
+          <EmptyCard
+            message={`Nessuna sessione entro ${filters.radiusKm}km. Disattiva il filtro "Vicino a te" per vedere tutte.`}
+            actionLabel="Mostra tutte"
+            onAction={toggleNearbyFilter}
+          />
         ) : (
           <EmptyCard
-            message="Nessuna sessione disponibile vicino a te."
+            message="Nessuna sessione disponibile."
             actionLabel="Crea una sessione"
-            onAction={() => navigate("/create")}
+            onAction={() => navigate("/create/session")}
           />
         )}
       </div>
