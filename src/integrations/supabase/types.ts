@@ -154,6 +154,7 @@ export type Database = {
           name: string
           requires_approval: boolean
           updated_at: string
+          verified: boolean
         }
         Insert: {
           activity_type: string
@@ -170,6 +171,7 @@ export type Database = {
           name: string
           requires_approval?: boolean
           updated_at?: string
+          verified?: boolean
         }
         Update: {
           activity_type?: string
@@ -186,6 +188,7 @@ export type Database = {
           name?: string
           requires_approval?: boolean
           updated_at?: string
+          verified?: boolean
         }
         Relationships: []
       }
@@ -197,6 +200,7 @@ export type Database = {
           id: string
           location: string | null
           name: string
+          search_visibility: boolean
           updated_at: string
           user_id: string
         }
@@ -207,6 +211,7 @@ export type Database = {
           id?: string
           location?: string | null
           name: string
+          search_visibility?: boolean
           updated_at?: string
           user_id: string
         }
@@ -217,6 +222,7 @@ export type Database = {
           id?: string
           location?: string | null
           name?: string
+          search_visibility?: boolean
           updated_at?: string
           user_id?: string
         }

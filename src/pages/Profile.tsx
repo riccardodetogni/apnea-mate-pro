@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -10,13 +11,13 @@ import { CertificationForm } from "@/components/certification/CertificationForm"
 import { 
   Settings, 
   LogOut, 
-  Award, 
   MapPin, 
   ChevronLeft,
   Globe,
   Shield,
   Loader2,
-  Plus
+  Plus,
+  Eye
 } from "lucide-react";
 import {
   Dialog,
@@ -34,7 +35,7 @@ const roleLabels = {
 
 const Profile = () => {
   const { user, signOut } = useAuth();
-  const { profile, role, certification, loading, isCertified, isAdmin } = useProfile();
+  const { profile, role, certification, loading, isCertified, isAdmin, updateProfile } = useProfile();
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
@@ -140,6 +141,25 @@ const Profile = () => {
               <span className="text-foreground font-medium">{t("adminDashboard")}</span>
             </button>
           )}
+
+          {/* Search Visibility Toggle */}
+          <div className="w-full p-4 flex items-center gap-3 border-b">
+            <Eye className="w-5 h-5 text-muted" />
+            <div className="flex-1">
+              <span className="text-foreground">{language === "it" ? "Visibile nella ricerca" : "Visible in search"}</span>
+              <p className="text-xs text-muted mt-0.5">
+                {language === "it" 
+                  ? "Altri utenti possono trovarti cercando il tuo nome"
+                  : "Other users can find you by searching your name"}
+              </p>
+            </div>
+            <Switch
+              checked={profile.search_visibility}
+              onCheckedChange={async (checked) => {
+                await updateProfile({ search_visibility: checked });
+              }}
+            />
+          </div>
 
           <button
             onClick={toggleLanguage}

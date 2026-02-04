@@ -10,13 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-const focusTags = [
-  { id: "depth", label: "focusDepth" },
-  { id: "dynamic", label: "focusDynamic" },
-  { id: "static", label: "focusStatic" },
-  { id: "dry", label: "focusDryTraining" },
-  { id: "recreational", label: "focusRecreational" },
-];
+// Focus tags removed per V1 requirements
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -26,15 +20,12 @@ const CreateGroup = () => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [groupType, setGroupType] = useState<"community" | "school">("community");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"open" | "approval">("open");
   const [loading, setLoading] = useState(false);
 
-  const toggleTag = (tagId: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]
-    );
+  const handleGroupTypeChange = (type: "community" | "school") => {
+    setGroupType(type);
   };
 
   const handleSubmit = async () => {
@@ -58,7 +49,7 @@ const CreateGroup = () => {
           name: name.trim(),
           location: location.trim(),
           description: description.trim() || null,
-          activity_type: selectedTags.length > 0 ? t(focusTags.find(f => f.id === selectedTags[0])?.label as any) : "Misto",
+          activity_type: "Misto",
           group_type: groupType,
           requires_approval: visibility === "approval",
           is_public: true,
@@ -68,16 +59,6 @@ const CreateGroup = () => {
         .single();
 
       if (groupError) throw groupError;
-
-      // Add tags
-      if (selectedTags.length > 0) {
-        const tagsToInsert = selectedTags.map(tagId => ({
-          group_id: group.id,
-          tag: t(focusTags.find(f => f.id === tagId)?.label as any),
-        }));
-
-        await supabase.from("group_tags").insert(tagsToInsert);
-      }
 
       // Add creator as admin
       await supabase.from("group_members").insert({
@@ -137,7 +118,7 @@ const CreateGroup = () => {
           <label className="text-sm font-medium text-foreground">{t("groupTypeLabel")}</label>
           <div className="flex gap-2">
             <button
-              onClick={() => setGroupType("community")}
+              onClick={() => handleGroupTypeChange("community")}
               className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
                 groupType === "community"
                   ? "bg-primary text-primary-foreground"
@@ -147,7 +128,7 @@ const CreateGroup = () => {
               {t("groupTypeCommunity")}
             </button>
             <button
-              onClick={() => setGroupType("school")}
+              onClick={() => handleGroupTypeChange("school")}
               className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
                 groupType === "school"
                   ? "bg-primary text-primary-foreground"
@@ -157,26 +138,11 @@ const CreateGroup = () => {
               {t("groupTypeSchool")}
             </button>
           </div>
-        </div>
-
-        {/* Focus Tags */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">{t("groupFocusLabel")}</label>
-          <div className="flex flex-wrap gap-2">
-            {focusTags.map(tag => (
-              <button
-                key={tag.id}
-                onClick={() => toggleTag(tag.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedTags.includes(tag.id)
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/30 text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                {t(tag.label as any)}
-              </button>
-            ))}
-          </div>
+          {groupType === "school" && (
+            <p className="text-xs text-muted mt-2">
+              Per diventare partner verificato, contatta il nostro team dopo la creazione.
+            </p>
+          )}
         </div>
 
         {/* Description */}
