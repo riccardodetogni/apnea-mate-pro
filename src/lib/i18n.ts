@@ -251,6 +251,12 @@ const translations = {
     confirm: "Conferma",
     delete: "Elimina",
     edit: "Modifica",
+    
+    // Notifications
+    notifications: "Notifiche",
+    markAllAsRead: "Segna tutte come lette",
+    noNotifications: "Nessuna notifica",
+    noNotificationsDesc: "Le tue notifiche appariranno qui",
   },
   en: {
     // App
@@ -499,6 +505,12 @@ const translations = {
     confirm: "Confirm",
     delete: "Delete",
     edit: "Edit",
+    
+    // Notifications
+    notifications: "Notifications",
+    markAllAsRead: "Mark all as read",
+    noNotifications: "No notifications",
+    noNotificationsDesc: "Your notifications will appear here",
   },
 };
 
