@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, 
   Loader2, 
@@ -112,6 +113,19 @@ const GroupManage = () => {
           group_name: group!.name,
         },
       });
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke("send-group-notification", {
+          body: {
+            type: "request_approved",
+            groupId: group!.id,
+            userId: userId,
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send group email notification:", emailError);
+      }
     }
   };
 
@@ -128,6 +142,19 @@ const GroupManage = () => {
       toast({ title: "Errore", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Richiesta rifiutata" });
+
+      // Send email notification for rejection
+      try {
+        await supabase.functions.invoke("send-group-notification", {
+          body: {
+            type: "request_rejected",
+            groupId: group!.id,
+            userId: userId,
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send group rejection email:", emailError);
+      }
     }
   };
 
