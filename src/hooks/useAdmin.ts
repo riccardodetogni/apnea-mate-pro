@@ -165,6 +165,19 @@ export const useAdmin = () => {
 
     if (roleError) return { error: roleError };
 
+    // Send email notification for certification approval
+    try {
+      await supabase.functions.invoke("send-certification-notification", {
+        body: {
+          type: "approved",
+          userId: cert.user_id,
+          newRole: newRole,
+        },
+      });
+    } catch (emailError) {
+      console.error("Failed to send certification approval email:", emailError);
+    }
+
     // Refresh data
     await fetchPendingCertifications();
     await fetchAllUsers();
@@ -175,6 +188,17 @@ export const useAdmin = () => {
   const rejectCertification = async (certificationId: string, reason?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: new Error("Not authenticated") };
+
+    // Get the certification to find user_id
+    const { data: cert, error: certError } = await supabase
+      .from("certifications")
+      .select("user_id")
+      .eq("id", certificationId)
+      .single();
+
+    if (certError || !cert) {
+      return { error: certError || new Error("Certification not found") };
+    }
 
     const { error } = await supabase
       .from("certifications")
@@ -187,6 +211,19 @@ export const useAdmin = () => {
       .eq("id", certificationId);
 
     if (!error) {
+      // Send email notification for certification rejection
+      try {
+        await supabase.functions.invoke("send-certification-notification", {
+          body: {
+            type: "rejected",
+            userId: cert.user_id,
+            reason: reason,
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send certification rejection email:", emailError);
+      }
+
       await fetchPendingCertifications();
     }
 

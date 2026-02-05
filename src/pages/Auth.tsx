@@ -18,6 +18,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -96,11 +97,15 @@ const Auth = () => {
       if (mode === "login") {
         const { error } = await signIn(trimmedEmail, password);
         if (error) {
+          let errorMessage = error.message;
+          if (error.message === "Invalid login credentials") {
+            errorMessage = "Credenziali non valide";
+          } else if (error.message.includes("Email not confirmed")) {
+            errorMessage = "Email non confermata. Controlla la tua casella di posta.";
+          }
           toast({
             title: "Errore di accesso",
-            description: error.message === "Invalid login credentials" 
-              ? "Credenziali non valide" 
-              : error.message,
+            description: errorMessage,
             variant: "destructive",
           });
         }
@@ -121,10 +126,8 @@ const Auth = () => {
             });
           }
         } else {
-          toast({
-            title: "Registrazione completata",
-            description: "Account creato con successo!",
-          });
+          // Registration successful - show confirmation screen
+          setConfirmationSent(true);
         }
       }
     } catch (error) {
@@ -195,7 +198,46 @@ const Auth = () => {
   const switchToLogin = () => {
     setMode("login");
     setResetEmailSent(false);
+    setConfirmationSent(false);
   };
+
+  // Email Confirmation Sent View
+  if (confirmationSent) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-[380px] animate-fade-in text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Mail className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground mb-2">
+            Controlla la tua email
+          </h1>
+          <p className="text-sm text-muted mb-4">
+            Ti abbiamo inviato un link per confermare il tuo account.
+          </p>
+          <p className="text-sm text-muted mb-6">
+            Email inviata a <strong className="text-foreground">{email}</strong>
+          </p>
+          <div className="bg-card border rounded-xl p-4 mb-6 text-left">
+            <p className="text-sm text-muted">
+              📧 Controlla anche la cartella spam<br/>
+              ⏱️ Il link scade tra 24 ore<br/>
+              ✅ Dopo la conferma, potrai accedere
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full h-12"
+            onClick={switchToLogin}
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Torna al login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Forgot Password View
   if (mode === "forgotPassword") {
