@@ -18,7 +18,8 @@ import {
   Check,
   Upload,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Navigation,
 } from "lucide-react";
 
 type Step = 1 | 2 | 3 | 4;
@@ -29,6 +30,7 @@ const certificationAgencies = [
   "PADI",
   "CMAS",
   "Molchanovs",
+  "Apnea Academy",
   "Altro",
 ];
 
@@ -42,11 +44,58 @@ const Onboarding = () => {
   const [certId, setCertId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleUseMyLocation = async () => {
+    setLocationLoading(true);
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+      });
+
+      const { latitude, longitude } = pos.coords;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=it`
+      );
+      const data = await response.json();
+
+      // Extract city and region
+      const city = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality;
+      const state = data.address?.state || data.address?.region;
+      const locationStr = [city, state].filter(Boolean).join(", ");
+      
+      if (locationStr) {
+        setLocation(locationStr);
+        toast({
+          title: "Posizione rilevata",
+          description: locationStr,
+        });
+      } else {
+        toast({
+          title: "Posizione non trovata",
+          description: "Inserisci manualmente la tua località",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Geolocation error:", error);
+      toast({
+        title: "Impossibile rilevare la posizione",
+        description: "Assicurati di aver concesso i permessi di localizzazione",
+        variant: "destructive",
+      });
+    } finally {
+      setLocationLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) {
@@ -265,15 +314,32 @@ const Onboarding = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="location">{t("location")}</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Milano, Lombardia"
-                    className="rounded-xl h-12 pl-10"
-                  />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <Input
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Milano, Lombardia"
+                      className="rounded-xl h-12 pl-10"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-xl flex-shrink-0"
+                    onClick={handleUseMyLocation}
+                    disabled={locationLoading}
+                    title="Usa la mia posizione"
+                  >
+                    {locationLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Navigation className="w-5 h-5" />
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>

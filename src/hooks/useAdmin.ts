@@ -6,10 +6,21 @@ export interface CertificationRequest extends Certification {
   profile: Profile;
 }
 
+export interface AdminGroup {
+  id: string;
+  name: string;
+  location: string;
+  group_type: string;
+  verified: boolean;
+  created_at: string;
+  member_count: number;
+}
+
 export const useAdmin = () => {
   const { isAdmin, loading: profileLoading } = useProfile();
   const [pendingCertifications, setPendingCertifications] = useState<CertificationRequest[]>([]);
   const [allUsers, setAllUsers] = useState<(Profile & { role: AppRole })[]>([]);
+  const [allGroups, setAllGroups] = useState<AdminGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPendingCertifications = useCallback(async () => {
@@ -72,16 +83,48 @@ export const useAdmin = () => {
     setAllUsers(usersWithRoles);
   }, [isAdmin]);
 
+  const fetchAllGroups = useCallback(async () => {
+    if (!isAdmin) return;
+
+    // Fetch groups (all or filtered by scuola_club)
+    const { data: groups, error } = await supabase
+      .from("groups")
+      .select("id, name, location, group_type, verified, created_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching groups:", error);
+      return;
+    }
+
+    // Get member counts for each group
+    const groupsWithCounts: AdminGroup[] = [];
+    for (const group of groups || []) {
+      const { count } = await supabase
+        .from("group_members")
+        .select("*", { count: "exact", head: true })
+        .eq("group_id", group.id)
+        .eq("status", "approved");
+
+      groupsWithCounts.push({
+        ...group,
+        member_count: count || 0,
+      });
+    }
+
+    setAllGroups(groupsWithCounts);
+  }, [isAdmin]);
+
   useEffect(() => {
     if (!profileLoading && isAdmin) {
       setLoading(true);
-      Promise.all([fetchPendingCertifications(), fetchAllUsers()]).finally(() => {
+      Promise.all([fetchPendingCertifications(), fetchAllUsers(), fetchAllGroups()]).finally(() => {
         setLoading(false);
       });
     } else if (!profileLoading) {
       setLoading(false);
     }
-  }, [isAdmin, profileLoading, fetchPendingCertifications, fetchAllUsers]);
+  }, [isAdmin, profileLoading, fetchPendingCertifications, fetchAllUsers, fetchAllGroups]);
 
   const approveCertification = async (certificationId: string, newRole: "certified" | "instructor") => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -174,17 +217,33 @@ export const useAdmin = () => {
     return { error: insertError };
   };
 
+  const toggleGroupVerification = async (groupId: string, verified: boolean) => {
+    const { error } = await supabase
+      .from("groups")
+      .update({ verified })
+      .eq("id", groupId);
+
+    if (!error) {
+      await fetchAllGroups();
+    }
+
+    return { error };
+  };
+
   return {
     isAdmin,
     pendingCertifications,
     allUsers,
+    allGroups,
     loading: loading || profileLoading,
     approveCertification,
     rejectCertification,
     updateUserRole,
+    toggleGroupVerification,
     refresh: () => {
       fetchPendingCertifications();
       fetchAllUsers();
+      fetchAllGroups();
     },
   };
 };

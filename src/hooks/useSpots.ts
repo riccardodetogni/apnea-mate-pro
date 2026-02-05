@@ -9,6 +9,7 @@ export interface Spot {
   latitude: number | null;
   longitude: number | null;
   description: string | null;
+  hasActiveSessions: boolean;
 }
 
 export const useSpots = () => {
@@ -21,14 +22,37 @@ export const useSpots = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      // Fetch all spots
+      const { data: spotsData, error: spotsError } = await supabase
         .from("spots")
         .select("id, name, environment_type, location, latitude, longitude, description")
         .order("name", { ascending: true });
 
-      if (fetchError) throw fetchError;
+      if (spotsError) throw spotsError;
 
-      setSpots(data || []);
+      // Fetch active sessions count per spot (future sessions only)
+      const now = new Date().toISOString();
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from("sessions")
+        .select("spot_id")
+        .gte("date_time", now)
+        .eq("status", "active")
+        .not("spot_id", "is", null);
+
+      if (sessionsError) throw sessionsError;
+
+      // Create a set of spot IDs that have active sessions
+      const spotsWithSessions = new Set(
+        sessionsData?.map((s) => s.spot_id).filter(Boolean) || []
+      );
+
+      // Merge the data
+      const enrichedSpots: Spot[] = (spotsData || []).map((spot) => ({
+        ...spot,
+        hasActiveSessions: spotsWithSessions.has(spot.id),
+      }));
+
+      setSpots(enrichedSpots);
     } catch (err) {
       console.error("Error fetching spots:", err);
       setError(err as Error);

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAdmin, CertificationRequest } from "@/hooks/useAdmin";
+import { useAdmin, CertificationRequest, AdminGroup } from "@/hooks/useAdmin";
 import { AppRole } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
@@ -16,6 +16,8 @@ import {
   FileText,
   Award,
   Loader2,
+  UsersRound,
+  BadgeCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -34,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 
 const roleLabels: Record<AppRole, string> = {
@@ -49,6 +52,11 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   rejected: { label: "Rifiutato", color: "text-destructive" },
 };
 
+const groupTypeLabels: Record<string, string> = {
+  community_spontanea: "Gruppo spontaneo",
+  scuola_club: "Scuola/Club",
+};
+
 const Admin = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -57,13 +65,15 @@ const Admin = () => {
     isAdmin,
     pendingCertifications,
     allUsers,
+    allGroups,
     loading,
     approveCertification,
     rejectCertification,
     updateUserRole,
+    toggleGroupVerification,
   } = useAdmin();
 
-  const [activeTab, setActiveTab] = useState<"pending" | "users">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "users" | "groups">("pending");
   const [selectedCert, setSelectedCert] = useState<CertificationRequest | null>(null);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -73,6 +83,7 @@ const Admin = () => {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<typeof allUsers[0] | null>(null);
   const [newUserRole, setNewUserRole] = useState<AppRole>("regular");
+  const [togglingGroupId, setTogglingGroupId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -169,6 +180,27 @@ const Admin = () => {
     return data?.signedUrl;
   };
 
+  const handleToggleVerification = async (group: AdminGroup) => {
+    setTogglingGroupId(group.id);
+    const { error } = await toggleGroupVerification(group.id, !group.verified);
+    setTogglingGroupId(null);
+    
+    if (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiornare lo stato di verifica",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: group.verified ? "Verifica rimossa" : "Gruppo verificato",
+        description: group.verified 
+          ? `${group.name} non è più verificato` 
+          : `${group.name} è ora un partner verificato`,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -197,10 +229,10 @@ const Admin = () => {
 
       {/* Tabs */}
       <div className="border-b">
-        <div className="flex px-4">
+        <div className="flex px-4 overflow-x-auto">
           <button
             onClick={() => setActiveTab("pending")}
-            className={`flex items-center gap-2 py-3 px-4 border-b-2 transition-colors ${
+            className={`flex items-center gap-2 py-3 px-4 border-b-2 transition-colors whitespace-nowrap ${
               activeTab === "pending"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted"
@@ -211,7 +243,7 @@ const Admin = () => {
           </button>
           <button
             onClick={() => setActiveTab("users")}
-            className={`flex items-center gap-2 py-3 px-4 border-b-2 transition-colors ${
+            className={`flex items-center gap-2 py-3 px-4 border-b-2 transition-colors whitespace-nowrap ${
               activeTab === "users"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted"
@@ -219,6 +251,17 @@ const Admin = () => {
           >
             <Users className="w-4 h-4" />
             Utenti ({allUsers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("groups")}
+            className={`flex items-center gap-2 py-3 px-4 border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === "groups"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted"
+            }`}
+          >
+            <UsersRound className="w-4 h-4" />
+            Gruppi ({allGroups.length})
           </button>
         </div>
       </div>
@@ -304,6 +347,54 @@ const Admin = () => {
                       <Check className="w-4 h-4" />
                       Approva
                     </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === "groups" && (
+          <div className="space-y-3">
+            {allGroups.length === 0 ? (
+              <div className="text-center py-12 text-muted">
+                <UsersRound className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Nessun gruppo trovato</p>
+              </div>
+            ) : (
+              allGroups.map((group) => (
+                <div
+                  key={group.id}
+                  className="bg-card rounded-xl border p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <UsersRound className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium truncate">{group.name}</h3>
+                        {group.verified && (
+                          <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted truncate">{group.location}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+                        <span>{groupTypeLabels[group.group_type] || group.group_type}</span>
+                        <span>•</span>
+                        <span>{group.member_count} membri</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted">
+                        {group.verified ? "Verificato" : "Non verificato"}
+                      </span>
+                      <Switch
+                        checked={group.verified}
+                        onCheckedChange={() => handleToggleVerification(group)}
+                        disabled={togglingGroupId === group.id}
+                      />
+                    </div>
                   </div>
                 </div>
               ))
