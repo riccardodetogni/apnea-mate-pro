@@ -1,226 +1,172 @@
 
-# Plan: Multiple Bug Fixes and Enhancements
+# Plan: Registration Flow & Email Notification Fixes
 
 ## Summary
-This plan addresses 7 distinct fixes and enhancements across the application: session type auto-fill from spots, participant input fix, navigation improvements, verified partner flow, location picker, certification agency addition, and spot marker colors based on session availability.
+This plan addresses 5 fixes: proper email verification before login, group sessions visibility, settings navigation, email notification expansion, and changing the email sender domain.
 
 ---
 
 ## Fix Details
 
-### 1. Session Type Auto-Filled from Spot
+### 1. Registration Flow with Email Verification
 
-**Current Behavior**: When selecting a spot in CreateSession, the session type dropdown stays at "sea_trip" regardless of spot environment.
+**Current Behavior**: After registration, users are immediately logged in and redirected to onboarding without email verification.
 
-**Expected Behavior**: When a spot is selected, automatically set session_type based on the spot's environment_type:
-- `sea` → `sea_trip`
-- `pool` → `pool_session`
-- `deep_pool` → `deep_pool_session`
-- `lake` → `lake_trip`
+**Issue**: The `signUp` function in `AuthContext.tsx` does not distinguish between needing email confirmation or not. Currently, Supabase may be configured to auto-confirm users.
 
-**File**: `src/pages/CreateSession.tsx`
+**Expected Behavior**:
+- After registration, show a confirmation screen asking user to verify their email
+- User cannot log in until email is verified
+- When user clicks the verification link, they are redirected back to the app
+
+**Files**:
+- `src/pages/Auth.tsx` - Add confirmation sent state and UI
+- `supabase/config.toml` - Ensure email confirmation is required (handled by Lovable Cloud config)
 
 **Changes**:
-- Add an `useEffect` that watches for `form.spot_id` changes
-- When spot is selected, look up its environment_type from the spots array
-- Map environment_type to corresponding session_type and update form state
+1. Add a new state `confirmationSent` to track successful registration
+2. After successful `signUp`, show a "Check your email" screen instead of auto-logging in
+3. The confirmation email link will redirect to `/` which will trigger the auth state change and proper routing
+4. Update the toast message to instruct user to check email
 
 ---
 
-### 2. Max Participants Input Bug Fix
+### 2. Group Sessions Always Visible
 
-**Current Behavior**: The number input for max_participants doesn't clear properly when user deletes to single digit, and resets unexpectedly to 6.
+**Current Behavior**: In `useGroupDetails.ts`, sessions are fetched without considering the user's participation status, but the UI may not be showing them.
 
-**Issue**: The `parseInt(e.target.value) || 6` logic means when user deletes characters leaving NaN, it resets to 6.
+**Issue**: Looking at the code, sessions ARE being fetched correctly. The issue may be that `GroupSessionsList` receives empty sessions array. Need to verify the sessions query works for non-members.
 
-**Expected Behavior**: Allow free text editing while typing, validate on blur, and enforce min/max constraints.
+**Investigation Result**: The sessions query in `useGroupDetails.ts` (lines 112-122) does not filter by user membership - it fetches all active future sessions for the group. The issue may be RLS policies on the sessions table blocking non-members from seeing group sessions.
 
-**File**: `src/pages/CreateSession.tsx`
+**Expected Behavior**: Group sessions should be visible to all users viewing the group details page, regardless of membership status.
+
+**Files**:
+- Database RLS policies on `sessions` table - may need adjustment for group sessions
 
 **Changes**:
-- Store the raw input as a string instead of using immediate parseInt
-- Use a separate state or handle empty string case gracefully
-- On blur or submit, parse and validate the value with proper min/max bounds
-- Same fix needed for duration_minutes input
+1. Review RLS policy for sessions table
+2. If needed, update policy to allow viewing group sessions when viewing the group publicly (unless the group is private and user is not a member)
 
 ---
 
-### 3. Back Button After Create Goes to Home
+### 3. Back from Settings Goes to Home
 
-**Current Behavior**: Back button in `Create.tsx` uses `navigate(-1)` which goes to previous page.
+**Current Behavior**: In `Settings.tsx`, the back button uses `navigate(-1)` which goes to previous page.
 
-**Expected Behavior**: Back button should always go to home/community (`/community`).
+**Expected Behavior**: Back button should always go to `/community` (home).
 
-**File**: `src/pages/Create.tsx`
+**File**: `src/pages/Settings.tsx`
 
 **Changes**:
 - Change `navigate(-1)` to `navigate("/community")`
 
 ---
 
-### 4. Verified Partner Groups Flow
+### 4. Email Notifications for Groups and Certifications
 
-**Current Behavior**: The `CreateGroup.tsx` shows a message to contact the team for partner verification, but there's no actual implementation in the Admin panel to verify groups.
+**Current Behavior**: Email notifications only exist for session events (join request, approved, rejected) via the `send-session-notification` edge function.
 
-**Expected Behavior**: Admin should be able to toggle the `verified` flag on groups from the Admin dashboard.
+**Missing Emails**:
+- Group join request approved
+- Group join request rejected
+- Certification approved
+- Certification rejected
 
-**Files**:
-- `src/pages/Admin.tsx` - Add Groups tab with verification controls
-- `src/hooks/useAdmin.ts` - Add functions to fetch and update groups
-
-**Changes**:
-1. Add a "Groups" tab to Admin dashboard
-2. Fetch all groups (or filter for `group_type = 'scuola_club'`)
-3. Display each group with a toggle to set `verified = true/false`
-4. Add a `toggleGroupVerification` function in useAdmin hook
-
----
-
-### 5. Location from Maps in Register Form
-
-**Current Behavior**: In `Onboarding.tsx`, users type their location manually in a text input.
-
-**Expected Behavior**: Add ability to fetch location from device GPS or search using geocoding (similar to SpotCreator).
-
-**File**: `src/pages/Onboarding.tsx`
-
-**Changes**:
-1. Add a "Use my location" button next to location input
-2. Use browser Geolocation API to get coordinates
-3. Reverse geocode using Nominatim to get city/region name
-4. Auto-fill the location field with the result
-5. Add loading state while fetching location
-
----
-
-### 6. Add "Apnea Academy" to Certification Agencies
-
-**Current Behavior**: The certification agencies list in `Onboarding.tsx` includes AIDA, SSI, PADI, CMAS, Molchanovs, Altro.
-
-**Expected Behavior**: Add "Apnea Academy" to the list.
-
-**File**: `src/pages/Onboarding.tsx`
-
-**Changes**:
-- Add "Apnea Academy" to the `certificationAgencies` array (between Molchanovs and Altro to maintain alphabetical order by common usage)
-
----
-
-### 7. Spot Markers Color Based on Session Availability
-
-**Current Behavior**: All spot markers on the map use the same default blue marker.
-
-**Expected Behavior**:
-- Spots WITH upcoming sessions: Colored pins (blue/green based on type)
-- Spots WITHOUT upcoming sessions: Gray/white pins
+**Expected Behavior**: Create a new edge function that handles group and certification email notifications.
 
 **Files**:
-- `src/hooks/useSpots.ts` - Add `hasActiveSessions` field to Spot interface and query
-- `src/components/spots/SpotMap.tsx` - Use different marker colors based on session availability
+- `supabase/functions/send-group-notification/index.ts` - New edge function for group emails
+- `supabase/functions/send-certification-notification/index.ts` - New edge function for certification emails
+- `src/pages/GroupManage.tsx` - Trigger email on approve/reject
+- `src/hooks/useAdmin.ts` - Trigger email on certification approve/reject
 
 **Changes**:
-1. Modify `useSpots` to include a subquery checking for active future sessions
-2. Add `hasActiveSessions: boolean` to the Spot interface
-3. In SpotMap, create custom marker icons:
-   - Colored (current behavior) for spots with sessions
-   - Gray/desaturated for spots without sessions
+1. Create `send-group-notification` edge function with types:
+   - `group_request_approved` - notify user their group join was approved
+   - `group_request_rejected` - notify user their group join was rejected
+
+2. Create `send-certification-notification` edge function with types:
+   - `certification_approved` - notify user their certification was approved
+   - `certification_rejected` - notify user their certification was rejected
+
+3. Update `GroupManage.tsx` to call edge function after approve/reject
+4. Update `useAdmin.ts` to call edge function after certification approve/reject
+
+---
+
+### 5. Change Email Sender Domain
+
+**Current Behavior**: Edge function uses `noreply@resend.dev` as sender.
+
+**Issue**: For production, emails should come from a verified domain like `noreply@apneamate.it` (or similar verified domain).
+
+**Expected Behavior**: Use Apnea Mate's verified domain for sending emails.
+
+**Files**:
+- `supabase/functions/send-session-notification/index.ts`
+- `supabase/functions/send-group-notification/index.ts` (new)
+- `supabase/functions/send-certification-notification/index.ts` (new)
+
+**Changes**:
+1. Change `from: "Apnea Mate <noreply@resend.dev>"` to use verified domain
+2. Need to confirm the verified domain with user - add a secret `RESEND_FROM_EMAIL` or use a constant
+
+**Note**: The user needs to verify a domain in Resend dashboard before this can work. Will add a configurable `RESEND_FROM_EMAIL` secret.
 
 ---
 
 ## Technical Details
 
-### Session Type Mapping (Fix 1)
+### Registration Confirmation Screen (Fix 1)
 
 ```typescript
-const environmentToSessionType: Record<string, string> = {
-  sea: "sea_trip",
-  pool: "pool_session", 
-  deep_pool: "deep_pool_session",
-  lake: "lake_trip",
-};
+// In Auth.tsx after handleSubmit for register
+const [confirmationSent, setConfirmationSent] = useState(false);
+
+// After successful signUp:
+setConfirmationSent(true);
+toast({
+  title: "Controlla la tua email",
+  description: "Ti abbiamo inviato un link per confermare il tuo account",
+});
+
+// New UI state showing confirmation message
+if (confirmationSent) {
+  return (
+    <div className="...">
+      <Mail className="w-16 h-16 text-primary" />
+      <h1>Controlla la tua email</h1>
+      <p>Ti abbiamo inviato un link di conferma a {email}</p>
+      <Button onClick={switchToLogin}>Torna al login</Button>
+    </div>
+  );
+}
 ```
 
-### Participants Input Fix (Fix 2)
+### Group Notification Edge Function (Fix 4)
 
 ```typescript
-// Handle empty and partial input gracefully
-const handleParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = e.target.value;
-  // Allow empty string while typing
-  if (value === "") {
-    setForm({ ...form, max_participants: "" as any });
-    return;
-  }
-  const parsed = parseInt(value, 10);
-  if (!isNaN(parsed)) {
-    setForm({ ...form, max_participants: parsed });
-  }
-};
+interface GroupNotificationRequest {
+  type: "request_approved" | "request_rejected";
+  groupId: string;
+  userId: string;
+}
 
-// Validate on blur
-const handleParticipantsBlur = () => {
-  const value = form.max_participants;
-  if (typeof value === "string" || value < 2) {
-    setForm({ ...form, max_participants: 2 });
-  } else if (value > 50) {
-    setForm({ ...form, max_participants: 50 });
-  }
-};
+// Handler fetches group name, user profile
+// Sends appropriate email template
 ```
 
-### Admin Groups Tab (Fix 4)
-
-Add a third tab "Gruppi" to Admin.tsx with:
-- List of groups filtered by `group_type = 'scuola_club'`
-- Each row shows group name, location, member count
-- Toggle button or switch for `verified` status
-- Database update on toggle
-
-### Location Picker (Fix 5)
+### Certification Notification Edge Function (Fix 4)
 
 ```typescript
-const handleUseMyLocation = async () => {
-  setLocationLoading(true);
-  try {
-    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject);
-    });
-    
-    const { latitude, longitude } = pos.coords;
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-    );
-    const data = await response.json();
-    
-    // Extract city and region
-    const city = data.address?.city || data.address?.town || data.address?.village;
-    const state = data.address?.state;
-    setLocation([city, state].filter(Boolean).join(", "));
-  } catch (error) {
-    toast({ title: "Impossibile rilevare la posizione", variant: "destructive" });
-  } finally {
-    setLocationLoading(false);
-  }
-};
+interface CertificationNotificationRequest {
+  type: "approved" | "rejected";
+  userId: string;
+  newRole?: string; // for approved
+  reason?: string;  // for rejected
+}
 ```
-
-### Spots with Sessions Query (Fix 7)
-
-The `useSpots` hook will need a modified query:
-```typescript
-const { data, error } = await supabase
-  .from("spots")
-  .select(`
-    id, name, environment_type, location, latitude, longitude, description,
-    sessions!inner(id)
-  `)
-  // This won't work directly - need to use RPC or separate query
-```
-
-Since Supabase doesn't easily support EXISTS subqueries in the client, we'll:
-1. Fetch all spots
-2. Fetch count of active sessions grouped by spot_id
-3. Merge the data client-side
 
 ---
 
@@ -228,13 +174,25 @@ Since Supabase doesn't easily support EXISTS subqueries in the client, we'll:
 
 | File | Changes |
 |------|---------|
-| `src/pages/CreateSession.tsx` | Fixes 1 and 2: Auto-fill session type, fix number inputs |
-| `src/pages/Create.tsx` | Fix 3: Navigate to /community on back |
-| `src/pages/Admin.tsx` | Fix 4: Add Groups tab with verification toggle |
-| `src/hooks/useAdmin.ts` | Fix 4: Add group fetching and verification functions |
-| `src/pages/Onboarding.tsx` | Fixes 5 and 6: Add location button, add Apnea Academy |
-| `src/hooks/useSpots.ts` | Fix 7: Add hasActiveSessions to spots data |
-| `src/components/spots/SpotMap.tsx` | Fix 7: Color markers based on session availability |
+| `src/pages/Auth.tsx` | Fix 1: Add confirmation sent state and UI |
+| `src/pages/Settings.tsx` | Fix 3: Navigate to /community on back |
+| `supabase/functions/send-session-notification/index.ts` | Fix 5: Update sender email |
+| `supabase/functions/send-group-notification/index.ts` | Fix 4: NEW - Group email notifications |
+| `supabase/functions/send-certification-notification/index.ts` | Fix 4: NEW - Certification email notifications |
+| `src/pages/GroupManage.tsx` | Fix 4: Call group notification function |
+| `src/hooks/useAdmin.ts` | Fix 4: Call certification notification function |
+
+---
+
+## Database Changes (if needed)
+
+For Fix 2, may need to verify RLS policies on sessions table allow public viewing of group sessions. Will check during implementation.
+
+---
+
+## Secrets Required
+
+A new secret `RESEND_FROM_EMAIL` should be added with the verified domain email (e.g., `noreply@apneamate.com`). If not set, will fallback to `noreply@resend.dev` for development.
 
 ---
 
@@ -242,12 +200,10 @@ Since Supabase doesn't easily support EXISTS subqueries in the client, we'll:
 
 | Fix | Complexity | Estimated Changes |
 |-----|------------|-------------------|
-| Session type auto-fill | Low | ~15 lines |
-| Participants input | Low | ~20 lines |
-| Back to home | Trivial | 1 line |
-| Admin groups verification | Medium | ~100 lines across 2 files |
-| Location from GPS | Medium | ~40 lines |
-| Add Apnea Academy | Trivial | 1 line |
-| Spot marker colors | Medium | ~50 lines across 2 files |
+| Email verification flow | Medium | ~50 lines in Auth.tsx |
+| Group sessions visibility | Low | RLS review/update |
+| Settings back button | Trivial | 1 line |
+| Group/Cert email notifications | High | ~200 lines (2 new edge functions + integrations) |
+| Email sender domain | Low | ~10 lines across edge functions |
 
-Total: 7 fixes in 7 files
+Total: 5 fixes affecting 7 files + 2 new edge functions
