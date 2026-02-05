@@ -248,12 +248,31 @@ const SessionDetails = () => {
 
   const handleCancelSession = async () => {
     setCancelDialogOpen(false);
+    
+    // Get confirmed participants before cancelling
+    const confirmedParticipants = session?.participants.filter(p => p.status === "confirmed") || [];
+    
     const { error } = await cancelSession();
 
     if (error) {
       toast({ title: "Errore", description: "Impossibile annullare la sessione", variant: "destructive" });
     } else {
       toast({ title: "Sessione annullata", description: "La sessione è stata cancellata" });
+
+      // Notify all confirmed participants about the cancellation
+      for (const participant of confirmedParticipants) {
+        await createNotification({
+          userId: participant.user_id,
+          type: "session_cancelled",
+          title: "Sessione annullata",
+          message: `La sessione "${session!.title}" è stata annullata dall'organizzatore`,
+          metadata: {
+            session_id: session!.id,
+            session_title: session!.title,
+          },
+        });
+      }
+
       navigate("/community");
     }
   };
