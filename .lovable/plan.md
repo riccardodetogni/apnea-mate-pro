@@ -1,104 +1,104 @@
 
-# Plan: Add Edit Session & Improve Edit Group Access
+# Plan: Smart Back Button Navigation with State
 
-## Summary
-Add the ability to edit sessions for the session creator, and improve the visibility of the edit/manage button for groups.
+## Problem
+Sessions (and other detail pages) can be accessed from multiple entry points:
+- Community → Session (back should go to /community)
+- Spot Details → Session (back should go to /spots/:id)
+- Group Details → Session (back should go to /groups/:id)
+- My Sessions → Session (back should go to /my-sessions)
+- Search → Session (back should go to /search or /community)
 
----
+Hardcoding back routes doesn't work because the correct destination depends on how the user arrived at the page.
 
-## Current State
+## Solution: Navigation State
 
-### Sessions
-- Session creators can only **cancel** a session
-- No way to edit session details (title, description, date, time, spot, level, etc.)
+React Router's `navigate()` supports passing state that can be read on the destination page:
 
-### Groups
-- Group owners see a **Settings icon** (gear) in the header that navigates to `/groups/:id/manage`
-- The manage page has a "Settings" tab for editing name, description, and avatar
-- This works but may not be discoverable - it's a small gear icon
+```typescript
+// When navigating TO a page
+navigate(`/sessions/${id}`, { state: { from: '/spots/abc123' } });
 
----
+// On the destination page, read state and use it for back
+const location = useLocation();
+const backPath = location.state?.from || '/community'; // fallback to default
+navigate(backPath);
+```
 
-## Proposed Changes
+## Implementation Strategy
 
-### 1. Edit Session Functionality
+### 1. Define Back Fallbacks
+Each page type has a logical "parent" fallback:
+- Sessions → /community
+- Spots → /spots
+- Groups → /groups
+- User Profiles → /community
+- Edit pages → their detail page
 
-**New Page: `src/pages/EditSession.tsx`**
-- Create an edit page similar to `CreateSession.tsx` but pre-populated with existing session data
-- Allow editing: title, description, date/time, duration, max participants, level, session type
-- Cannot change: spot (to prevent confusion for participants), group
-- Only accessible by session creator
+### 2. Pass `from` State When Navigating
+Update all navigation calls to include the current path:
 
-**Route:** `/sessions/:id/edit`
+| Source Page | Navigation Call |
+|------------|-----------------|
+| SpotDetails.tsx (line 187) | `navigate(\`/sessions/\${session.id}\`, { state: { from: \`/spots/\${id}\` } })` |
+| GroupSessionsList.tsx (line 48) | `navigate(\`/sessions/\${session.id}\`, { state: { from: \`/groups/\${groupId}\` } })` - requires passing groupId as prop |
+| MySessions.tsx (lines 68, 113) | `navigate(\`/sessions/\${session.id}\`, { state: { from: '/my-sessions' } })` |
+| Community.tsx (lines 197, 321, 376, etc.) | `navigate(\`/sessions/\${sessionId}\`, { state: { from: '/community' } })` |
 
-**SessionDetails.tsx Updates:**
-- Add an "Edit" button (pencil icon) in the header for the session creator
-- Navigate to `/sessions/:id/edit` when clicked
+### 3. Read State on Detail Pages
+Update detail pages to use state for back navigation:
 
-**Hook Updates:**
-- Add `updateSession` function to `useSessionDetails.ts`
+```typescript
+const location = useLocation();
+const backPath = (location.state as { from?: string })?.from || '/community';
 
-### 2. Improve Group Edit Button Visibility
-
-**GroupDetails.tsx Updates:**
-- Make the Settings/Edit button more prominent for group owners
-- Add text label "Modifica" or "Gestisci" next to the icon for clarity
-
----
-
-## Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/pages/EditSession.tsx` | Edit session form page |
+// Back button
+<button onClick={() => navigate(backPath)}>
+```
 
 ## Files to Modify
 
+### Pass navigation state (source pages):
 | File | Changes |
 |------|---------|
-| `src/App.tsx` | Add route `/sessions/:id/edit` |
-| `src/pages/SessionDetails.tsx` | Add Edit button for creator |
-| `src/hooks/useSessionDetails.ts` | Add `updateSession` function |
-| `src/pages/GroupDetails.tsx` | Make edit button more visible |
+| `src/pages/SpotDetails.tsx` | Pass `from: /spots/${id}` when clicking sessions |
+| `src/components/groups/GroupSessionsList.tsx` | Accept `groupId` prop, pass `from: /groups/${groupId}` |
+| `src/pages/GroupDetails.tsx` | Pass `groupId` to GroupSessionsList |
+| `src/pages/MySessions.tsx` | Pass `from: /my-sessions` when clicking sessions |
+| `src/pages/Community.tsx` | Pass `from: /community` for all session/group clicks |
 
----
+### Read navigation state (destination pages):
+| File | Back Fallback |
+|------|---------------|
+| `src/pages/SessionDetails.tsx` | `/community` |
+| `src/pages/SpotDetails.tsx` | `/spots` |
+| `src/pages/UserProfile.tsx` | `/community` |
+| `src/pages/MySessions.tsx` | `/community` |
+| `src/pages/Search.tsx` | `/community` |
+| `src/pages/Admin.tsx` | `/profile` |
+| `src/pages/DiscoverFreedivers.tsx` | `/community` |
+| `src/pages/EditSession.tsx` | `/sessions/${id}` |
 
-## Technical Details
+## Example Implementation
 
-### EditSession.tsx Structure
-```text
-- Fetch session data using session ID
-- Pre-populate form with current values
-- Validate user is the creator
-- On submit, update the session in database
-- Notify participants if date/time changed
+**SpotDetails.tsx** (passing state):
+```typescript
+onClick={() => navigate(`/sessions/${session.id}`, { 
+  state: { from: `/spots/${id}` } 
+})}
 ```
 
-### SessionDetails.tsx - Edit Button
-Add in header next to back button (only for creator):
-```text
-{session.isCreator && (
-  <button onClick={() => navigate(`/sessions/${id}/edit`)}>
-    <Pencil icon />
-  </button>
-)}
+**SessionDetails.tsx** (reading state):
+```typescript
+const location = useLocation();
+const backPath = (location.state as { from?: string })?.from || '/community';
+
+// In back button:
+onClick={() => navigate(backPath)}
 ```
 
-### GroupDetails.tsx - More Visible Edit
-Change the small gear icon to a button with text:
-```text
-{group.is_owner && (
-  <Button variant="outline" size="sm">
-    <Settings icon /> Gestisci
-  </Button>
-)}
-```
-
----
-
-## Summary Table
-
-| Feature | Current | After |
-|---------|---------|-------|
-| Edit session | Not available | Edit button in header for creator |
-| Edit group | Small gear icon | More visible "Gestisci" button |
+## Benefits
+- No navigation loops possible
+- Always goes to logical parent
+- Graceful fallback if state is missing (e.g., direct URL access)
+- Works with browser back button too (history still works normally)
