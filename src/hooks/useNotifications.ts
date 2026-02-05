@@ -136,12 +136,30 @@ export const useNotifications = () => {
     }
   };
 
+  const deleteAllNotifications = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await (supabase.from("notifications" as any) as any)
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Error deleting all notifications:", err);
+    }
+  };
+
   return {
     notifications,
     loading,
     unreadCount,
     markAsRead,
     markAllAsRead,
+    deleteAllNotifications,
     refetch: fetchNotifications,
   };
 };
