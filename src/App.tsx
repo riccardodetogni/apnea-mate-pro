@@ -14,6 +14,7 @@ import SpotDetails from "./pages/SpotDetails";
 import Create from "./pages/Create";
 import CreateSession from "./pages/CreateSession";
 import SessionDetails from "./pages/SessionDetails";
+import EditSession from "./pages/EditSession";
 import MySessions from "./pages/MySessions";
 import Groups from "./pages/Groups";
 import GroupDetails from "./pages/GroupDetails";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/create" element={<Create />} />
               <Route path="/create/session" element={<CreateSession />} />
               <Route path="/sessions/:id" element={<SessionDetails />} />
+              <Route path="/sessions/:id/edit" element={<EditSession />} />
               <Route path="/my-sessions" element={<MySessions />} />
               <Route path="/groups" element={<Groups />} />
               <Route path="/groups/:id" element={<GroupDetails />} />
