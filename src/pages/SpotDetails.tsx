@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSpotDetails } from "@/hooks/useSpotDetails";
 import { useSpotFavorites } from "@/hooks/useSpotFavorites";
@@ -29,6 +29,8 @@ const environmentLabels: Record<string, string> = {
 const SpotDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const backPath = (location.state as { from?: string })?.from || "/spots";
   const { user } = useAuth();
   const { spot, sessions, loading, error } = useSpotDetails(id);
   const { isFavorite, toggleFavorite } = useSpotFavorites();
@@ -95,7 +97,7 @@ const SpotDetails = () => {
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(backPath)}
           className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center hover:bg-muted/50 transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -184,7 +186,7 @@ const SpotDetails = () => {
             {sessions.map((session) => (
               <div
                 key={session.id}
-                onClick={() => navigate(`/sessions/${session.id}`)}
+                onClick={() => navigate(`/sessions/${session.id}`, { state: { from: `/spots/${id}` } })}
                 className="bg-card rounded-xl border p-4 cursor-pointer hover:border-primary/30 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">

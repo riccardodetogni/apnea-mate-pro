@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSessionDetails } from "@/hooks/useSessionDetails";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
@@ -71,6 +71,8 @@ const mapSessionType = (type: string): string => {
 const SessionDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const backPath = (location.state as { from?: string })?.from || "/community";
   const { user } = useAuth();
   const { toast } = useToast();
   const { isCertified, canJoinSession } = useCommunityContext();
@@ -300,7 +302,7 @@ const SessionDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
+          <button onClick={() => navigate(backPath)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <Skeleton className="h-6 w-40" />
@@ -335,7 +337,7 @@ const SessionDetails = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
+        <button onClick={() => navigate(backPath)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="font-semibold text-lg truncate flex-1">{session.title}</h1>

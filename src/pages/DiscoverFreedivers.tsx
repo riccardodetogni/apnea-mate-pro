@@ -142,7 +142,7 @@ const DiscoverFreedivers = () => {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/community")}
           className="p-2 -ml-2 hover:bg-secondary rounded-full transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />

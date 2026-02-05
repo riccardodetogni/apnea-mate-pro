@@ -17,9 +17,10 @@ interface Session {
 
 interface GroupSessionsListProps {
   sessions: Session[];
+  groupId?: string;
 }
 
-export const GroupSessionsList = ({ sessions }: GroupSessionsListProps) => {
+export const GroupSessionsList = ({ sessions, groupId }: GroupSessionsListProps) => {
   const navigate = useNavigate();
 
   if (sessions.length === 0) {
@@ -45,7 +46,7 @@ export const GroupSessionsList = ({ sessions }: GroupSessionsListProps) => {
           return (
             <button
               key={session.id}
-              onClick={() => navigate(`/sessions/${session.id}`)}
+              onClick={() => navigate(`/sessions/${session.id}`, { state: { from: groupId ? `/groups/${groupId}` : '/groups' } })}
               className="w-full p-3 rounded-xl bg-card border hover:border-primary/30 transition-colors text-left flex items-center gap-3"
             >
               {/* Date badge */}

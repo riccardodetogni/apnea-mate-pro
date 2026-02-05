@@ -193,7 +193,7 @@ const GroupDetails = () => {
 
       {/* Sessions */}
       <div className="mt-6">
-        <GroupSessionsList sessions={sessions} />
+        <GroupSessionsList sessions={sessions} groupId={id} />
       </div>
 
       {/* Courses placeholder */}
