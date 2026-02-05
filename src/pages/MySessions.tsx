@@ -65,7 +65,7 @@ const MySessions = () => {
 
     return (
       <button
-        onClick={() => navigate(`/sessions/${session.id}`)}
+        onClick={() => navigate(`/sessions/${session.id}`, { state: { from: '/my-sessions' } })}
         className="w-full bg-card rounded-2xl border p-4 text-left hover:border-primary/30 transition-colors"
       >
         <div className="flex items-start justify-between mb-2">
@@ -109,7 +109,7 @@ const MySessions = () => {
   const CreatedSessionCard = ({ session }: { session: MyCreatedSession }) => {
     return (
       <button
-        onClick={() => navigate(`/sessions/${session.id}`)}
+        onClick={() => navigate(`/sessions/${session.id}`, { state: { from: '/my-sessions' } })}
         className="w-full bg-card rounded-2xl border p-4 text-left hover:border-primary/30 transition-colors"
       >
         <div className="flex items-start justify-between mb-2">
@@ -165,7 +165,7 @@ const MySessions = () => {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
+          <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="font-semibold text-lg">Le mie sessioni</h1>
@@ -187,8 +187,8 @@ const MySessions = () => {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
-          <ChevronLeft className="w-5 h-5" />
+          <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="font-semibold text-lg">Le mie sessioni</h1>
       </header>

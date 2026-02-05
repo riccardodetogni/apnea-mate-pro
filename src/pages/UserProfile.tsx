@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useFollow } from "@/hooks/useFollow";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +22,8 @@ import { it, enUS } from "date-fns/locale";
 const UserProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const backPath = (location.state as { from?: string })?.from || "/community";
   const { user } = useAuth();
   const { language } = useLanguage();
   const { profile, sessions, sharedGroups, role, loading, error, isCertified, isInstructor } = useUserProfile(id);
@@ -53,7 +55,7 @@ const UserProfile = () => {
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(backPath)}
             className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -77,7 +79,7 @@ const UserProfile = () => {
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(backPath)}
             className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -99,12 +101,12 @@ const UserProfile = () => {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
+          <button
+            onClick={() => navigate(backPath)}
+            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
         <h1 className="font-semibold text-lg">{t("profile")}</h1>
       </header>
 
