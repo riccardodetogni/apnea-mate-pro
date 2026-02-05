@@ -77,7 +77,7 @@ const Settings = () => {
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
         <button
-          onClick={() => navigate("/community")}
+          onClick={() => navigate("/profile")}
           className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
         >
           <ChevronLeft className="w-5 h-5" />
