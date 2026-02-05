@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
+import { createNotification } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -135,6 +136,27 @@ const SessionDetails = () => {
         description: "L'organizzatore riceverà la tua richiesta di partecipazione",
       });
 
+      // Get user profile for notification
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .single();
+
+      // Create in-app notification for session creator
+      await createNotification({
+        userId: session.creator_id,
+        type: "session_join_request",
+        title: "Nuova richiesta di partecipazione",
+        message: `${userProfile?.name || "Un utente"} vuole partecipare a "${session.title}"`,
+        metadata: {
+          session_id: session.id,
+          session_title: session.title,
+          user_id: user.id,
+          user_name: userProfile?.name || undefined,
+        },
+      });
+
       // Send notification email to session creator
       try {
         await supabase.functions.invoke("send-session-notification", {
@@ -160,6 +182,18 @@ const SessionDetails = () => {
     } else {
       toast({ title: "Approvato!", description: "Partecipante confermato" });
 
+      // Create in-app notification for participant
+      await createNotification({
+        userId: participantUserId,
+        type: "session_request_approved",
+        title: "Richiesta approvata!",
+        message: `La tua partecipazione a "${session!.title}" è stata confermata`,
+        metadata: {
+          session_id: session!.id,
+          session_title: session!.title,
+        },
+      });
+
       // Send approval notification email
       try {
         await supabase.functions.invoke("send-session-notification", {
@@ -184,6 +218,18 @@ const SessionDetails = () => {
       toast({ title: "Errore", description: "Impossibile rifiutare", variant: "destructive" });
     } else {
       toast({ title: "Rifiutato", description: "Richiesta rifiutata" });
+
+      // Create in-app notification for participant
+      await createNotification({
+        userId: participantUserId,
+        type: "session_request_rejected",
+        title: "Richiesta non accettata",
+        message: `La tua richiesta per "${session!.title}" non è stata accettata`,
+        metadata: {
+          session_id: session!.id,
+          session_title: session!.title,
+        },
+      });
 
       // Send rejection notification email
       try {
