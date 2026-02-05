@@ -11,6 +11,8 @@ import { t } from "@/lib/i18n";
 import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { createNotification } from "@/lib/notifications";
 
 const GroupDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +44,27 @@ const GroupDetails = () => {
       toast({ title: "Errore", description: error.message, variant: "destructive" });
     } else if (isPending) {
       toast({ title: "Richiesta inviata", description: "In attesa di approvazione" });
+
+      // Get user profile for notification
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user!.id)
+        .single();
+
+      // Create notification for group owner
+      await createNotification({
+        userId: group!.created_by,
+        type: "group_join_request",
+        title: "Nuova richiesta di iscrizione",
+        message: `${userProfile?.name || "Un utente"} vuole unirsi a "${group!.name}"`,
+        metadata: {
+          group_id: group!.id,
+          group_name: group!.name,
+          user_id: user!.id,
+          user_name: userProfile?.name || undefined,
+        },
+      });
     } else {
       toast({ title: "Iscrizione effettuata!" });
     }

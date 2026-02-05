@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { createNotification } from "@/lib/notifications";
 import { 
   ArrowLeft, 
   Loader2, 
@@ -99,6 +100,18 @@ const GroupManage = () => {
       toast({ title: "Errore", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Membro approvato!" });
+
+      // Create notification for approved member
+      await createNotification({
+        userId: userId,
+        type: "group_request_approved",
+        title: "Richiesta approvata!",
+        message: `Sei stato accettato nel gruppo "${group!.name}"`,
+        metadata: {
+          group_id: group!.id,
+          group_name: group!.name,
+        },
+      });
     }
   };
 
