@@ -114,12 +114,15 @@ const GroupDetails = () => {
         </button>
         <div className="flex-1" />
         {group.is_owner && (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => navigate(`/groups/${id}/manage`)}
-            className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center hover:bg-muted/50 transition-colors"
+            className="gap-2"
           >
-            <Settings className="w-5 h-5 text-foreground" />
-          </button>
+            <Settings className="w-4 h-4" />
+            Gestisci
+          </Button>
         )}
       </div>
 

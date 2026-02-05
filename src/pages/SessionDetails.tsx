@@ -22,6 +22,7 @@ import {
   X,
   Loader2,
   AlertTriangle,
+  Pencil,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -337,7 +338,15 @@ const SessionDetails = () => {
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h1 className="font-semibold text-lg truncate">{session.title}</h1>
+        <h1 className="font-semibold text-lg truncate flex-1">{session.title}</h1>
+        {session.isCreator && session.status === "active" && (
+          <button
+            onClick={() => navigate(`/sessions/${id}/edit`)}
+            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center hover:bg-muted transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
