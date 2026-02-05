@@ -1,137 +1,281 @@
 
-# Plan: Add Profile Picture Upload for Users and Groups
+
+# Plan: In-App Notification Center
 
 ## Summary
-Add the ability for users to upload personal profile pictures and for group owners to upload group avatars. This will require:
-1. Creating a new storage bucket for avatars
-2. Building a reusable image upload component
-3. Adding upload functionality to the Settings page (for user profiles)
-4. Adding upload functionality to the Group Management page (for groups)
+Build a comprehensive in-app notification system that stores all user notifications in the database, displays them via a bell icon with unread count in the header, and provides a full-screen drawer to view and manage notification history.
 
 ---
 
-## Current State
+## What This Will Enable
 
-### Database
-- **profiles** table already has an `avatar_url` column (currently unused)
-- **groups** table already has an `avatar_url` column (currently unused)
-- A **certifications** storage bucket exists (private), but no avatar bucket
+Users will be notified in-app for:
+- **Session Events**: Join requests, approvals, rejections, cancellations
+- **Group Events**: Join requests, approvals, member additions
+- **Social Events**: New followers
 
-### UI
-- **Profile page**: Shows user initial as placeholder (no upload option)
-- **Settings page**: Only allows editing name and location
-- **GroupManage page**: Only manages members, no group settings
-- **CreateGroup page**: No avatar upload option
+The notification center will show a chronological list of all past notifications, with clear visual distinction between read and unread items.
+
+---
+
+## Architecture Overview
+
+```text
++------------------+       +------------------+       +------------------+
+|   User Action    | --->  |   Create         | --->  |   notifications  |
+|   (join, follow) |       |   Notification   |       |   table          |
++------------------+       +------------------+       +------------------+
+                                                              |
+                                                              v
+                           +------------------+       +------------------+
+                           |   Bell Icon      | <---  |   useNotifications|
+                           |   (unread count) |       |   hook            |
+                           +------------------+       +------------------+
+                                   |
+                                   v
+                           +------------------+
+                           |   Notifications  |
+                           |   Drawer         |
+                           +------------------+
+```
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Create Storage Bucket
-Create a public `avatars` bucket with appropriate RLS policies:
-- Users can upload to their own folder (`user_id/*`)
-- Group owners can upload to their group folder (`groups/group_id/*`)
-- Anyone can read public avatars
+### Step 1: Create Notifications Table
+A new database table to persist all notifications with:
+- `id` - Primary key
+- `user_id` - Recipient user
+- `type` - Notification type enum
+- `title` - Notification title
+- `message` - Notification body
+- `metadata` - JSON for related IDs (session_id, group_id, etc.)
+- `read` - Boolean for read status
+- `created_at` - Timestamp
 
-### Step 2: Create Reusable AvatarUpload Component
-A component that:
-- Shows current avatar or placeholder initial
-- Has a camera/edit icon overlay
-- Opens file picker on click
-- Handles upload to storage
-- Returns the public URL
+Enable Realtime so new notifications appear instantly.
 
-### Step 3: Add Avatar Upload to Settings Page
-- Add the AvatarUpload component above the name field
-- Upload to `avatars/user_id/avatar.jpg`
-- Update profile.avatar_url on successful upload
+### Step 2: Create useNotifications Hook
+A custom React hook that:
+- Fetches notifications for the current user
+- Provides unread count
+- Subscribes to Realtime for instant updates
+- Exposes functions: `markAsRead`, `markAllAsRead`, `refetch`
 
-### Step 4: Add Group Settings Section
-Create a new section in GroupManage page (or a separate tab) for:
-- Uploading group avatar
-- Upload to `avatars/groups/group_id/avatar.jpg`
-- Update groups.avatar_url on successful upload
+### Step 3: Add Bell Icon to CommunityHeader
+- Place notification bell next to the "My Sessions" calendar button
+- Show red badge with unread count when > 0
+- Click opens the notifications drawer
+
+### Step 4: Create NotificationsDrawer Component
+A bottom sheet/drawer that displays:
+- "Mark all as read" action button
+- Scrollable list of notifications
+- Each notification shows icon, title, message, relative time
+- Tapping a notification marks it as read and navigates to relevant page
+
+### Step 5: Integrate Notification Creation
+Add notification creation at key trigger points:
+- `SessionDetails.tsx`: When join request is submitted, approved, or rejected
+- `GroupDetails.tsx` / `GroupManage.tsx`: When group join request is submitted or approved
+- `useFollow.ts`: When a user follows another user
+
+### Step 6: Extend Edge Function (Optional Enhancement)
+Modify `send-session-notification` to also create in-app notifications, ensuring both email and in-app are triggered together.
+
+---
+
+## Database Migration
+
+```sql
+-- Create notification type enum
+CREATE TYPE notification_type AS ENUM (
+  'session_join_request',
+  'session_request_approved',
+  'session_request_rejected',
+  'session_cancelled',
+  'group_join_request',
+  'group_request_approved',
+  'new_follower'
+);
+
+-- Create notifications table
+CREATE TABLE notifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  type notification_type NOT NULL,
+  title text NOT NULL,
+  message text NOT NULL,
+  metadata jsonb DEFAULT '{}',
+  read boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_user_unread ON notifications(user_id) WHERE read = false;
+
+-- Enable RLS
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Users can only see their own notifications
+CREATE POLICY "Users can view own notifications"
+ON notifications FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Users can update (mark as read) their own notifications
+CREATE POLICY "Users can update own notifications"
+ON notifications FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Service role or authenticated users can insert notifications for others
+CREATE POLICY "Authenticated users can create notifications"
+ON notifications FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Enable Realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+```
+
+---
+
+## New Files to Create
+
+### 1. `src/hooks/useNotifications.ts`
+Custom hook for managing notifications state and Realtime subscription.
+
+### 2. `src/components/notifications/NotificationsDrawer.tsx`
+The drawer/sheet component displaying notification list.
+
+### 3. `src/components/notifications/NotificationItem.tsx`
+Individual notification row component with icon, title, message, and time.
+
+### 4. `src/components/notifications/NotificationBell.tsx`
+Bell icon button with unread badge for the header.
+
+---
+
+## Files to Modify
+
+### 1. `src/components/community/CommunityHeader.tsx`
+- Import and add NotificationBell component
+- Manage drawer open/close state
+
+### 2. `src/pages/SessionDetails.tsx`
+- Add notification creation when:
+  - User submits join request (notify session creator)
+  - Creator approves request (notify participant)
+  - Creator rejects request (notify participant)
+
+### 3. `src/pages/GroupDetails.tsx`
+- Add notification creation when user requests to join a group (notify group owner)
+
+### 4. `src/pages/GroupManage.tsx`
+- Add notification creation when owner approves/rejects member request
+
+### 5. `src/hooks/useFollow.ts`
+- Add notification creation when user follows another user
+
+### 6. `supabase/functions/send-session-notification/index.ts` (optional)
+- Add in-app notification creation alongside email sending
 
 ---
 
 ## Technical Details
 
-### Storage Bucket SQL Migration
-```sql
--- Create avatars bucket
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('avatars', 'avatars', true);
+### Notification Types and Icons
 
--- RLS: Anyone can view avatars
-CREATE POLICY "Public avatar access"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'avatars');
+| Type | Icon | Color |
+|------|------|-------|
+| session_join_request | UserPlus | blue |
+| session_request_approved | Check | green |
+| session_request_rejected | X | red |
+| session_cancelled | XCircle | red |
+| group_join_request | Users | blue |
+| group_request_approved | Check | green |
+| new_follower | Heart | pink |
 
--- RLS: Users can upload their own avatar
-CREATE POLICY "Users can upload own avatar"
-ON storage.objects FOR INSERT
-WITH CHECK (
-  bucket_id = 'avatars' 
-  AND auth.uid()::text = (storage.foldername(name))[1]
-);
-
--- RLS: Users can update their own avatar
-CREATE POLICY "Users can update own avatar"
-ON storage.objects FOR UPDATE
-USING (
-  bucket_id = 'avatars' 
-  AND auth.uid()::text = (storage.foldername(name))[1]
-);
-
--- RLS: Users can delete their own avatar
-CREATE POLICY "Users can delete own avatar"
-ON storage.objects FOR DELETE
-USING (
-  bucket_id = 'avatars' 
-  AND auth.uid()::text = (storage.foldername(name))[1]
-);
-
--- RLS: Group owners can upload group avatars
-CREATE POLICY "Group owners can upload group avatar"
-ON storage.objects FOR INSERT
-WITH CHECK (
-  bucket_id = 'avatars' 
-  AND (storage.foldername(name))[1] = 'groups'
-  AND EXISTS (
-    SELECT 1 FROM group_members gm
-    WHERE gm.group_id::text = (storage.foldername(name))[2]
-    AND gm.user_id = auth.uid()
-    AND gm.role IN ('owner', 'admin')
-  )
-);
+### Notification Metadata Structure
+```typescript
+interface NotificationMetadata {
+  session_id?: string;
+  session_title?: string;
+  group_id?: string;
+  group_name?: string;
+  user_id?: string;
+  user_name?: string;
+}
 ```
 
-### New Component: `src/components/ui/AvatarUpload.tsx`
-- Props: `currentUrl`, `name` (for initial), `onUpload(url)`, `uploadPath`, `size`
-- Uses file input with accept="image/*"
-- Resizes image client-side before upload (optional optimization)
-- Uploads to storage and calls onUpload with public URL
+### Realtime Subscription Pattern
+```typescript
+useEffect(() => {
+  const channel = supabase
+    .channel('notifications')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      },
+      (payload) => {
+        // Add new notification to state
+        setNotifications(prev => [payload.new, ...prev]);
+      }
+    )
+    .subscribe();
 
-### Settings Page Changes
-- Import AvatarUpload component
-- Add above the name field in the "Edit Profile" section
-- Call `updateProfile({ avatar_url })` on successful upload
+  return () => { supabase.removeChannel(channel); };
+}, [user?.id]);
+```
 
-### GroupManage Page Changes
-- Add a new "Settings" tab alongside "Requests" and "Members"
-- Include AvatarUpload for group avatar
-- Add ability to edit group name/description (bonus)
+### UI Behavior
+- Bell icon shows red dot/badge when unread count > 0
+- Clicking bell opens drawer from bottom (80% height)
+- Notifications sorted by created_at descending (newest first)
+- Unread notifications have highlighted background
+- Tapping notification:
+  1. Marks it as read
+  2. Closes drawer
+  3. Navigates to relevant page based on type/metadata
+- "Mark all as read" button at top of drawer
 
 ---
 
-## Files to Create
-1. `src/components/ui/AvatarUpload.tsx` - Reusable upload component
+## Notification Creation Helper
 
-## Files to Modify
-1. `src/pages/Settings.tsx` - Add avatar upload for user profile
-2. `src/pages/GroupManage.tsx` - Add settings tab with group avatar upload
-3. `src/hooks/useGroupDetails.ts` - Add `updateGroup` function
-4. `src/pages/Profile.tsx` - Display uploaded avatar instead of initial
+Create a utility function to standardize notification creation:
 
-## Database Migration
-1. Create `avatars` storage bucket with RLS policies
+```typescript
+// src/lib/notifications.ts
+export async function createNotification({
+  userId,
+  type,
+  title,
+  message,
+  metadata = {}
+}: CreateNotificationParams) {
+  return supabase.from('notifications').insert({
+    user_id: userId,
+    type,
+    title,
+    message,
+    metadata
+  });
+}
+```
+
+---
+
+## Summary of Changes
+
+| Category | Files |
+|----------|-------|
+| Database | 1 migration (notifications table + RLS + Realtime) |
+| New Components | 4 files (NotificationBell, NotificationsDrawer, NotificationItem, useNotifications) |
+| Modified Files | 5 files (CommunityHeader, SessionDetails, GroupDetails, GroupManage, useFollow) |
+| Optional | 1 edge function update |
+
