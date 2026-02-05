@@ -3,6 +3,7 @@ import { t } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Calendar } from "lucide-react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export const CommunityHeader = () => {
   const { user } = useAuth();
@@ -32,6 +33,9 @@ export const CommunityHeader = () => {
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">
+        {/* Notification bell */}
+        <NotificationBell />
+
         {/* My Sessions button */}
         <button
           onClick={() => navigate("/my-sessions")}

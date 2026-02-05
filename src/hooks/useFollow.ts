@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { createNotification } from "@/lib/notifications";
 
 export const useFollow = (targetUserId: string | undefined) => {
   const { user } = useAuth();
@@ -84,6 +85,25 @@ export const useFollow = (targetUserId: string | undefined) => {
         
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
+
+        // Get the current user's profile for the notification
+        const { data: followerProfile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .single();
+
+        // Create notification for the followed user
+        await createNotification({
+          userId: targetUserId,
+          type: "new_follower",
+          title: "Nuovo follower",
+          message: `${followerProfile?.name || "Un utente"} ha iniziato a seguirti`,
+          metadata: {
+            user_id: user.id,
+            user_name: followerProfile?.name || undefined,
+          },
+        });
       }
     } catch (err) {
       console.error("Error toggling follow:", err);

@@ -195,6 +195,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -456,6 +489,14 @@ export type Database = {
         | "pending"
         | "approved"
         | "rejected"
+      notification_type:
+        | "session_join_request"
+        | "session_request_approved"
+        | "session_request_rejected"
+        | "session_cancelled"
+        | "group_join_request"
+        | "group_request_approved"
+        | "new_follower"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -589,6 +630,15 @@ export const Constants = {
         "pending",
         "approved",
         "rejected",
+      ],
+      notification_type: [
+        "session_join_request",
+        "session_request_approved",
+        "session_request_rejected",
+        "session_cancelled",
+        "group_join_request",
+        "group_request_approved",
+        "new_follower",
       ],
     },
   },
