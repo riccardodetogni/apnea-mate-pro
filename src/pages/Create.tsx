@@ -49,7 +49,7 @@ const Create = () => {
       <header className="mb-6 pt-4">
         <div className="flex items-center gap-3 mb-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/community")}
             className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
           >
             <ChevronLeft className="w-5 h-5" />

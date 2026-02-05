@@ -16,6 +16,25 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+// Custom colored marker using SVG
+const createColoredMarker = (color: string, isSelected: boolean = false) => {
+  const size = isSelected ? 35 : 25;
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size * 1.4}">
+      <path fill="${color}" stroke="${isSelected ? '#000' : '#333'}" stroke-width="${isSelected ? 2 : 1}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+      <circle cx="12" cy="9" r="3" fill="white"/>
+    </svg>
+  `;
+  
+  return L.divIcon({
+    html: svg,
+    className: 'custom-marker',
+    iconSize: [size, size * 1.4],
+    iconAnchor: [size / 2, size * 1.4],
+    popupAnchor: [0, -size * 1.2],
+  });
+};
+
 interface SpotMapProps {
   spots: Spot[];
   selectedSpotId?: string;
@@ -66,18 +85,17 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
     spotsWithCoords.forEach((spot) => {
       const isSelected = spot.id === selectedSpotId;
       
-      const icon = isSelected
-        ? L.icon({
-            iconUrl: markerIcon,
-            iconRetinaUrl: markerIcon2x,
-            shadowUrl: markerShadow,
-            iconSize: [30, 49],
-            iconAnchor: [15, 49],
-            popupAnchor: [1, -40],
-            shadowSize: [49, 49],
-            className: "selected-marker",
-          })
-        : new L.Icon.Default();
+      // Determine marker color based on session availability
+      let markerColor: string;
+      if (spot.hasActiveSessions) {
+        // Colored marker for spots with active sessions (blue)
+        markerColor = "hsl(200, 80%, 50%)";
+      } else {
+        // Gray marker for spots without active sessions
+        markerColor = "hsl(0, 0%, 60%)";
+      }
+
+      const icon = createColoredMarker(markerColor, isSelected);
 
       const marker = L.marker([spot.latitude!, spot.longitude!], { icon })
         .addTo(mapRef.current!)
@@ -85,6 +103,7 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
           `<div class="text-center">
             <p class="font-semibold">${spot.name}</p>
             <p class="text-sm" style="color: #666;">${spot.location}</p>
+            ${spot.hasActiveSessions ? '<p class="text-xs" style="color: hsl(200, 80%, 40%); margin-top: 4px;">Sessioni disponibili</p>' : ''}
           </div>`
         );
 

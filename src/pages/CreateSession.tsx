@@ -45,6 +45,14 @@ const levels = [
   { value: "advanced", label: "Avanzato" },
 ];
 
+// Map environment_type to session_type
+const environmentToSessionType: Record<string, string> = {
+  sea: "sea_trip",
+  pool: "pool_session",
+  deep_pool: "deep_pool_session",
+  lake: "lake_trip",
+};
+
 const CreateSession = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -56,6 +64,9 @@ const CreateSession = () => {
   const [submitting, setSubmitting] = useState(false);
   const [creatorJoins, setCreatorJoins] = useState(true);
   const [groupOnly, setGroupOnly] = useState(false);
+  // Store raw string values for number inputs to handle editing gracefully
+  const [durationInput, setDurationInput] = useState("60");
+  const [participantsInput, setParticipantsInput] = useState("6");
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -76,6 +87,56 @@ const CreateSession = () => {
       navigate("/auth");
     }
   }, [user, profileLoading, navigate]);
+
+  // Auto-fill session_type based on selected spot's environment_type
+  useEffect(() => {
+    if (form.spot_id) {
+      const selectedSpot = spots.find((s) => s.id === form.spot_id);
+      if (selectedSpot && selectedSpot.environment_type) {
+        const mappedType = environmentToSessionType[selectedSpot.environment_type];
+        if (mappedType) {
+          setForm((prev) => ({ ...prev, session_type: mappedType }));
+        }
+      }
+    }
+  }, [form.spot_id, spots]);
+
+  // Handlers for number inputs with proper blur validation
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDurationInput(e.target.value);
+  };
+
+  const handleDurationBlur = () => {
+    const parsed = parseInt(durationInput, 10);
+    if (isNaN(parsed) || parsed < 30) {
+      setDurationInput("30");
+      setForm((prev) => ({ ...prev, duration_minutes: 30 }));
+    } else if (parsed > 480) {
+      setDurationInput("480");
+      setForm((prev) => ({ ...prev, duration_minutes: 480 }));
+    } else {
+      setDurationInput(String(parsed));
+      setForm((prev) => ({ ...prev, duration_minutes: parsed }));
+    }
+  };
+
+  const handleParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setParticipantsInput(e.target.value);
+  };
+
+  const handleParticipantsBlur = () => {
+    const parsed = parseInt(participantsInput, 10);
+    if (isNaN(parsed) || parsed < 2) {
+      setParticipantsInput("2");
+      setForm((prev) => ({ ...prev, max_participants: 2 }));
+    } else if (parsed > 50) {
+      setParticipantsInput("50");
+      setForm((prev) => ({ ...prev, max_participants: 50 }));
+    } else {
+      setParticipantsInput(String(parsed));
+      setForm((prev) => ({ ...prev, max_participants: parsed }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -365,8 +426,9 @@ const CreateSession = () => {
                   min={30}
                   max={480}
                   step={15}
-                  value={form.duration_minutes}
-                  onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) || 60 })}
+                  value={durationInput}
+                  onChange={handleDurationChange}
+                  onBlur={handleDurationBlur}
                 />
               </div>
               <div className="space-y-2">
@@ -379,8 +441,9 @@ const CreateSession = () => {
                     min={2}
                     max={50}
                     className="pl-10"
-                    value={form.max_participants}
-                    onChange={(e) => setForm({ ...form, max_participants: parseInt(e.target.value) || 6 })}
+                    value={participantsInput}
+                    onChange={handleParticipantsChange}
+                    onBlur={handleParticipantsBlur}
                   />
                 </div>
               </div>
