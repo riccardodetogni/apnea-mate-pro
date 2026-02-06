@@ -186,6 +186,8 @@ const translations = {
     adminBadge: "Admin",
     memberBadge: "Membro",
     comingSoon: "Prossimamente",
+    availableSessions: "Sessioni disponibili",
+    viewDetails: "Vedi dettagli",
     
     // Groups
     weeklyTraining: "Allenamenti settimanali",
@@ -440,6 +442,8 @@ const translations = {
     adminBadge: "Admin",
     memberBadge: "Member",
     comingSoon: "Coming soon",
+    availableSessions: "Available sessions",
+    viewDetails: "View details",
     
     // Groups
     weeklyTraining: "Weekly training",
