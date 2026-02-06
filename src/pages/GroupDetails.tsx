@@ -220,6 +220,7 @@ const GroupDetails = () => {
         members={approvedMembers}
         totalCount={group.member_count}
         ownerId={group.created_by}
+        groupId={id}
       />
     </AppLayout>
   );
