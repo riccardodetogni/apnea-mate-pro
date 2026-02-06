@@ -25,10 +25,10 @@ const createColoredMarker = (color: string, isSelected: boolean = false) => {
       <circle cx="12" cy="9" r="3" fill="white"/>
     </svg>
   `;
-  
+
   return L.divIcon({
     html: svg,
-    className: 'custom-marker',
+    className: "custom-marker",
     iconSize: [size, size * 1.4],
     iconAnchor: [size / 2, size * 1.4],
     popupAnchor: [0, -size * 1.2],
@@ -39,9 +39,17 @@ interface SpotMapProps {
   spots: Spot[];
   selectedSpotId?: string;
   onSelectSpot: (spotId: string) => void;
+  onDeselectSpot?: () => void;
+  className?: string;
 }
 
-const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
+const SpotMap = ({
+  spots,
+  selectedSpotId,
+  onSelectSpot,
+  onDeselectSpot,
+  className,
+}: SpotMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -58,12 +66,22 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
     // Default center (Italy - Genova)
     const defaultCenter: L.LatLngExpression = [44.4056, 8.9463];
 
-    mapRef.current = L.map(containerRef.current).setView(defaultCenter, 8);
+    mapRef.current = L.map(containerRef.current, {
+      zoomControl: false,
+    }).setView(defaultCenter, 8);
+
+    // Add zoom control to bottom-right to avoid overlap with search
+    L.control.zoom({ position: "bottomright" }).addTo(mapRef.current);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(mapRef.current);
+
+    // Click on map (not marker) to deselect
+    mapRef.current.on("click", () => {
+      onDeselectSpot?.();
+    });
 
     return () => {
       if (mapRef.current) {
@@ -72,6 +90,15 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
       }
     };
   }, []);
+
+  // Update deselect handler ref
+  useEffect(() => {
+    if (!mapRef.current) return;
+    mapRef.current.off("click");
+    mapRef.current.on("click", () => {
+      onDeselectSpot?.();
+    });
+  }, [onDeselectSpot]);
 
   // Update markers when spots change
   useEffect(() => {
@@ -84,30 +111,23 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
     // Add new markers
     spotsWithCoords.forEach((spot) => {
       const isSelected = spot.id === selectedSpotId;
-      
+
       // Determine marker color based on session availability
       let markerColor: string;
       if (spot.hasActiveSessions) {
-        // Colored marker for spots with active sessions (blue)
         markerColor = "hsl(200, 80%, 50%)";
       } else {
-        // Gray marker for spots without active sessions
         markerColor = "hsl(0, 0%, 60%)";
       }
 
       const icon = createColoredMarker(markerColor, isSelected);
 
-      const marker = L.marker([spot.latitude!, spot.longitude!], { icon })
-        .addTo(mapRef.current!)
-        .bindPopup(
-          `<div class="text-center">
-            <p class="font-semibold">${spot.name}</p>
-            <p class="text-sm" style="color: #666;">${spot.location}</p>
-            ${spot.hasActiveSessions ? '<p class="text-xs" style="color: hsl(200, 80%, 40%); margin-top: 4px;">Sessioni disponibili</p>' : ''}
-          </div>`
-        );
+      const marker = L.marker([spot.latitude!, spot.longitude!], { icon }).addTo(
+        mapRef.current!
+      );
 
-      marker.on("click", () => {
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
         onSelectSpot(spot.id);
       });
 
@@ -117,7 +137,9 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
     // Fit bounds if there are spots
     if (spotsWithCoords.length > 0 && mapRef.current) {
       const bounds = L.latLngBounds(
-        spotsWithCoords.map((s) => [s.latitude!, s.longitude!] as L.LatLngTuple)
+        spotsWithCoords.map(
+          (s) => [s.latitude!, s.longitude!] as L.LatLngTuple
+        )
       );
       mapRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
@@ -126,7 +148,7 @@ const SpotMap = ({ spots, selectedSpotId, onSelectSpot }: SpotMapProps) => {
   return (
     <div
       ref={containerRef}
-      className="h-[300px] rounded-lg overflow-hidden border"
+      className={className || "h-[300px] rounded-lg overflow-hidden border"}
     />
   );
 };
