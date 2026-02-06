@@ -1,163 +1,79 @@
 
 
-# Fullscreen Map Layout for Spots Tab
+# Fix: Map Appearance, BottomNav Overlap, and SpotBubble Visibility
 
-## Overview
-Transform the Spots tab from a scrollable page with a contained map into a fullscreen, immersive map experience. The map fills the entire screen behind a floating search bar and filter chips. When a spot marker is tapped, a thin, elegant bubble slides up from the bottom showing brief details and a link to available sessions.
+## Problems Identified
 
-## Current State
-- The Spots page uses `AppLayout` which wraps content in a padded container (`max-w-[430px], px-4, pt-4, pb-24`)
-- The map is a 300px tall contained box within the scrollable page
-- Below the map sits a full `SpotCard` component with navigation arrows, description, and action buttons
-- Search bar and filter chips live above the map in the normal flow
+1. **Map tiles look plain/light** -- Currently using standard OpenStreetMap tiles. Switch to CartoDB Voyager (clean, modern, slightly muted) or CartoDB Dark Matter for a darker, smoother aesthetic.
 
-## New Layout
+2. **Map covers the BottomNav** -- Leaflet internally assigns z-indexes up to 1000+ to its tile pane and controls. The BottomNav uses Tailwind's `z-50` (which is just `z-index: 50`), so Leaflet's layers render on top of it. The fix is to either isolate the map's stacking context or raise the BottomNav's z-index above Leaflet's internal values.
 
-```text
-+----------------------------------+
-|  [Search bar]         [Filter]   |  <- Floating, translucent
-|  [All] [Sea] [Lake] [Pool] ...   |  <- Floating filter chips
-|                                  |
-|         FULLSCREEN MAP           |
-|        (fills viewport)          |
-|                                  |
-|                                  |
-|  +----------------------------+  |
-|  | Spot Name          [Heart] |  |  <- Slide-up bubble
-|  | Location    [Sessions (3)] |  |
-|  +----------------------------+  |
-|                                  |
-|      [ Bottom Navigation ]       |
-+----------------------------------+
-```
+3. **SpotBubble hidden behind map** -- The bubble has `z-20` and sits inside the same relative container as the map. Same root cause: Leaflet's internal z-indexes overpower it.
 
-## Changes
+## Solution
 
-### 1. `src/pages/Spots.tsx` -- Major restructure
-- Stop using `AppLayout` wrapper (which adds padding and constrains width)
-- Instead, render the `BottomNav` manually and use a custom fullscreen layout
-- The map becomes the base layer filling the entire viewport
-- Search bar and filter chips become absolutely positioned overlays at the top with a subtle backdrop blur
-- Remove the `SpotCard` + pagination controls at the bottom
-- When a spot is selected (via marker tap), show a new `SpotBubble` component anchored to the bottom
-- When tapping an empty area of the map or deselecting, hide the bubble
-- Keep filter sheet functionality as-is
+### 1. `src/components/spots/SpotMap.tsx` -- Better tile layer
+- Replace the OpenStreetMap tile URL with **CartoDB Voyager** (clean, modern, slightly muted colors that look polished):
+  `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png`
+- This gives a much smoother, more refined map appearance without going fully dark
 
-### 2. `src/components/spots/SpotMap.tsx` -- Adapt to fullscreen
-- Change the container height from `h-[300px]` to `h-full` so it fills its parent
-- Remove the Leaflet popup on marker click (the bubble replaces it)
-- When a marker is clicked, only call `onSelectSpot` without showing a popup
-- Add an `onDeselectSpot` callback: clicking on the map (not a marker) clears the selection
-- Remove rounded corners and border (fullscreen, no card frame)
+### 2. `src/pages/Spots.tsx` -- Fix stacking order
+- Move the SpotBubble **outside** the map's parent container so it's not competing with Leaflet's internal z-indexes
+- Give the SpotBubble a z-index higher than Leaflet (e.g. `z-[1001]`)
+- The BottomNav is already outside the map container but its `z-50` is too low; update the bottom-nav z-index
 
-### 3. New: `src/components/spots/SpotBubble.tsx`
-A thin, elegant floating card that appears at the bottom when a spot is selected:
-- Slides up with a smooth CSS transition
-- Shows: environment emoji, spot name, location (truncated), and a heart/favorite button
-- If the spot has active sessions, show a prominent "Sessioni disponibili" link/button that navigates to the spot details page
-- If no sessions, show a subtle "Vedi dettagli" link instead
-- Tapping the bubble itself navigates to the spot detail page
-- Positioned above the bottom nav with appropriate spacing
-
-### 4. `src/components/spots/SpotCard.tsx` -- No changes
-This component is still used on other pages; we just stop using it in Spots.tsx.
+### 3. `src/index.css` -- Raise BottomNav z-index
+- Change `.bottom-nav-container` from `z-50` to `z-[1001]` so it always sits above Leaflet's layers
 
 ## Technical Details
 
-### Spots.tsx structure (pseudo-JSX):
+### SpotMap.tsx -- Tile layer change (line 76):
+```typescript
+// Before
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '...'
+})
+
+// After
+L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+  attribution: '... CartoDB ...',
+  maxZoom: 19,
+})
+```
+
+### Spots.tsx -- Move SpotBubble and fix z-indexes:
 ```tsx
-// No AppLayout -- custom fullscreen layout
 <div className="fixed inset-0 flex flex-col">
-  {/* Map fills everything */}
   <div className="flex-1 relative">
-    <SpotMap
-      spots={filteredSpots}
-      selectedSpotId={selectedSpotId}
-      onSelectSpot={handleSelectSpot}
-      onDeselectSpot={() => setSelectedSpotId(undefined)}
-      className="h-full w-full"
-    />
+    <SpotMap ... className="h-full w-full" />
 
-    {/* Floating search + filters overlay */}
-    <div className="absolute top-0 left-0 right-0 z-10 p-4 pointer-events-none">
-      <div className="pointer-events-auto max-w-[430px] mx-auto">
-        {/* Search bar + filter button */}
-        {/* Filter chips row */}
-      </div>
-    </div>
-
-    {/* Spot bubble overlay */}
-    {currentSpot && (
-      <SpotBubble
-        spot={currentSpot}
-        isFavorite={isFavorite(currentSpot.id)}
-        onToggleFavorite={handleAddFavorite}
-        onViewDetails={() => navigate(`/spots/${currentSpot.id}`)}
-        onClose={() => setSelectedSpotId(undefined)}
-      />
-    )}
+    {/* Floating search -- already z-[1000], keep it */}
+    <div className="absolute top-0 ... z-[1000]">...</div>
   </div>
+
+  {/* Move SpotBubble here, OUTSIDE the map container */}
+  {currentSpot && (
+    <SpotBubble ... />  {/* Update z-index to z-[1001] */}
+  )}
 
   <BottomNav />
 </div>
 ```
 
-### SpotBubble.tsx design:
-```tsx
-// Positioned at bottom, above bottom nav
-<div className="absolute bottom-20 left-4 right-4 z-20
-                max-w-[430px] mx-auto">
-  <div className="bg-card/95 backdrop-blur-lg rounded-2xl border
-                  shadow-lg p-4 flex items-center gap-3
-                  animate-in slide-in-from-bottom duration-300">
-    {/* Env emoji */}
-    <div className="w-12 h-12 rounded-xl bg-primary/10
-                    flex items-center justify-center text-2xl">
-      {emoji}
-    </div>
+### SpotBubble.tsx -- Fix z-index:
+- Change from `z-20` to `z-[1001]` to sit above Leaflet layers
+- Change positioning from `absolute` to `fixed` (since it's now outside the map container)
+- Adjust `bottom` value to account for BottomNav height
 
-    {/* Info */}
-    <div className="flex-1 min-w-0">
-      <h3 className="font-semibold text-foreground truncate">
-        {spot.name}
-      </h3>
-      <p className="text-xs text-muted truncate flex items-center gap-1">
-        <MapPin size={12} /> {spot.location}
-      </p>
-    </div>
-
-    {/* Actions */}
-    <div className="flex items-center gap-2">
-      {spot.hasActiveSessions && (
-        <button onClick={onViewDetails}
-                className="text-xs text-primary font-medium
-                           whitespace-nowrap">
-          Sessioni disponibili
-        </button>
-      )}
-      <button onClick={onToggleFavorite}>
-        <Heart filled={isFavorite} />
-      </button>
-    </div>
-  </div>
-</div>
-```
-
-### SpotMap.tsx changes:
-- Remove `bindPopup(...)` from markers
-- Add click handler on the map itself to deselect: `mapRef.current.on('click', () => onDeselectSpot?.())`
-- Accept optional `className` prop for flexible sizing
-- Remove hardcoded `h-[300px]`, `rounded-lg`, `border` classes
-
-### i18n additions:
-- `availableSessions`: "Sessioni disponibili" / "Available sessions"
-- `viewDetails`: "Vedi dettagli" / "View details" (if not already present)
+### index.css -- BottomNav z-index:
+- Change `.bottom-nav-container` from `z-50` to `z-[1002]` so nav is always on top
 
 ## Files to Modify
-| File | Action |
+
+| File | Change |
 |------|--------|
-| `src/pages/Spots.tsx` | Major rewrite -- fullscreen map layout |
-| `src/components/spots/SpotMap.tsx` | Remove popup, add deselect, flexible sizing |
-| `src/components/spots/SpotBubble.tsx` | New component -- floating spot info card |
-| `src/lib/i18n.ts` | Add 1-2 new translation keys |
+| `src/components/spots/SpotMap.tsx` | Switch tile layer to CartoDB Voyager |
+| `src/pages/Spots.tsx` | Move SpotBubble outside map container |
+| `src/components/spots/SpotBubble.tsx` | Change to `fixed` positioning with `z-[1001]` |
+| `src/index.css` | Raise BottomNav z-index to `z-[1002]` |
 
