@@ -201,16 +201,17 @@ const Spots = () => {
           </div>
         </div>
 
-        {/* Spot bubble overlay */}
-        {currentSpot && (
-          <SpotBubble
-            spot={currentSpot}
-            isFavorite={isFavorite(currentSpot.id)}
-            onToggleFavorite={handleToggleFavorite}
-            onViewDetails={() => navigate(`/spots/${currentSpot.id}`)}
-          />
-        )}
       </div>
+
+      {/* Spot bubble overlay - outside map container for z-index */}
+      {currentSpot && (
+        <SpotBubble
+          spot={currentSpot}
+          isFavorite={isFavorite(currentSpot.id)}
+          onToggleFavorite={handleToggleFavorite}
+          onViewDetails={() => navigate(`/spots/${currentSpot.id}`)}
+        />
+      )}
 
       <BottomNav />
 

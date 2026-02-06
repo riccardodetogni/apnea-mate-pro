@@ -25,7 +25,7 @@ const SpotBubble = ({
   const emoji = envEmoji[spot.environment_type] || "📍";
 
   return (
-    <div className="absolute bottom-20 left-4 right-4 z-20 max-w-[430px] mx-auto animate-in slide-in-from-bottom duration-300">
+    <div className="fixed bottom-24 left-4 right-4 z-[1001] max-w-[430px] mx-auto animate-in slide-in-from-bottom duration-300">
       <div
         onClick={onViewDetails}
         className="bg-card/95 backdrop-blur-lg rounded-2xl border shadow-lg p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
