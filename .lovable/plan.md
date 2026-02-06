@@ -1,48 +1,49 @@
 
-# Plan: Smart Back Button Navigation with State
 
-## ✅ COMPLETED
+# Fix: Group Members Interaction Flow
 
-Implemented state-based navigation to prevent back button loops. Back buttons now go to the logical parent based on how the user arrived at the page.
+## Current Behavior
+- The stacked avatar row on the group details page is static (not clickable)
+- The "View all" text link only appears when there are more than 6 members
+- The bottom sheet (searchable member list) already has clickable rows that navigate to profiles correctly
 
-## Implementation Summary
+## Desired Behavior
+- Clicking on the members section (avatars or the member count) opens the searchable members sheet
+- From the sheet, each member row navigates to their profile (already working)
+- Avatars on the group page should NOT navigate directly to profiles
 
-### Source Pages (pass `from` state when navigating)
+## Changes
 
-| File | Navigation State |
-|------|------------------|
-| `SpotDetails.tsx` | `/spots/${id}` for session clicks |
-| `GroupSessionsList.tsx` | `/groups/${groupId}` for session clicks |
-| `GroupDetails.tsx` | Passes `groupId` to GroupSessionsList |
-| `MySessions.tsx` | `/my-sessions` for session clicks |
-| `Community.tsx` | `/community` for session, group, and profile clicks |
+### 1. `GroupMembersSection.tsx`
+- Make the entire avatar row and member count clickable
+- Always allow opening the sheet regardless of member count (remove the `totalCount > 6` condition for showing the interaction)
+- When clicked, trigger the `onViewAll` callback to open the members sheet
+- Add cursor and hover styles to indicate the section is interactive
 
-### Destination Pages (read state, use fallback)
+### 2. No changes needed to `GroupMembersSheet.tsx`
+- It already handles search, filtering, role badges, and profile navigation with correct `from` state
 
-| File | Back Fallback |
-|------|---------------|
-| `SessionDetails.tsx` | `/community` |
-| `SpotDetails.tsx` | `/spots` |
-| `UserProfile.tsx` | `/community` |
-| `MySessions.tsx` | `/community` |
-| `Search.tsx` | `/community` |
-| `Admin.tsx` | `/profile` |
-| `DiscoverFreedivers.tsx` | `/community` |
-| `EditSession.tsx` | `/sessions/${id}` (hardcoded, correct parent) |
+### 3. No changes needed to `GroupDetails.tsx`
+- It already passes `onViewAll` and renders the sheet -- the connection is already wired up
 
-## How It Works
+## Technical Details
 
-1. When navigating TO a detail page, pass the origin path in state:
-   ```typescript
-   navigate(`/sessions/${id}`, { state: { from: '/spots/abc123' } })
-   ```
+**GroupMembersSection.tsx** -- wrap the avatar row and count in a clickable container:
 
-2. On the detail page, read the state and use it for back navigation:
-   ```typescript
-   const location = useLocation();
-   const backPath = (location.state as { from?: string })?.from || '/community';
-   
-   onClick={() => navigate(backPath)}
-   ```
+```typescript
+// Make the avatar row and count clickable to open the sheet
+<div
+  onClick={onViewAll}
+  className="cursor-pointer hover:opacity-80 transition-opacity"
+>
+  <div className="flex items-center -space-x-2">
+    {/* existing avatars */}
+  </div>
+  <p className="text-sm text-muted mt-3">
+    {totalCount} {t("members")}
+  </p>
+</div>
+```
 
-3. Fallback ensures direct URL access still works (uses logical parent route).
+The "View all" text link with the chevron will always be shown (not just when there are more than 6 members) so users always have a clear way to open the full list.
+
