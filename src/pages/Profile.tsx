@@ -104,6 +104,10 @@ const Profile = () => {
             </p>
           )}
 
+          {profile.bio && (
+            <p className="text-sm text-muted mt-3 leading-relaxed">{profile.bio}</p>
+          )}
+
           <div className="flex items-center justify-center gap-2 mt-3">
             {isCertified && <CertificationBadge certified={true} />}
             <span className="text-xs text-muted bg-secondary px-2 py-1 rounded-full">

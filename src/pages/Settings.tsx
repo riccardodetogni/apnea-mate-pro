@@ -7,7 +7,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
-import { ChevronLeft, Loader2, Save, User, MapPin } from "lucide-react";
+import { ChevronLeft, Loader2, Save, User, MapPin, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 
@@ -20,6 +20,7 @@ const Settings = () => {
   
   const [name, setName] = useState(profile?.name || "");
   const [location, setLocation] = useState(profile?.location || "");
+  const [bio, setBio] = useState(profile?.bio || "");
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || null);
   const [saving, setSaving] = useState(false);
 
@@ -28,6 +29,7 @@ const Settings = () => {
     if (profile) {
       setName(profile.name);
       setLocation(profile.location || "");
+      setBio(profile.bio || "");
       setAvatarUrl(profile.avatar_url);
     }
   }, [profile]);
@@ -46,6 +48,7 @@ const Settings = () => {
     const { error } = await updateProfile({
       name: name.trim(),
       location: location.trim() || null,
+      bio: bio.trim() || null,
     });
     setSaving(false);
 
@@ -136,6 +139,23 @@ const Settings = () => {
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder={language === "it" ? "Es. Roma, Italia" : "E.g. Rome, Italy"}
               />
+            </div>
+
+            {/* Bio */}
+            <div className="space-y-2">
+              <Label htmlFor="bio" className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                Bio
+              </Label>
+              <textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder={language === "it" ? "Racconta qualcosa di te..." : "Tell something about yourself..."}
+                maxLength={300}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none h-24"
+              />
+              <p className="text-xs text-muted text-right">{bio.length}/300</p>
             </div>
           </div>
 

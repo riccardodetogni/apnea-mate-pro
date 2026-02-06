@@ -8,6 +8,7 @@ export interface UserProfileData {
   name: string;
   avatar_url: string | null;
   location: string | null;
+  bio: string | null;
   search_visibility: boolean;
 }
 
@@ -51,7 +52,7 @@ export const useUserProfile = (userId: string | undefined) => {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id, user_id, name, avatar_url, location, search_visibility")
+        .select("id, user_id, name, avatar_url, location, bio, search_visibility")
         .eq("user_id", userId)
         .maybeSingle();
 
