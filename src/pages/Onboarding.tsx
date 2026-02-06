@@ -37,6 +37,7 @@ const certificationAgencies = [
 const Onboarding = () => {
   const [step, setStep] = useState<Step>(1);
   const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
   const [isCertified, setIsCertified] = useState<boolean | null>(null);
   const [agency, setAgency] = useState("");
@@ -190,6 +191,7 @@ const Onboarding = () => {
         .update({
           name,
           location: location || null,
+          bio: bio.trim() || null,
         })
         .eq("user_id", user.id);
 
@@ -310,6 +312,19 @@ const Onboarding = () => {
                   placeholder="Mario Rossi"
                   className="rounded-xl h-12"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Racconta qualcosa di te..."
+                  maxLength={300}
+                  className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none h-24"
+                />
+                <p className="text-xs text-muted text-right">{bio.length}/300</p>
               </div>
 
               <div className="space-y-2">

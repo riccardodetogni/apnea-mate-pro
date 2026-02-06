@@ -12,6 +12,7 @@ export interface Profile {
   email: string;
   avatar_url: string | null;
   location: string | null;
+  bio: string | null;
   search_visibility: boolean;
   created_at: string;
   updated_at: string;
@@ -120,7 +121,7 @@ export const useProfile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const updateProfile = async (updates: Partial<Pick<Profile, "name" | "location" | "avatar_url" | "search_visibility">>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, "name" | "location" | "avatar_url" | "search_visibility" | "bio">>) => {
     if (!user || !profile) return { error: new Error("No user or profile") };
 
     const { error } = await supabase
