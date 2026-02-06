@@ -53,6 +53,7 @@ const SpotMap = ({
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const hasFittedBoundsRef = useRef(false);
 
   // Filter spots with valid coordinates
   const spotsWithCoords = spots.filter(
@@ -73,7 +74,7 @@ const SpotMap = ({
     // Add zoom control to bottom-right to avoid overlap with search
     L.control.zoom({ position: "bottomright" }).addTo(mapRef.current);
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
       maxZoom: 19,
@@ -101,7 +102,17 @@ const SpotMap = ({
     });
   }, [onDeselectSpot]);
 
-  // Update markers when spots change
+  // Fit bounds only once when spots first load
+  useEffect(() => {
+    if (!mapRef.current || hasFittedBoundsRef.current || spotsWithCoords.length === 0) return;
+    const bounds = L.latLngBounds(
+      spotsWithCoords.map((s) => [s.latitude!, s.longitude!] as L.LatLngTuple)
+    );
+    mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    hasFittedBoundsRef.current = true;
+  }, [spotsWithCoords]);
+
+  // Update markers when spots or selection change
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -130,7 +141,7 @@ const SpotMap = ({
       marker.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
         onSelectSpot(spot.id);
-        mapRef.current?.setView([spot.latitude!, spot.longitude!], mapRef.current.getZoom(), {
+        mapRef.current?.setView([spot.latitude!, spot.longitude!], Math.max(mapRef.current.getZoom(), 12), {
           animate: true,
           duration: 0.4,
         });
@@ -138,16 +149,6 @@ const SpotMap = ({
 
       markersRef.current.push(marker);
     });
-
-    // Fit bounds if there are spots
-    if (spotsWithCoords.length > 0 && mapRef.current) {
-      const bounds = L.latLngBounds(
-        spotsWithCoords.map(
-          (s) => [s.latitude!, s.longitude!] as L.LatLngTuple
-        )
-      );
-      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-    }
   }, [spots, selectedSpotId, onSelectSpot, spotsWithCoords]);
 
   return (
