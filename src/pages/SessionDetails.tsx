@@ -393,7 +393,10 @@ const SessionDetails = () => {
         </div>
 
         {/* Creator */}
-        <div className="bg-card rounded-2xl border p-4 mb-4 flex items-center gap-3">
+        <div
+          className="bg-card rounded-2xl border p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
+          onClick={() => navigate(`/users/${session.creator_id}`, { state: { from: `/sessions/${id}` } })}
+        >
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center text-lg font-bold text-primary-foreground">
             {session.creator?.name?.charAt(0).toUpperCase() || "?"}
           </div>
@@ -462,10 +465,18 @@ const SessionDetails = () => {
                 <div className="space-y-2">
                   {pendingParticipants.map(p => (
                     <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-secondary/50">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                      <div
+                        className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                        onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                      >
                         {p.profile?.name?.charAt(0).toUpperCase() || "?"}
                       </div>
-                      <span className="flex-1 text-sm">{p.profile?.name || "Utente"}</span>
+                      <span
+                        className="flex-1 text-sm cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                      >
+                        {p.profile?.name || "Utente"}
+                      </span>
                       <div className="flex gap-1">
                         <Button
                           size="icon"
@@ -508,10 +519,18 @@ const SessionDetails = () => {
                 <div className="space-y-2">
                   {confirmedParticipants.map(p => (
                     <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-secondary/50">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium">
+                      <div
+                        className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                        onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                      >
                         {p.profile?.name?.charAt(0).toUpperCase() || "?"}
                       </div>
-                      <span className="flex-1 text-sm">{p.profile?.name || "Utente"}</span>
+                      <span
+                        className="flex-1 text-sm cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                      >
+                        {p.profile?.name || "Utente"}
+                      </span>
                       <Check className="w-4 h-4 text-success" />
                     </div>
                   ))}

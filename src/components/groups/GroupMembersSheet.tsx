@@ -22,6 +22,7 @@ interface GroupMembersSheetProps {
   members: Member[];
   totalCount: number;
   ownerId?: string;
+  groupId?: string;
 }
 
 const roleConfig = {
@@ -36,6 +37,7 @@ export const GroupMembersSheet = ({
   members,
   totalCount,
   ownerId,
+  groupId,
 }: GroupMembersSheetProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,7 +67,7 @@ export const GroupMembersSheet = ({
 
   const handleMemberClick = (userId: string) => {
     onOpenChange(false);
-    navigate(`/users/${userId}`);
+    navigate(`/users/${userId}`, { state: { from: groupId ? `/groups/${groupId}` : '/groups' } });
   };
 
   const getMemberRole = (member: Member) => {
