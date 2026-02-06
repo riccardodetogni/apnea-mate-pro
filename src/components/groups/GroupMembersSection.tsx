@@ -23,7 +23,7 @@ export const GroupMembersSection = ({ members, totalCount, onViewAll }: GroupMem
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold text-foreground">{t("membersSection")}</h3>
-        {totalCount > 6 && onViewAll && (
+        {onViewAll && (
           <button
             onClick={onViewAll}
             className="text-sm text-primary font-medium flex items-center gap-0.5 hover:underline"
@@ -34,37 +34,42 @@ export const GroupMembersSection = ({ members, totalCount, onViewAll }: GroupMem
         )}
       </div>
 
-      <div className="flex items-center -space-x-2">
-        {displayMembers.map((member, index) => (
-          <div
-            key={member.id}
-            className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground overflow-hidden"
-            style={{ zIndex: displayMembers.length - index }}
-          >
-            {member.profile?.avatar_url ? (
-              <img
-                src={member.profile.avatar_url}
-                alt={member.profile.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              member.profile?.name?.charAt(0).toUpperCase() || "?"
-            )}
-          </div>
-        ))}
-        {totalCount > 6 && (
-          <div
-            className="w-10 h-10 rounded-full border-2 border-background bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground"
-            style={{ zIndex: 0 }}
-          >
-            +{totalCount - 6}
-          </div>
-        )}
-      </div>
+      <div
+        onClick={onViewAll}
+        className="cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <div className="flex items-center -space-x-2">
+          {displayMembers.map((member, index) => (
+            <div
+              key={member.id}
+              className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground overflow-hidden"
+              style={{ zIndex: displayMembers.length - index }}
+            >
+              {member.profile?.avatar_url ? (
+                <img
+                  src={member.profile.avatar_url}
+                  alt={member.profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                member.profile?.name?.charAt(0).toUpperCase() || "?"
+              )}
+            </div>
+          ))}
+          {totalCount > 6 && (
+            <div
+              className="w-10 h-10 rounded-full border-2 border-background bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground"
+              style={{ zIndex: 0 }}
+            >
+              +{totalCount - 6}
+            </div>
+          )}
+        </div>
 
-      <p className="text-sm text-muted">
-        {totalCount} {t("members")}
-      </p>
+        <p className="text-sm text-muted mt-3">
+          {totalCount} {t("members")}
+        </p>
+      </div>
     </div>
   );
 };
