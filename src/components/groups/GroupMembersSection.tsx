@@ -42,7 +42,7 @@ export const GroupMembersSection = ({ members, totalCount, onViewAll }: GroupMem
           {displayMembers.map((member, index) => (
             <div
               key={member.id}
-              className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground overflow-hidden"
+              className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-sm font-medium text-white/70 overflow-hidden"
               style={{ zIndex: displayMembers.length - index }}
             >
               {member.profile?.avatar_url ? (
@@ -58,7 +58,7 @@ export const GroupMembersSection = ({ members, totalCount, onViewAll }: GroupMem
           ))}
           {totalCount > 6 && (
             <div
-              className="w-10 h-10 rounded-full border-2 border-background bg-muted/50 flex items-center justify-center text-xs font-medium text-muted-foreground"
+              className="w-10 h-10 rounded-full border-2 border-background bg-muted/50 flex items-center justify-center text-xs font-medium text-white/70"
               style={{ zIndex: 0 }}
             >
               +{totalCount - 6}
