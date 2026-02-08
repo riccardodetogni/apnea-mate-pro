@@ -101,20 +101,20 @@ export const SessionCard = ({
 
   return (
     <div 
-      className="card-session min-w-[260px] animate-fade-in cursor-pointer hover:border-primary/30 transition-colors"
+      className="card-session min-w-[260px] animate-fade-in cursor-pointer transition-all hover:scale-[1.02]"
       onClick={handleCardClick}
     >
       {/* Top section - tags and meta */}
-      <div className="flex flex-col gap-0.5 text-xs text-muted">
+      <div className="flex flex-col gap-0.5 text-xs">
         <div className="flex gap-1.5 flex-wrap">
           <span className="chip-session">{spotName} · {environmentType}</span>
           <span className="chip-session">{sessionType}</span>
         </div>
-        <div className="text-xs text-muted mt-1">{dateTime}</div>
+        <div className="text-xs text-white/55 mt-1">{dateTime}</div>
       </div>
 
       {/* Title */}
-      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+      <h3 className="text-base font-semibold text-white/92">{title}</h3>
 
       {/* Badges */}
       <div className="flex gap-1.5 flex-wrap mt-0.5">
@@ -127,8 +127,8 @@ export const SessionCard = ({
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
           <div className="flex flex-col gap-px min-w-0">
-            <span className="text-[13px] font-medium text-foreground truncate">{creatorName}</span>
-            <span className="text-[11px] text-muted">{t(creatorRole)}</span>
+            <span className="text-[13px] font-medium text-white/90 truncate">{creatorName}</span>
+            <span className="text-[11px] text-white/55">{t(creatorRole)}</span>
           </div>
         </div>
         
@@ -136,7 +136,7 @@ export const SessionCard = ({
           variant={getButtonVariant()} 
           size="pill"
           onClick={handleButtonClick}
-          className={`flex-shrink-0 text-xs ${isPending ? "bg-warning/10 text-warning border-warning/30" : isJoined ? "bg-success/10 text-success border-success/30" : ""}`}
+          className={`flex-shrink-0 text-xs ${isPending ? "bg-warning/20 text-warning border-warning/30" : isJoined ? "bg-success/20 text-success border-success/30" : ""}`}
         >
           {getButtonContent()}
         </Button>

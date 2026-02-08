@@ -15,7 +15,7 @@ export const SectionHeader = ({
       {actionLabel && (
         <button
           onClick={onAction}
-          className="text-xs text-primary hover:underline whitespace-nowrap"
+          className="text-xs text-foreground/70 hover:text-foreground hover:underline whitespace-nowrap transition-colors"
         >
           {actionLabel}
         </button>
