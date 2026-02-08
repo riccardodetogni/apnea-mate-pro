@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import { usePersonalBests } from "@/hooks/usePersonalBests";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
 import { CertificationStatusBadge, CertificationBadge } from "@/components/certification/CertificationStatus";
 import { CertificationForm } from "@/components/certification/CertificationForm";
+import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
 import { 
   Settings, 
   LogOut, 
@@ -36,6 +38,7 @@ const roleLabels = {
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, role, certification, loading, isCertified, isAdmin, updateProfile } = useProfile();
+  const { personalBests, toggleVisibility } = usePersonalBests();
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
@@ -140,6 +143,16 @@ const Profile = () => {
               {t("submitCertification")}
             </Button>
           )}
+        </div>
+
+        {/* Personal Bests */}
+        <div className="mb-6">
+          <PersonalBestsCard
+            pbs={personalBests}
+            editable
+            onToggleVisibility={(show) => toggleVisibility(show)}
+            onAddClick={() => navigate("/settings")}
+          />
         </div>
 
         {/* Settings */}

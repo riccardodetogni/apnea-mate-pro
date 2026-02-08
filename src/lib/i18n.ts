@@ -259,6 +259,14 @@ const translations = {
     markAllAsRead: "Segna tutte come lette",
     noNotifications: "Nessuna notifica",
     noNotificationsDesc: "Le tue notifiche appariranno qui",
+
+    // Personal Bests
+    personalBests: "Record personali",
+    showOnProfile: "Mostra sul profilo",
+    addPersonalBests: "Aggiungi record",
+    noPersonalBests: "Nessun record personale inserito",
+    updateLater: "Puoi aggiornarli in qualsiasi momento dalle impostazioni",
+    onboardingStepPB: "Record personali",
   },
   en: {
     // App
@@ -515,6 +523,14 @@ const translations = {
     markAllAsRead: "Mark all as read",
     noNotifications: "No notifications",
     noNotificationsDesc: "Your notifications will appear here",
+
+    // Personal Bests
+    personalBests: "Personal Bests",
+    showOnProfile: "Show on profile",
+    addPersonalBests: "Add records",
+    noPersonalBests: "No personal bests recorded yet",
+    updateLater: "You can update these anytime from settings",
+    onboardingStepPB: "Personal bests",
   },
 };
 
