@@ -1,7 +1,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Switch } from "@/components/ui/switch";
 import { PersonalBests, formatStaticTime, hasAnyPB } from "@/hooks/usePersonalBests";
-import { ArrowDown, Timer, MoveRight, Plus } from "lucide-react";
+import { ArrowDown, Timer, MoveRight, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 
@@ -10,6 +10,7 @@ interface PersonalBestsCardProps {
   editable?: boolean;
   onToggleVisibility?: (show: boolean) => void;
   onAddClick?: () => void;
+  onEditClick?: () => void;
 }
 
 const disciplines = [
@@ -20,7 +21,7 @@ const disciplines = [
   { key: "max_fim" as const, icon: ArrowDown, unit: "m", labelIt: "FIM – Immersione libera", labelEn: "FIM – Free Immersion" },
 ];
 
-export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, onAddClick }: PersonalBestsCardProps) => {
+export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, onAddClick, onEditClick }: PersonalBestsCardProps) => {
   const { language } = useLanguage();
   const hasPBs = hasAnyPB(pbs);
 
@@ -50,7 +51,8 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
           )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <button onClick={onEditClick} className="w-full text-left space-y-3 group">
+          <div className="space-y-3">
           {disciplines.map(({ key, icon: Icon, unit, labelIt, labelEn }) => {
             const value = pbs?.[key];
             if (value === null || value === undefined) return null;
@@ -72,7 +74,13 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
               </div>
             );
           })}
-        </div>
+          </div>
+          {editable && (
+            <p className="text-xs text-primary text-center opacity-0 group-hover:opacity-100 transition-opacity pt-1">
+              {language === "it" ? "Tocca per modificare" : "Tap to edit"}
+            </p>
+          )}
+        </button>
       )}
     </div>
   );
