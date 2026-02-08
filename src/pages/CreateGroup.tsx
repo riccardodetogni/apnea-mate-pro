@@ -98,7 +98,6 @@ const CreateGroup = () => {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder={t("groupNamePlaceholder")}
-            className="bg-card"
           />
         </div>
 
@@ -109,7 +108,7 @@ const CreateGroup = () => {
             value={location}
             onChange={e => setLocation(e.target.value)}
             placeholder={t("groupLocationPlaceholder")}
-            className="bg-card"
+          
           />
         </div>
 
@@ -153,7 +152,7 @@ const CreateGroup = () => {
             onChange={e => setDescription(e.target.value)}
             placeholder={t("groupDescPlaceholder")}
             rows={4}
-            className="bg-card resize-none"
+            className="resize-none"
           />
         </div>
 

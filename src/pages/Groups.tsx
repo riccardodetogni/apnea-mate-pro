@@ -90,7 +90,7 @@ const Groups = () => {
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder={t("searchGroupsPlaceholder")}
-          className="pl-9 bg-card"
+          className="pl-9"
         />
       </div>
 

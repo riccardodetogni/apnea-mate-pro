@@ -66,13 +66,13 @@ const MySessions = () => {
     return (
       <button
         onClick={() => navigate(`/sessions/${session.id}`, { state: { from: '/my-sessions' } })}
-        className="w-full bg-card rounded-2xl border p-4 text-left hover:border-primary/30 transition-colors"
+        className="w-full bg-card rounded-2xl border border-white/8 p-4 text-left hover:border-primary/30 transition-colors"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground">{session.title}</h3>
+            <h3 className="font-semibold text-card-foreground">{session.title}</h3>
             {session.spot && (
-              <p className="text-sm text-muted flex items-center gap-1 mt-0.5">
+              <p className="text-sm text-white/55 flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 {session.spot.name}
               </p>
@@ -83,7 +83,7 @@ const MySessions = () => {
           </Badge>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted">
+        <div className="flex items-center gap-4 text-sm text-white/55">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(session.date_time)}
@@ -94,11 +94,11 @@ const MySessions = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t">
-          <span className="text-xs text-muted">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/8">
+          <span className="text-xs text-white/55">
             {mapSessionType(session.session_type)} · {participation.confirmed_count}/{session.max_participants} partecipanti
           </span>
-          <span className="text-xs text-muted">
+          <span className="text-xs text-white/55">
             Organizzatore: {session.creator?.name || "—"}
           </span>
         </div>
@@ -110,13 +110,13 @@ const MySessions = () => {
     return (
       <button
         onClick={() => navigate(`/sessions/${session.id}`, { state: { from: '/my-sessions' } })}
-        className="w-full bg-card rounded-2xl border p-4 text-left hover:border-primary/30 transition-colors"
+        className="w-full bg-card rounded-2xl border border-white/8 p-4 text-left hover:border-primary/30 transition-colors"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground">{session.title}</h3>
+            <h3 className="font-semibold text-card-foreground">{session.title}</h3>
             {session.spot && (
-              <p className="text-sm text-muted flex items-center gap-1 mt-0.5">
+              <p className="text-sm text-white/55 flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 {session.spot.name}
               </p>
@@ -129,14 +129,14 @@ const MySessions = () => {
                 {session.pending_count}
               </Badge>
             )}
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+            <Badge variant="outline" className="bg-white/10 text-primary border-primary/30">
               <Crown className="w-3 h-3 mr-1" />
               Creata da te
             </Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted">
+        <div className="flex items-center gap-4 text-sm text-white/55">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(session.date_time)}
@@ -147,8 +147,8 @@ const MySessions = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t">
-          <span className="text-xs text-muted">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/8">
+          <span className="text-xs text-white/55">
             {mapSessionType(session.session_type)} · {session.confirmed_count}/{session.max_participants} confermati
           </span>
           {session.pending_count > 0 && (
@@ -165,8 +165,8 @@ const MySessions = () => {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-          <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
-            <ChevronLeft className="w-5 h-5" />
+          <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="font-semibold text-lg">Le mie sessioni</h1>
         </header>
@@ -187,8 +187,8 @@ const MySessions = () => {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-          <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
-            <ChevronLeft className="w-5 h-5" />
+          <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="font-semibold text-lg">Le mie sessioni</h1>
       </header>

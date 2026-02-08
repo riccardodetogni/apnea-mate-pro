@@ -165,12 +165,12 @@ const Spots = () => {
                   placeholder={t("searchSpotPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 h-11 rounded-full bg-card/90 backdrop-blur-md border shadow-sm"
+                  className="pl-9 pr-4 h-11 rounded-full bg-white/90 backdrop-blur-md border shadow-sm"
                 />
               </div>
               <button
                 onClick={() => setShowFiltersSheet(true)}
-                className="w-11 h-11 rounded-full bg-card/90 backdrop-blur-md border shadow-sm flex items-center justify-center hover:bg-card transition-colors"
+                className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-md border shadow-sm flex items-center justify-center hover:bg-white transition-colors"
               >
                 <SlidersHorizontal className="w-4 h-4 text-foreground" />
               </button>
@@ -188,7 +188,7 @@ const Spots = () => {
                       flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm
                       ${isActive
                         ? "bg-primary text-primary-foreground"
-                        : "bg-card/90 backdrop-blur-md border text-foreground hover:bg-card"
+                        : "bg-white/90 backdrop-blur-md border text-foreground hover:bg-white"
                       }
                     `}
                   >

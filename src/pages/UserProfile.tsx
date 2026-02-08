@@ -59,9 +59,9 @@ const UserProfile = () => {
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
           <button
             onClick={() => navigate(backPath)}
-            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="font-semibold text-lg">{t("profile")}</h1>
         </header>
@@ -83,9 +83,9 @@ const UserProfile = () => {
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
           <button
             onClick={() => navigate(backPath)}
-            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="font-semibold text-lg">{t("profile")}</h1>
         </header>
@@ -106,43 +106,43 @@ const UserProfile = () => {
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
           <button
             onClick={() => navigate(backPath)}
-            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
         <h1 className="font-semibold text-lg">{t("profile")}</h1>
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
-        <div className="bg-card rounded-2xl border p-6 text-center mb-6">
+        <div className="bg-card rounded-2xl border border-white/8 p-6 text-center mb-6">
           <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center text-2xl font-bold text-primary-foreground mb-4">
             {profile.name.charAt(0).toUpperCase()}
           </div>
           
-          <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
+          <h2 className="text-xl font-bold text-card-foreground">{profile.name}</h2>
           
           {profile.location && (
-            <p className="text-sm text-muted flex items-center justify-center gap-1 mt-1">
+            <p className="text-sm text-white/55 flex items-center justify-center gap-1 mt-1">
               <MapPin className="w-3.5 h-3.5" />
               {profile.location}
             </p>
           )}
 
           {profile.bio && (
-            <p className="text-sm text-muted mt-3 leading-relaxed">{profile.bio}</p>
+            <p className="text-sm text-white/55 mt-3 leading-relaxed">{profile.bio}</p>
           )}
 
           <div className="flex items-center justify-center gap-2 mt-3">
             {isCertified && <CertificationBadge certified={true} />}
-            <span className="text-xs text-muted bg-secondary px-2 py-1 rounded-full">
+            <span className="text-xs text-white/55 bg-white/10 px-2 py-1 rounded-full">
               {roleLabels[role] || roleLabels.regular}
             </span>
           </div>
 
           {/* Followers count */}
-          <p className="text-sm text-muted mt-3">
-            <span className="font-medium text-foreground">{followersCount}</span> {language === "it" ? "follower" : "followers"}
+          <p className="text-sm text-white/55 mt-3">
+            <span className="font-medium text-card-foreground">{followersCount}</span> {language === "it" ? "follower" : "followers"}
           </p>
 
           {/* Follow button */}
@@ -189,10 +189,10 @@ const UserProfile = () => {
                 <button
                   key={group.id}
                   onClick={() => navigate(`/groups/${group.id}`)}
-                  className="w-full bg-card rounded-xl border p-3 text-left hover:bg-secondary/50 transition-colors"
+                  className="w-full bg-card rounded-xl border border-white/8 p-3 text-left hover:bg-white/10 transition-colors"
                 >
-                  <p className="font-medium text-foreground text-sm">{group.name}</p>
-                  <p className="text-xs text-muted">{group.location}</p>
+                  <p className="font-medium text-card-foreground text-sm">{group.name}</p>
+                  <p className="text-xs text-white/55">{group.location}</p>
                 </button>
               ))}
             </div>
@@ -207,8 +207,8 @@ const UserProfile = () => {
           </h3>
           
           {sessions.length === 0 ? (
-            <div className="bg-card rounded-xl border p-4 text-center">
-              <p className="text-sm text-muted">
+            <div className="bg-card rounded-xl border border-white/8 p-4 text-center">
+              <p className="text-sm text-white/55">
                 {language === "it" ? "Nessuna sessione pubblica in programma" : "No upcoming public sessions"}
               </p>
             </div>
@@ -218,10 +218,10 @@ const UserProfile = () => {
                 <button
                   key={session.id}
                   onClick={() => navigate(`/sessions/${session.id}`)}
-                  className="w-full bg-card rounded-xl border p-4 text-left hover:bg-secondary/50 transition-colors"
+                  className="w-full bg-card rounded-xl border border-white/8 p-4 text-left hover:bg-white/10 transition-colors"
                 >
-                  <p className="font-medium text-foreground">{session.title}</p>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-muted">
+                  <p className="font-medium text-card-foreground">{session.title}</p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-white/55">
                     <span>
                       {format(new Date(session.date_time), "d MMM, HH:mm", { 
                         locale: language === "it" ? it : enUS 
@@ -235,8 +235,8 @@ const UserProfile = () => {
                     )}
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{session.session_type}</span>
-                    <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{session.level}</span>
+                    <span className="text-xs bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{session.session_type}</span>
+                    <span className="text-xs bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{session.level}</span>
                   </div>
                 </button>
               ))}

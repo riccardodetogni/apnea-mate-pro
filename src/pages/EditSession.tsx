@@ -231,9 +231,9 @@ const EditSession = () => {
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
         <button
           onClick={() => navigate(`/sessions/${id}`)}
-          className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+          className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="font-semibold text-lg">Modifica sessione</h1>
       </header>
@@ -241,9 +241,9 @@ const EditSession = () => {
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Spot info (read-only) */}
         {session.spot && (
-          <div className="bg-card rounded-xl border p-4 mb-6">
-            <p className="text-xs text-muted uppercase tracking-wide mb-1">Spot (non modificabile)</p>
-            <p className="font-medium flex items-center gap-2">
+          <div className="bg-card rounded-xl border border-white/8 p-4 mb-6">
+            <p className="text-xs text-white/55 uppercase tracking-wide mb-1">Spot (non modificabile)</p>
+            <p className="font-medium text-card-foreground flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
               {session.spot.name} · {session.spot.location}
             </p>

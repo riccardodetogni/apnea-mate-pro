@@ -219,9 +219,9 @@ const Admin = () => {
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
         <button
           onClick={() => navigate("/profile")}
-          className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+          className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <Shield className="w-5 h-5 text-primary" />
         <h1 className="font-semibold text-lg">Admin Dashboard</h1>
@@ -276,33 +276,33 @@ const Admin = () => {
               </div>
             ) : (
               pendingCertifications.map((cert) => (
-                <div key={cert.id} className="bg-card rounded-2xl border p-4">
+                <div key={cert.id} className="bg-card rounded-2xl border border-white/8 p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary font-bold">
                       {cert.profile.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold">{cert.profile.name}</h3>
-                      <p className="text-sm text-muted">{cert.profile.email}</p>
+                      <h3 className="font-semibold text-card-foreground">{cert.profile.name}</h3>
+                      <p className="text-sm text-white/55">{cert.profile.email}</p>
                     </div>
                     <span className={`text-xs font-medium ${statusLabels.pending.color}`}>
                       {statusLabels.pending.label}
                     </span>
                   </div>
 
-                  <div className="mt-4 p-3 bg-secondary rounded-xl space-y-2">
+                  <div className="mt-4 p-3 bg-white/10 rounded-xl space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted">Agenzia:</span>
-                      <span className="font-medium">{cert.agency}</span>
+                      <span className="text-white/55">Agenzia:</span>
+                      <span className="font-medium text-card-foreground">{cert.agency}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted">Livello:</span>
-                      <span className="font-medium">{cert.level}</span>
+                      <span className="text-white/55">Livello:</span>
+                      <span className="font-medium text-card-foreground">{cert.level}</span>
                     </div>
                     {cert.certification_id && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted">ID:</span>
-                        <span className="font-medium">{cert.certification_id}</span>
+                        <span className="text-white/55">ID:</span>
+                        <span className="font-medium text-card-foreground">{cert.certification_id}</span>
                       </div>
                     )}
                     {cert.document_url && (
@@ -317,7 +317,7 @@ const Admin = () => {
                         Visualizza documento
                       </button>
                     )}
-                    <div className="text-xs text-muted pt-1">
+                    <div className="text-xs text-white/55 pt-1">
                       Inviato: {new Date(cert.submitted_at).toLocaleDateString("it-IT")}
                     </div>
                   </div>
@@ -365,28 +365,28 @@ const Admin = () => {
               allGroups.map((group) => (
                 <div
                   key={group.id}
-                  className="bg-card rounded-xl border p-4"
+                  className="bg-card rounded-xl border border-white/8 p-4"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary">
                       <UsersRound className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium truncate">{group.name}</h3>
+                        <h3 className="font-medium text-card-foreground truncate">{group.name}</h3>
                         {group.verified && (
                           <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-sm text-muted truncate">{group.location}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+                      <p className="text-sm text-white/55 truncate">{group.location}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-white/55">
                         <span>{groupTypeLabels[group.group_type] || group.group_type}</span>
                         <span>•</span>
                         <span>{group.member_count} membri</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted">
+                      <span className="text-xs text-white/55">
                         {group.verified ? "Verificato" : "Non verificato"}
                       </span>
                       <Switch
@@ -407,14 +407,14 @@ const Admin = () => {
             {allUsers.map((user) => (
               <div
                 key={user.id}
-                className="bg-card rounded-xl border p-4 flex items-center gap-3"
+                className="bg-card rounded-xl border border-white/8 p-4 flex items-center gap-3"
               >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium truncate">{user.name}</h3>
-                  <p className="text-sm text-muted truncate">{user.email}</p>
+                  <h3 className="font-medium text-card-foreground truncate">{user.name}</h3>
+                  <p className="text-sm text-white/55 truncate">{user.email}</p>
                 </div>
                 <button
                   onClick={() => {
@@ -422,7 +422,7 @@ const Admin = () => {
                     setNewUserRole(user.role);
                     setRoleDialogOpen(true);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-sm font-medium hover:bg-secondary/80 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-sm font-medium text-card-foreground hover:bg-white/20 transition-colors"
                 >
                   {user.role === "certified" || user.role === "instructor" ? (
                     <Award className="w-3.5 h-3.5 text-primary" />

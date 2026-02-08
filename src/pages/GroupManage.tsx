@@ -247,22 +247,22 @@ const GroupManage = () => {
     const isCreator = member.user_id === group.created_by;
     
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-card border">
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-white/8">
         <Avatar className="w-10 h-10">
           <AvatarImage src={member.profile?.avatar_url || undefined} />
-          <AvatarFallback className="bg-primary/10 text-primary">
+          <AvatarFallback className="bg-white/10 text-primary">
             {member.profile?.name?.charAt(0).toUpperCase() || '?'}
           </AvatarFallback>
         </Avatar>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground truncate">
+            <span className="font-medium text-card-foreground truncate">
               {member.profile?.name || 'Utente'}
             </span>
             {getRoleIcon(member.role)}
           </div>
-          <span className="text-xs text-muted">{getRoleLabel(member.role)}</span>
+          <span className="text-xs text-white/55">{getRoleLabel(member.role)}</span>
         </div>
 
         {showActions && !isCurrentUser && !isCreator && (
@@ -308,7 +308,7 @@ const GroupManage = () => {
         )}
         
         {isCreator && (
-          <span className="text-xs text-muted px-2 py-1 bg-muted/30 rounded">Creatore</span>
+          <span className="text-xs text-white/55 px-2 py-1 bg-white/10 rounded">Creatore</span>
         )}
       </div>
     );
@@ -327,10 +327,10 @@ const GroupManage = () => {
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <span className="font-medium text-foreground truncate block">
+          <span className="font-medium text-card-foreground truncate block">
             {member.profile?.name || 'Utente'}
           </span>
-          <span className="text-xs text-muted">Richiesta in attesa</span>
+          <span className="text-xs text-white/55">Richiesta in attesa</span>
         </div>
 
         <div className="flex gap-2">
@@ -362,9 +362,9 @@ const GroupManage = () => {
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
         <button 
           onClick={() => navigate(`/groups/${id}`)} 
-          className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+          className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div>
           <h1 className="font-semibold text-lg">Gestisci gruppo</h1>
@@ -424,7 +424,7 @@ const GroupManage = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-4">
-            <div className="bg-card rounded-xl border p-4">
+            <div className="bg-card rounded-xl border border-white/8 p-4">
               {/* Group Avatar Upload */}
               <div className="flex flex-col items-center gap-2 mb-4">
                 <AvatarUpload
@@ -437,7 +437,7 @@ const GroupManage = () => {
                   }}
                   size="lg"
                 />
-                <p className="text-xs text-muted">Tocca per cambiare foto</p>
+                <p className="text-xs text-white/55">Tocca per cambiare foto</p>
               </div>
 
               {/* Group Name */}

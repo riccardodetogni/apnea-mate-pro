@@ -9,21 +9,21 @@ const createOptions = [
     icon: Calendar, 
     label: "createSession",
     description: "Organizza un allenamento o uscita",
-    color: "bg-primary/10 text-primary",
+    color: "bg-white/10 text-primary",
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
     description: "Crea un gruppo locale di apneisti",
-    color: "bg-success/10 text-success",
+    color: "bg-white/10 text-success",
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
     description: "Registra il tuo allenamento personale",
-    color: "bg-warning/10 text-warning",
+    color: "bg-white/10 text-warning",
   },
 ];
 
@@ -50,9 +50,9 @@ const Create = () => {
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => navigate("/community")}
-            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-2xl font-bold text-foreground">{t("whatCreate")}</h1>
         </div>
@@ -63,14 +63,14 @@ const Create = () => {
           <button
             key={id}
             onClick={() => handleOptionClick(id)}
-            className="w-full p-4 rounded-2xl bg-card border hover:border-primary/30 transition-all text-left flex items-center gap-4"
+            className="w-full p-4 rounded-2xl bg-card border border-white/8 hover:border-primary/30 transition-all text-left flex items-center gap-4"
           >
             <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}>
               <Icon className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">{t(label as any)}</h3>
-              <p className="text-sm text-muted">{description}</p>
+              <h3 className="font-semibold text-card-foreground">{t(label as any)}</h3>
+              <p className="text-sm text-white/55">{description}</p>
             </div>
           </button>
         ))}
