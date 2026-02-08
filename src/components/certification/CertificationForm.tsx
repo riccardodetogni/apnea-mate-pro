@@ -10,10 +10,11 @@ import { Upload, Loader2, Award } from "lucide-react";
 
 const certificationAgencies = [
   "AIDA",
-  "SSI",
-  "PADI",
+  "Apnea Academy",
   "CMAS",
   "Molchanovs",
+  "PADI",
+  "SSI",
   "Altro",
 ];
 
