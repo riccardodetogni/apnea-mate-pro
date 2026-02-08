@@ -86,7 +86,7 @@ const SpotCard = ({
       {/* Spot info */}
       <div className="flex gap-3">
         {/* Placeholder image */}
-        <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-3xl flex-shrink-0">
+        <div className="w-20 h-20 rounded-xl bg-card flex items-center justify-center text-3xl flex-shrink-0">
           {getEnvironmentEmoji(spot.environment_type)}
         </div>
 

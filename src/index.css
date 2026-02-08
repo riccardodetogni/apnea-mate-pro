@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Apnea Mate Design System - Deep Blue Minimalistic Theme */
+/* Apnea Mate Design System - Deep Blue Sea Palette */
 
 @layer base {
   :root {
@@ -10,8 +10,8 @@
     --background: 220 27% 98%;
     --foreground: 222 47% 11%;
     
-    /* Cards & Elevated Surfaces - Deep Navy */
-    --card: 221 51% 28%;
+    /* Cards & Elevated Surfaces - #012345 */
+    --card: 210 97% 14%;
     --card-foreground: 0 0% 100%;
     --card-soft: 0 0% 100% / 0.70;
     --card-muted: 0 0% 100% / 0.55;
@@ -20,13 +20,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
-    /* Primary - Blue end of gradient */
-    --primary: 228 80% 58%;
+    /* Primary - #456789 (lightest blue) */
+    --primary: 210 33% 40%;
     --primary-foreground: 0 0% 100%;
     
-    /* Gradient Points: Teal → Blue */
-    --primary-deep: 228 80% 58%;
-    --primary-light: 185 57% 52%;
+    /* Palette shades for direct use */
+    --primary-deep: 210 65% 20%;
+    --primary-light: 210 49% 27%;
     
     /* Secondary - Soft translucent */
     --secondary: 210 40% 96%;
@@ -36,8 +36,8 @@
     --muted: 222 47% 11% / 0.45;
     --muted-foreground: 222 47% 11% / 0.45;
     
-    /* Accent - Teal */
-    --accent: 185 57% 52%;
+    /* Accent - #345678 */
+    --accent: 210 40% 34%;
     --accent-foreground: 0 0% 100%;
     
     /* Status Colors */
@@ -55,7 +55,7 @@
     /* Borders & Inputs */
     --border: 222 47% 11% / 0.10;
     --input: 214 32% 91%;
-    --ring: 228 80% 58%;
+    --ring: 210 33% 40%;
     
     /* Radius - Rounded, friendly */
     --radius: 18px;
@@ -63,9 +63,9 @@
     --radius-xs: 8px;
     --radius-pill: 9999px;
     
-    /* Shadows - Deeper with blue-ink tint */
+    /* Shadows - Clean, no gradient tints */
     --shadow-card: 0 10px 26px rgba(15, 23, 42, 0.22);
-    --shadow-elevated: 0 8px 24px rgba(63, 102, 232, 0.35);
+    --shadow-elevated: 0 8px 24px rgba(1, 35, 69, 0.35);
     --shadow-nav: 0 14px 32px rgba(15, 23, 42, 0.14);
     
     /* Badge Colors - translucent on dark cards */
@@ -84,14 +84,14 @@
     --sidebar-accent: 240 5% 96%;
     --sidebar-accent-foreground: 240 6% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 228 80% 58%;
+    --sidebar-ring: 210 33% 40%;
   }
 
   .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
     
-    --card: 222 47% 12%;
+    --card: 210 97% 10%;
     --card-foreground: 0 0% 100%;
     --card-soft: 0 0% 100% / 0.70;
     --card-muted: 0 0% 100% / 0.50;
@@ -100,11 +100,11 @@
     --popover: 222 47% 12%;
     --popover-foreground: 210 40% 98%;
     
-    --primary: 228 80% 58%;
+    --primary: 210 33% 40%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-deep: 228 80% 52%;
-    --primary-light: 185 57% 55%;
+    --primary-deep: 210 65% 20%;
+    --primary-light: 210 49% 27%;
     
     --secondary: 222 33% 17%;
     --secondary-foreground: 210 40% 98%;
@@ -112,7 +112,7 @@
     --muted: 0 0% 100% / 0.40;
     --muted-foreground: 0 0% 100% / 0.40;
     
-    --accent: 185 57% 52%;
+    --accent: 210 40% 34%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 63% 31%;
@@ -131,12 +131,12 @@
     
     --sidebar-background: 240 6% 10%;
     --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 224 76% 48%;
+    --sidebar-primary: 210 33% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4% 16%;
     --sidebar-accent-foreground: 240 5% 96%;
     --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 228 80% 58%;
+    --sidebar-ring: 210 33% 40%;
   }
 }
 
@@ -147,10 +147,6 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-image:
-      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(63, 189, 200, 0.08) 0%, transparent 70%),
-      radial-gradient(ellipse 40% 40% at 80% 10%, rgba(63, 102, 232, 0.06) 0%, transparent 60%);
-    background-attachment: fixed;
   }
 
   /* Hide scrollbars for horizontal scroll sections */
@@ -165,87 +161,25 @@
 }
 
 @layer components {
-  /* Primary gradient button - teal to blue */
+  /* Primary solid button - #456789 */
   .btn-primary-gradient {
-    background: linear-gradient(135deg, hsl(185 57% 52%), hsl(228 80% 58%));
+    background: #456789;
     @apply text-primary-foreground;
     box-shadow: var(--shadow-elevated);
     border: 1px solid rgba(255, 255, 255, 0.18);
   }
   
-  /* Card styling - dark navy with glow overlays */
+  /* Card styling - dark navy, clean */
   .card-session {
     @apply bg-card rounded-[var(--radius)] p-3.5 flex flex-col gap-2;
     box-shadow: var(--shadow-card);
-    position: relative;
-    overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .card-session::before {
-    content: '';
-    position: absolute;
-    top: -40%;
-    right: -30%;
-    width: 70%;
-    height: 70%;
-    background: radial-gradient(circle, rgba(63, 189, 200, 0.28), transparent 62%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .card-session::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    right: -20%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(63, 102, 232, 0.22), transparent 62%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .card-session > * {
-    position: relative;
-    z-index: 1;
   }
   
   .card-group {
     @apply bg-card rounded-[var(--radius)] p-3.5 flex flex-col gap-2;
     box-shadow: var(--shadow-card);
-    position: relative;
-    overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .card-group::before {
-    content: '';
-    position: absolute;
-    top: -40%;
-    right: -30%;
-    width: 70%;
-    height: 70%;
-    background: radial-gradient(circle, rgba(63, 189, 200, 0.28), transparent 62%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .card-group::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    right: -20%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(63, 102, 232, 0.22), transparent 62%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .card-group > * {
-    position: relative;
-    z-index: 1;
   }
   
   .card-empty {
@@ -286,10 +220,10 @@
     color: rgba(255, 255, 255, 0.70);
   }
   
-  /* Avatar styles */
+  /* Avatar styles - solid colors */
   .avatar-user {
     @apply w-8 h-8 rounded-full flex items-center justify-center font-semibold text-base;
-    background: linear-gradient(135deg, hsl(185 57% 52%), hsl(228 80% 58%));
+    background: #234567;
     color: white;
   }
   
@@ -348,7 +282,7 @@
     right: 25%;
     height: 3px;
     border-radius: 2px;
-    background: linear-gradient(90deg, hsl(185 57% 52%), hsl(228 80% 58%));
+    background: #456789;
   }
   
   /* Search bar - glassmorphic */

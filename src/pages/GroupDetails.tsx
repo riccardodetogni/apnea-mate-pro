@@ -186,7 +186,7 @@ const GroupDetails = () => {
       {group.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-4">
           {group.tags.map((tag, index) => (
-            <span key={index} className="text-xs py-1 px-2 rounded-full bg-muted/10 text-muted-foreground">{tag}</span>
+            <span key={index} className="text-xs py-1 px-2 rounded-full bg-primary/10 text-primary">{tag}</span>
           ))}
         </div>
       )}

@@ -24,7 +24,7 @@ export const CommunityHeader = () => {
       >
         <Avatar className="w-10 h-10 border-2 border-white/20 shadow-lg shadow-primary/20">
           <AvatarImage src={profile?.avatar_url || undefined} alt={userName} />
-          <AvatarFallback className="bg-gradient-to-br from-accent to-primary text-white text-sm font-bold">
+          <AvatarFallback className="bg-[#234567] text-white text-sm font-bold">
             {userInitial}
           </AvatarFallback>
         </Avatar>
