@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface SpotDetails {
   id: string;
@@ -20,14 +21,17 @@ export interface SpotSession {
   level: string;
   max_participants: number;
   current_participants: number;
+  creator_id: string;
   creator: {
     id: string;
     name: string;
     avatar_url: string | null;
   };
+  myStatus: "none" | "pending" | "confirmed";
 }
 
 export const useSpotDetails = (spotId: string | undefined) => {
+  const { user } = useAuth();
   const [spot, setSpot] = useState<SpotDetails | null>(null);
   const [sessions, setSessions] = useState<SpotSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,6 +101,20 @@ export const useSpotDetails = (spotId: string | undefined) => {
             .eq("session_id", session.id)
             .in("status", ["pending", "confirmed"]);
 
+          // Get current user's participation status
+          let myStatus: "none" | "pending" | "confirmed" = "none";
+          if (user) {
+            const { data: myParticipation } = await supabase
+              .from("session_participants")
+              .select("status")
+              .eq("session_id", session.id)
+              .eq("user_id", user.id)
+              .maybeSingle();
+            
+            if (myParticipation?.status === "pending") myStatus = "pending";
+            else if (myParticipation?.status === "confirmed") myStatus = "confirmed";
+          }
+
           return {
             id: session.id,
             title: session.title,
@@ -105,11 +123,13 @@ export const useSpotDetails = (spotId: string | undefined) => {
             level: session.level,
             max_participants: session.max_participants,
             current_participants: count || 0,
+            creator_id: session.creator_id,
             creator: {
               id: profileData?.user_id || session.creator_id,
               name: profileData?.name || "Unknown",
               avatar_url: profileData?.avatar_url || null,
             },
+            myStatus,
           };
         })
       );
