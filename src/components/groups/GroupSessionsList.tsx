@@ -51,10 +51,10 @@ export const GroupSessionsList = ({ sessions, groupId }: GroupSessionsListProps)
             >
               {/* Date badge */}
               <div className="w-12 h-12 rounded-lg bg-white/10 flex flex-col items-center justify-center flex-shrink-0">
-                <span className="text-xs text-primary font-medium uppercase">
+                <span className="text-xs text-white/70 font-medium uppercase">
                   {format(date, "MMM", { locale: it })}
                 </span>
-                <span className="text-lg font-bold text-primary">
+                <span className="text-lg font-bold text-white/90">
                   {format(date, "d")}
                 </span>
               </div>

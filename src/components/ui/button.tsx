@@ -16,9 +16,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground rounded-md",
         link: "text-primary underline-offset-4 hover:underline",
         // Apnea Mate custom variants
-        pill: "btn-primary-gradient rounded-full text-[13px] hover:opacity-90 transition-opacity",
+        pill: "bg-primary text-primary-foreground rounded-full text-[13px] hover:opacity-90 transition-opacity shadow-elevated",
         pillOutline: "rounded-full text-[13px] border border-white/15 bg-white/10 text-white/85 hover:bg-white/20",
-        primaryGradient: "btn-primary-gradient rounded-full hover:opacity-90 transition-opacity",
+        primaryGradient: "bg-primary text-primary-foreground rounded-full hover:opacity-90 transition-opacity shadow-elevated",
         social: "rounded-full text-foreground hover:bg-white/60 font-medium bg-white/86 backdrop-blur-sm border border-[rgba(15,23,42,0.10)]",
       },
       size: {

@@ -146,7 +146,7 @@ const ResetPassword = () => {
       <div className="w-full max-w-[380px] animate-fade-in">
         {/* Logo and title */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center shadow-elevated">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#345678] flex items-center justify-center shadow-elevated">
             <Waves className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">
