@@ -12,7 +12,12 @@ export const NotificationBell = () => {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="relative w-10 h-10 rounded-full bg-card border flex items-center justify-center hover:bg-secondary transition-colors"
+        className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/60 transition-colors"
+        style={{ 
+          background: 'rgba(255,255,255,0.86)',
+          backdropFilter: 'blur(14px)',
+          border: '1px solid rgba(15,23,42,0.10)'
+        }}
         title="Notifiche"
       >
         <Bell className="w-5 h-5 text-primary" />

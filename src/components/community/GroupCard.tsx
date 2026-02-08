@@ -101,11 +101,11 @@ export const GroupCard = ({
       {/* Action button */}
       <div className="flex gap-2 mt-1.5" onClick={e => e.stopPropagation()}>
         {isMember ? (
-          <Button variant="outline" size="sm" disabled className="border-white/15 text-white/60">
+          <Button variant="ghost" size="sm" disabled className="border border-white/15 bg-white/10 text-white/60 rounded-md">
             Membro
           </Button>
         ) : isPending ? (
-          <Button variant="outline" size="sm" disabled className="gap-1.5 border-white/15 text-white/60">
+          <Button variant="ghost" size="sm" disabled className="gap-1.5 border border-white/15 bg-white/10 text-white/60 rounded-md">
             <Clock className="w-3.5 h-3.5" />
             In attesa
           </Button>
