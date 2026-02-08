@@ -116,7 +116,7 @@ const UserProfile = () => {
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
         <div className="bg-card rounded-2xl border border-white/8 p-6 text-center mb-6">
-          <div className="w-20 h-20 mx-auto rounded-full bg-[#234567] flex items-center justify-center text-2xl font-bold text-white mb-4">
+          <div className="w-20 h-20 mx-auto rounded-full avatar-gradient flex items-center justify-center text-2xl font-bold text-white mb-4">
             {profile.name.charAt(0).toUpperCase()}
           </div>
           

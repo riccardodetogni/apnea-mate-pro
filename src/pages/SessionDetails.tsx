@@ -398,7 +398,7 @@ const SessionDetails = () => {
           className="bg-card rounded-2xl border border-white/8 p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
           onClick={() => navigate(`/users/${session.creator_id}`, { state: { from: `/sessions/${id}` } })}
         >
-          <div className="w-12 h-12 rounded-full bg-[#234567] flex items-center justify-center text-lg font-bold text-white">
+          <div className="w-12 h-12 rounded-full avatar-gradient flex items-center justify-center text-lg font-bold text-white">
             {session.creator?.name?.charAt(0).toUpperCase() || "?"}
           </div>
           <div className="flex-1">

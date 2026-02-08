@@ -10,23 +10,23 @@
     --background: 220 27% 98%;
     --foreground: 222 47% 11%;
     
-    /* Cards & Elevated Surfaces - #012345 */
-    --card: 210 97% 14%;
+    /* Cards & Elevated Surfaces - #233a6b */
+    --card: 221 51% 28%;
     --card-foreground: 0 0% 100%;
     --card-soft: 0 0% 100% / 0.70;
     --card-muted: 0 0% 100% / 0.55;
-    --card-border: 0 0% 100% / 0.12;
+    --card-border: 0 0% 100% / 0.16;
     
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
-    /* Primary - #456789 (lightest blue) */
-    --primary: 210 33% 40%;
+    /* Primary - #3f66e8 (blue, solid fallback) */
+    --primary: 228 80% 58%;
     --primary-foreground: 0 0% 100%;
     
     /* Palette shades for direct use */
-    --primary-deep: 210 65% 20%;
-    --primary-light: 210 49% 27%;
+    --primary-deep: 185 57% 52%;
+    --primary-light: 228 80% 58%;
     
     /* Secondary - Soft translucent */
     --secondary: 210 40% 96%;
@@ -36,9 +36,12 @@
     --muted: 222 47% 11% / 0.45;
     --muted-foreground: 222 47% 11% / 0.45;
     
-    /* Accent - #345678 */
-    --accent: 210 40% 34%;
+    /* Accent - #3fbdc8 (teal) */
+    --accent: 185 57% 52%;
     --accent-foreground: 0 0% 100%;
+    
+    /* Accent 2 - #3f66e8 (blue) */
+    --accent-2: 228 80% 58%;
     
     /* Status Colors */
     --success: 142 71% 45%;
@@ -55,7 +58,7 @@
     /* Borders & Inputs */
     --border: 222 47% 11% / 0.10;
     --input: 214 32% 91%;
-    --ring: 210 33% 40%;
+    --ring: 228 80% 58%;
     
     /* Radius - Rounded, friendly */
     --radius: 18px;
@@ -63,9 +66,9 @@
     --radius-xs: 8px;
     --radius-pill: 9999px;
     
-    /* Shadows - Clean, no gradient tints */
+    /* Shadows - Blue-tinted */
     --shadow-card: 0 10px 26px rgba(15, 23, 42, 0.22);
-    --shadow-elevated: 0 8px 24px rgba(1, 35, 69, 0.35);
+    --shadow-elevated: 0 10px 22px rgba(63, 102, 232, 0.22);
     --shadow-nav: 0 14px 32px rgba(15, 23, 42, 0.14);
     
     /* Badge Colors - translucent on dark cards */
@@ -91,20 +94,20 @@
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
     
-    --card: 210 97% 10%;
+    --card: 221 51% 20%;
     --card-foreground: 0 0% 100%;
     --card-soft: 0 0% 100% / 0.70;
     --card-muted: 0 0% 100% / 0.50;
-    --card-border: 0 0% 100% / 0.08;
+    --card-border: 0 0% 100% / 0.12;
     
     --popover: 222 47% 12%;
     --popover-foreground: 210 40% 98%;
     
-    --primary: 210 33% 40%;
+    --primary: 228 80% 58%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-deep: 210 65% 20%;
-    --primary-light: 210 49% 27%;
+    --primary-deep: 185 57% 52%;
+    --primary-light: 228 80% 58%;
     
     --secondary: 222 33% 17%;
     --secondary-foreground: 210 40% 98%;
@@ -112,15 +115,17 @@
     --muted: 0 0% 100% / 0.40;
     --muted-foreground: 0 0% 100% / 0.40;
     
-    --accent: 210 40% 34%;
+    --accent: 185 57% 52%;
     --accent-foreground: 0 0% 100%;
+    
+    --accent-2: 228 80% 58%;
     
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
     
     --border: 0 0% 100% / 0.08;
     --input: 222 33% 17%;
-    --ring: 212 27% 84%;
+    --ring: 228 80% 58%;
     
     --badge-blue-bg: 0 0% 100% / 0.10;
     --badge-blue-text: 0 0% 100% / 0.85;
@@ -146,7 +151,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, rgba(63, 189, 200, 0.22), transparent 60%),
+      radial-gradient(900px 500px at 90% 15%, rgba(63, 102, 232, 0.18), transparent 55%),
+      hsl(var(--background));
   }
 
   /* Hide scrollbars for horizontal scroll sections */
@@ -161,25 +170,56 @@
 }
 
 @layer components {
-  /* Primary solid button - #456789 */
+  /* Primary gradient button - teal to blue */
   .btn-primary-gradient {
-    background: #456789;
+    background: linear-gradient(135deg, #3fbdc8, #3f66e8);
     @apply text-primary-foreground;
-    box-shadow: var(--shadow-elevated);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 22px rgba(63, 102, 232, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.55);
   }
   
-  /* Card styling - dark navy, clean */
-  .card-session {
-    @apply bg-card rounded-[var(--radius)] p-3.5 flex flex-col gap-2;
-    box-shadow: var(--shadow-card);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  
+  /* Card styling - rich navy with gradient overlays */
+  .card-session,
   .card-group {
     @apply bg-card rounded-[var(--radius)] p-3.5 flex flex-col gap-2;
     box-shadow: var(--shadow-card);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-session > *,
+  .card-group > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .card-session::before,
+  .card-group::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    right: -40%;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle at 30% 30%, rgba(63, 189, 200, 0.28), transparent 62%);
+    transform: rotate(18deg);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .card-session::after,
+  .card-group::after {
+    content: "";
+    position: absolute;
+    bottom: -60%;
+    right: -30%;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle at 40% 40%, rgba(63, 102, 232, 0.22), transparent 62%);
+    transform: rotate(-12deg);
+    pointer-events: none;
+    z-index: 0;
   }
   
   .card-empty {
@@ -220,11 +260,17 @@
     color: rgba(255, 255, 255, 0.70);
   }
   
-  /* Avatar styles - solid colors */
+  /* Avatar styles - gradient */
   .avatar-user {
     @apply w-8 h-8 rounded-full flex items-center justify-center font-semibold text-base;
-    background: #234567;
+    background: linear-gradient(135deg, #3fbdc8, #3f66e8);
     color: white;
+  }
+  
+  .avatar-gradient {
+    background: linear-gradient(135deg, #3fbdc8, #3f66e8);
+    box-shadow: 0 10px 22px rgba(63, 102, 232, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.55);
   }
   
   .avatar-creator {
@@ -282,7 +328,7 @@
     right: 25%;
     height: 3px;
     border-radius: 2px;
-    background: #456789;
+    background: linear-gradient(135deg, #3fbdc8, #3f66e8);
   }
   
   /* Search bar - glassmorphic */

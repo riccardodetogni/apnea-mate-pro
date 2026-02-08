@@ -134,7 +134,7 @@ export const AvatarUpload = ({
       >
         <Avatar className={cn(sizeClasses[size], "border-2 border-card")}>
           <AvatarImage src={displayUrl || undefined} alt={name} />
-          <AvatarFallback className="bg-[#234567] text-white text-xl font-bold">
+          <AvatarFallback className="avatar-gradient text-white text-xl font-bold">
             {name.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
