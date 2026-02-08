@@ -4,17 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useProfile } from "@/hooks/useProfile";
+import { usePersonalBests } from "@/hooks/usePersonalBests";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Save, User, MapPin, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
+import { PersonalBestsForm } from "@/components/profile/PersonalBestsForm";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, loading, updateProfile } = useProfile();
+  const { personalBests, upsertPersonalBests, loading: pbLoading } = usePersonalBests();
   const { language } = useLanguage();
   const { toast } = useToast();
   
@@ -173,7 +176,21 @@ const Settings = () => {
           </Button>
         </div>
 
-        {/* Future settings sections can go here */}
+        {/* Personal Bests Section */}
+        <div className="bg-card rounded-2xl border p-6">
+          <h2 className="text-lg font-semibold mb-4">{t("personalBests")}</h2>
+          {pbLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <PersonalBestsForm
+              personalBests={personalBests}
+              onSave={upsertPersonalBests}
+            />
+          )}
+        </div>
+
         <p className="text-sm text-muted text-center">
           {language === "it" 
             ? "Altre impostazioni saranno disponibili presto" 

@@ -1,11 +1,13 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useFollow } from "@/hooks/useFollow";
+import { usePersonalBests, hasAnyPB } from "@/hooks/usePersonalBests";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { CertificationBadge } from "@/components/certification/CertificationStatus";
+import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
 import { 
   ChevronLeft,
   MapPin, 
@@ -28,6 +30,7 @@ const UserProfile = () => {
   const { language } = useLanguage();
   const { profile, sessions, sharedGroups, role, loading, error, isCertified, isInstructor } = useUserProfile(id);
   const { isFollowing, loading: followLoading, followersCount, toggleFollow, isOwnProfile } = useFollow(id);
+  const { personalBests } = usePersonalBests(id);
 
   const roleLabels: Record<string, string> = {
     regular: language === "it" ? "Utente" : "User",
@@ -166,6 +169,13 @@ const UserProfile = () => {
             </Button>
           )}
         </div>
+
+        {/* Personal Bests (public) */}
+        {personalBests?.show_on_profile && hasAnyPB(personalBests) && (
+          <div className="mb-6">
+            <PersonalBestsCard pbs={personalBests} />
+          </div>
+        )}
 
         {/* Shared groups */}
         {sharedGroups.length > 0 && (

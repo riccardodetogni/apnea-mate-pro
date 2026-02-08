@@ -8,6 +8,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersonalBests } from "@/hooks/usePersonalBests";
+import { PersonalBestsForm } from "@/components/profile/PersonalBestsForm";
 import { 
   User, 
   MapPin, 
@@ -20,9 +22,10 @@ import {
   AlertTriangle,
   Loader2,
   Navigation,
+  Trophy,
 } from "lucide-react";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 const certificationAgencies = [
   "AIDA",
@@ -49,6 +52,7 @@ const Onboarding = () => {
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
+  const { personalBests, upsertPersonalBests } = usePersonalBests();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -160,7 +164,7 @@ const Onboarding = () => {
       }
     }
 
-    if (step < 4) {
+    if (step < 5) {
       if (step === 2 && isCertified === false) {
         setStep(4);
       } else if (step === 2 && isCertified === true) {
@@ -172,7 +176,9 @@ const Onboarding = () => {
   };
 
   const handleBack = () => {
-    if (step === 4 && isCertified === false) {
+    if (step === 5 && isCertified === false) {
+      setStep(4); // PB step
+    } else if (step === 4 && isCertified === false) {
       setStep(2);
     } else if (step > 1) {
       setStep((step - 1) as Step);
@@ -266,17 +272,19 @@ const Onboarding = () => {
     1: User,
     2: Award,
     3: Award,
-    4: Shield,
+    4: Trophy,
+    5: Shield,
   };
 
   const StepIcon = stepIcons[step];
+  const totalSteps = 5;
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 py-8">
       <div className="w-full max-w-[380px] mx-auto flex-1 flex flex-col">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-colors ${
@@ -295,7 +303,8 @@ const Onboarding = () => {
             {step === 1 && t("onboardingStep1")}
             {step === 2 && t("onboardingStep2")}
             {step === 3 && t("onboardingStep3")}
-            {step === 4 && t("onboardingStep4")}
+            {step === 4 && t("onboardingStepPB")}
+            {step === 5 && t("onboardingStep4")}
           </h1>
         </div>
 
@@ -464,6 +473,25 @@ const Onboarding = () => {
           )}
 
           {step === 4 && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted text-center mb-2">
+                {t("updateLater")}
+              </p>
+              <PersonalBestsForm
+                personalBests={personalBests}
+                onSave={async (values) => {
+                  const result = await upsertPersonalBests(values);
+                  if (!result.error) {
+                    setStep(5);
+                  }
+                  return result;
+                }}
+                compact
+              />
+            </div>
+          )}
+
+          {step === 5 && (
             <div className="space-y-6">
               <div className="p-5 rounded-2xl bg-warning-light border border-warning/20">
                 <div className="flex gap-3">
@@ -503,14 +531,14 @@ const Onboarding = () => {
             </Button>
           )}
 
-          {step < 4 ? (
+          {step < 5 ? (
             <Button
               variant="primaryGradient"
               size="lg"
               onClick={handleNext}
               className="flex-1 h-12 rounded-xl"
             >
-              {t("next")}
+              {step === 4 ? (t("skip")) : t("next")}
               <ChevronRight className="w-5 h-5" />
             </Button>
           ) : (

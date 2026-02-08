@@ -228,6 +228,45 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_bests: {
+        Row: {
+          created_at: string
+          id: string
+          max_depth_cwt: number | null
+          max_dynamic_dnf: number | null
+          max_dynamic_dyn: number | null
+          max_fim: number | null
+          max_static_sta: number | null
+          show_on_profile: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_depth_cwt?: number | null
+          max_dynamic_dnf?: number | null
+          max_dynamic_dyn?: number | null
+          max_fim?: number | null
+          max_static_sta?: number | null
+          show_on_profile?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_depth_cwt?: number | null
+          max_dynamic_dnf?: number | null
+          max_dynamic_dyn?: number | null
+          max_fim?: number | null
+          max_static_sta?: number | null
+          show_on_profile?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
