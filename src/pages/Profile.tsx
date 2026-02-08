@@ -11,7 +11,7 @@ import { CertificationStatusBadge, CertificationBadge } from "@/components/certi
 import { CertificationForm } from "@/components/certification/CertificationForm";
 import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
-import { PersonalBestsSheet } from "@/components/profile/PersonalBestsSheet";
+
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { 
   Settings, 
@@ -49,7 +49,7 @@ const Profile = () => {
 
   // Inline edit state
   const [editField, setEditField] = useState<"name" | "bio" | "location" | null>(null);
-  const [pbSheetOpen, setPbSheetOpen] = useState(false);
+  
 
   useEffect(() => {
     if (!user && !loading) {
@@ -206,8 +206,9 @@ const Profile = () => {
             pbs={personalBests}
             editable
             onToggleVisibility={(show) => toggleVisibility(show)}
-            onAddClick={() => setPbSheetOpen(true)}
-            onEditClick={() => setPbSheetOpen(true)}
+            onSaveField={async (key, value) => {
+              await upsertPersonalBests({ [key]: value });
+            }}
           />
         </div>
 
@@ -276,13 +277,6 @@ const Profile = () => {
         onSave={handleFieldSave}
       />
 
-      {/* Personal Bests Sheet */}
-      <PersonalBestsSheet
-        open={pbSheetOpen}
-        onOpenChange={setPbSheetOpen}
-        personalBests={personalBests}
-        onSave={upsertPersonalBests}
-      />
 
       {/* Certification Dialog */}
       <Dialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
