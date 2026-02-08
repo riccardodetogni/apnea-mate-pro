@@ -280,7 +280,7 @@ const Profile = () => {
 
       {/* Certification Dialog */}
       <Dialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
-        <DialogContent className="max-w-[400px]">
+        <DialogContent className="max-w-[400px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("submitCertification")}</DialogTitle>
           </DialogHeader>
