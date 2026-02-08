@@ -267,6 +267,7 @@ const translations = {
     noPersonalBests: "Nessun record personale inserito",
     updateLater: "Puoi aggiornarli in qualsiasi momento dalle impostazioni",
     onboardingStepPB: "Record personali",
+    organizer: "Organizzatore",
   },
   en: {
     // App
@@ -531,6 +532,7 @@ const translations = {
     noPersonalBests: "No personal bests recorded yet",
     updateLater: "You can update these anytime from settings",
     onboardingStepPB: "Personal bests",
+    organizer: "Organizer",
   },
 };
 

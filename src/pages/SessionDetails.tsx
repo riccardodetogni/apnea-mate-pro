@@ -393,6 +393,7 @@ const SessionDetails = () => {
         </div>
 
         {/* Creator */}
+        <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("organizer" as any)}</h3>
         <div
           className="bg-card rounded-2xl border border-white/8 p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
           onClick={() => navigate(`/users/${session.creator_id}`, { state: { from: `/sessions/${id}` } })}

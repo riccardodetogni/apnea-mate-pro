@@ -128,7 +128,9 @@ export const SessionCard = ({
           <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
           <div className="flex flex-col gap-px min-w-0">
             <span className="text-[13px] font-medium text-card-foreground truncate">{creatorName}</span>
-            <span className="text-[11px] text-white/55">{t(creatorRole)}</span>
+            <span className="text-[11px] text-white/55">
+              {t("organizer" as any)}{creatorRole !== "user" ? ` · ${t(creatorRole)}` : ""}
+            </span>
           </div>
         </div>
         

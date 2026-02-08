@@ -28,7 +28,7 @@ interface GroupMembersSheetProps {
 const roleConfig = {
   owner: { label: "ownerBadge", icon: Crown, className: "bg-amber-500/10 text-amber-600" },
   admin: { label: "adminBadge", icon: Shield, className: "bg-primary/10 text-primary" },
-  member: { label: "memberBadge", icon: User, className: "bg-muted text-muted-foreground" },
+  member: { label: "memberBadge", icon: User, className: "bg-white/10 text-white/55" },
 };
 
 export const GroupMembersSheet = ({
@@ -78,7 +78,7 @@ export const GroupMembersSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl bg-card">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-left">
             {t("groupMembersTitle")} ({totalCount})
@@ -87,7 +87,7 @@ export const GroupMembersSheet = ({
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder={t("searchMembers")}
@@ -109,10 +109,10 @@ export const GroupMembersSheet = ({
                 <div
                   key={member.id}
                   onClick={() => handleMemberClick(member.user_id)}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-card border cursor-pointer hover:border-primary/30 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/8 cursor-pointer hover:border-primary/30 transition-colors"
                 >
                   {/* Avatar */}
-                  <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-sm font-medium overflow-hidden flex-shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-card-foreground overflow-hidden flex-shrink-0">
                     {member.profile?.avatar_url ? (
                       <img
                         src={member.profile.avatar_url}
@@ -126,7 +126,7 @@ export const GroupMembersSheet = ({
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">
+                    <p className="font-medium text-card-foreground truncate">
                       {member.profile?.name || "Unknown"}
                     </p>
                   </div>
