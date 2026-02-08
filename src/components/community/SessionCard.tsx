@@ -114,7 +114,7 @@ export const SessionCard = ({
       </div>
 
       {/* Title */}
-      <h3 className="text-base font-semibold text-white/92">{title}</h3>
+      <h3 className="text-base font-semibold text-card-foreground">{title}</h3>
 
       {/* Badges */}
       <div className="flex gap-1.5 flex-wrap mt-0.5">
@@ -127,7 +127,7 @@ export const SessionCard = ({
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
           <div className="flex flex-col gap-px min-w-0">
-            <span className="text-[13px] font-medium text-white/90 truncate">{creatorName}</span>
+            <span className="text-[13px] font-medium text-card-foreground truncate">{creatorName}</span>
             <span className="text-[11px] text-white/55">{t(creatorRole)}</span>
           </div>
         </div>

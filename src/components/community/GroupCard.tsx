@@ -73,7 +73,7 @@ export const GroupCard = ({
         <div className="avatar-group">{initial}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <h3 className="text-[15px] font-semibold text-white/92 truncate">{name}</h3>
+            <h3 className="text-[15px] font-semibold text-card-foreground truncate">{name}</h3>
             {isVerified && (
               <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
             )}
