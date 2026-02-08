@@ -57,7 +57,7 @@ const DiscoverFreedivers = () => {
     }
     if (role === "certified") {
       return (
-        <Badge variant="secondary" className="bg-primary/10 text-primary">
+        <Badge variant="secondary" className="bg-white/10 text-primary">
           <UserCheck className="w-3 h-3 mr-1" />
           Certificato
         </Badge>
@@ -70,29 +70,29 @@ const DiscoverFreedivers = () => {
     const isFollowing = followingIds.has(user.user_id);
     
     return (
-      <div className="bg-card border border-border rounded-xl p-4">
+      <div className="bg-card border border-white/8 rounded-xl p-4">
         <div className="flex items-start gap-3">
           <Avatar className="w-12 h-12">
             <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
-            <AvatarFallback className="bg-primary/10 text-primary">
+            <AvatarFallback className="bg-white/10 text-primary">
               {user.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-foreground truncate">{user.name}</h3>
+              <h3 className="font-semibold text-card-foreground truncate">{user.name}</h3>
               {getRoleBadge(user.role)}
             </div>
             
             {user.location && (
-              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
+              <div className="flex items-center gap-1 text-sm text-white/55 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 <span className="truncate">{user.location}</span>
               </div>
             )}
             
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-white/55 mt-1">
               🏊 {user.activitySummary}
             </p>
           </div>
@@ -121,7 +121,7 @@ const DiscoverFreedivers = () => {
   };
 
   const UserCardSkeleton = () => (
-    <div className="bg-card border border-border rounded-xl p-4">
+    <div className="bg-card border border-white/8 rounded-xl p-4">
       <div className="flex items-start gap-3">
         <Skeleton className="w-12 h-12 rounded-full" />
         <div className="flex-1 space-y-2">

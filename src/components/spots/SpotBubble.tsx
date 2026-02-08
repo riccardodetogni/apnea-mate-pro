@@ -28,19 +28,19 @@ const SpotBubble = ({
     <div className="fixed bottom-24 left-4 right-4 z-[1001] max-w-[430px] mx-auto animate-in slide-in-from-bottom duration-300">
       <div
         onClick={onViewDetails}
-        className="bg-card/95 backdrop-blur-lg rounded-2xl border shadow-lg p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+        className="bg-card/95 backdrop-blur-lg rounded-2xl border border-white/8 shadow-lg p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
       >
         {/* Environment emoji */}
-        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
+        <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">
           {emoji}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground truncate text-sm">
+          <h3 className="font-semibold text-card-foreground truncate text-sm">
             {spot.name}
           </h3>
-          <p className="text-xs text-muted truncate flex items-center gap-1 mt-0.5">
+          <p className="text-xs text-white/55 truncate flex items-center gap-1 mt-0.5">
             <MapPin size={11} className="shrink-0" />
             {spot.location}
           </p>
@@ -58,18 +58,18 @@ const SpotBubble = ({
               e.stopPropagation();
               onToggleFavorite();
             }}
-            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-secondary/80 transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
           >
             <Heart
               size={18}
               className={
                 isFavorite
                   ? "fill-destructive text-destructive"
-                  : "text-muted"
+                  : "text-white/55"
               }
             />
           </button>
-          <ChevronRight size={16} className="text-muted" />
+          <ChevronRight size={16} className="text-white/55" />
         </div>
       </div>
     </div>

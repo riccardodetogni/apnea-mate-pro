@@ -239,8 +239,8 @@ const CreateSession = () => {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
-          <ChevronLeft className="w-5 h-5" />
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
+          <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="font-semibold text-lg">Nuova sessione</h1>
       </header>

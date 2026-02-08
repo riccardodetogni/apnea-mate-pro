@@ -302,8 +302,8 @@ const SessionDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-          <button onClick={() => navigate(backPath)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
-            <ChevronLeft className="w-5 h-5" />
+          <button onClick={() => navigate(backPath)} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
           <Skeleton className="h-6 w-40" />
         </header>
@@ -337,28 +337,28 @@ const SessionDetails = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
-        <button onClick={() => navigate(backPath)} className="w-10 h-10 rounded-full bg-card border flex items-center justify-center">
-          <ChevronLeft className="w-5 h-5" />
+        <button onClick={() => navigate(backPath)} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
+          <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="font-semibold text-lg truncate flex-1">{session.title}</h1>
         {session.isCreator && session.status === "active" && (
           <button
             onClick={() => navigate(`/sessions/${id}/edit`)}
-            className="w-10 h-10 rounded-full bg-card border flex items-center justify-center hover:bg-muted transition-colors"
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-muted transition-colors"
           >
-            <Pencil className="w-4 h-4" />
+            <Pencil className="w-4 h-4 text-foreground" />
           </button>
         )}
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Session Info Card */}
-        <div className="bg-card rounded-2xl border p-5 mb-4">
+        <div className="bg-card rounded-2xl border border-white/8 p-5 mb-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h2 className="text-xl font-bold text-foreground">{session.title}</h2>
+              <h2 className="text-xl font-bold text-card-foreground">{session.title}</h2>
               {session.spot && (
-                <p className="text-sm text-muted flex items-center gap-1 mt-1">
+                <p className="text-sm text-white/55 flex items-center gap-1 mt-1">
                   <MapPin className="w-3.5 h-3.5" />
                   {session.spot.name} · {session.spot.location}
                 </p>
@@ -370,39 +370,39 @@ const SessionDetails = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm text-white/70">
               <Calendar className="w-4 h-4 text-primary" />
               <span>{formatDateTime(session.date_time)}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm text-white/70">
               <Clock className="w-4 h-4 text-primary" />
               <span>{session.duration_minutes} min</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm text-white/70">
               <Users className="w-4 h-4 text-primary" />
               <span>{session.confirmedCount}/{session.max_participants} confermati</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted">
+            <div className="flex items-center gap-2 text-sm text-white/55">
               <span>{mapSessionType(session.session_type)}</span>
             </div>
           </div>
 
           {session.description && (
-            <p className="text-sm text-muted border-t pt-3">{session.description}</p>
+            <p className="text-sm text-white/55 border-t border-white/8 pt-3">{session.description}</p>
           )}
         </div>
 
         {/* Creator */}
         <div
-          className="bg-card rounded-2xl border p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
+          className="bg-card rounded-2xl border border-white/8 p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
           onClick={() => navigate(`/users/${session.creator_id}`, { state: { from: `/sessions/${id}` } })}
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center text-lg font-bold text-primary-foreground">
             {session.creator?.name?.charAt(0).toUpperCase() || "?"}
           </div>
           <div className="flex-1">
-            <p className="font-medium">{session.creator?.name || "Organizzatore"}</p>
-            <p className="text-sm text-muted flex items-center gap-1">
+            <p className="font-medium text-card-foreground">{session.creator?.name || "Organizzatore"}</p>
+            <p className="text-sm text-white/55 flex items-center gap-1">
               {session.creatorRole === "instructor" && (
                 <>
                   <Award className="w-3.5 h-3.5 text-primary" />
@@ -455,8 +455,8 @@ const SessionDetails = () => {
           <div className="space-y-4">
             {/* Pending Requests */}
             {pendingParticipants.length > 0 && (
-              <div className="bg-card rounded-2xl border p-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <div className="bg-card rounded-2xl border border-white/8 p-4">
+                <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-warning/20 text-warning flex items-center justify-center text-sm">
                     {pendingParticipants.length}
                   </span>
@@ -464,15 +464,15 @@ const SessionDetails = () => {
                 </h3>
                 <div className="space-y-2">
                   {pendingParticipants.map(p => (
-                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-secondary/50">
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/10">
                       <div
-                        className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-card-foreground cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
                         {p.profile?.name?.charAt(0).toUpperCase() || "?"}
                       </div>
                       <span
-                        className="flex-1 text-sm cursor-pointer hover:text-primary transition-colors"
+                        className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
                         {p.profile?.name || "Utente"}
@@ -508,8 +508,8 @@ const SessionDetails = () => {
             )}
 
             {/* Confirmed Participants */}
-            <div className="bg-card rounded-2xl border p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <div className="bg-card rounded-2xl border border-white/8 p-4">
+              <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-success/20 text-success flex items-center justify-center text-sm">
                   {confirmedParticipants.length}
                 </span>
@@ -518,15 +518,15 @@ const SessionDetails = () => {
               {confirmedParticipants.length > 0 ? (
                 <div className="space-y-2">
                   {confirmedParticipants.map(p => (
-                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-secondary/50">
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/10">
                       <div
-                        className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-card-foreground cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
                         {p.profile?.name?.charAt(0).toUpperCase() || "?"}
                       </div>
                       <span
-                        className="flex-1 text-sm cursor-pointer hover:text-primary transition-colors"
+                        className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
                         {p.profile?.name || "Utente"}
@@ -536,7 +536,7 @@ const SessionDetails = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted">Nessun partecipante confermato</p>
+                <p className="text-sm text-white/55">Nessun partecipante confermato</p>
               )}
             </div>
 

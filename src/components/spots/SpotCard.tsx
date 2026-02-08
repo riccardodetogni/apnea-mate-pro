@@ -92,7 +92,7 @@ const SpotCard = ({
 
         <div className="flex-1 min-w-0">
           {/* Type badge */}
-          <span className="badge-tag text-xs mb-1 inline-block">
+          <span className="text-xs mb-1 inline-block px-2 py-0.5 rounded-full bg-primary/10 text-primary">
             {getEnvironmentLabel(spot.environment_type)}
           </span>
 
