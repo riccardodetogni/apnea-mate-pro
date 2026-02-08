@@ -10,6 +10,9 @@ import { t } from "@/lib/i18n";
 import { CertificationStatusBadge, CertificationBadge } from "@/components/certification/CertificationStatus";
 import { CertificationForm } from "@/components/certification/CertificationForm";
 import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
+import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
+import { PersonalBestsSheet } from "@/components/profile/PersonalBestsSheet";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { 
   Settings, 
   LogOut, 
@@ -19,7 +22,8 @@ import {
   Shield,
   Loader2,
   Plus,
-  Eye
+  Eye,
+  Pencil,
 } from "lucide-react";
 import {
   Dialog,
@@ -38,10 +42,14 @@ const roleLabels = {
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, role, certification, loading, isCertified, isAdmin, updateProfile } = useProfile();
-  const { personalBests, toggleVisibility } = usePersonalBests();
+  const { personalBests, upsertPersonalBests, toggleVisibility } = usePersonalBests();
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
+
+  // Inline edit state
+  const [editField, setEditField] = useState<"name" | "bio" | "location" | null>(null);
+  const [pbSheetOpen, setPbSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!user && !loading) {
@@ -56,6 +64,15 @@ const Profile = () => {
 
   const toggleLanguage = () => {
     setLanguage(language === "it" ? "en" : "it");
+  };
+
+  const handleFieldSave = async (value: string) => {
+    if (!editField) return;
+    const update: Record<string, any> = {};
+    if (editField === "name") update.name = value;
+    else if (editField === "bio") update.bio = value || null;
+    else if (editField === "location") update.location = value || null;
+    await updateProfile(update);
   };
 
   if (loading) {
@@ -86,40 +103,78 @@ const Profile = () => {
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
         <div className="bg-card rounded-2xl border p-6 text-center mb-6">
-          {profile.avatar_url ? (
-            <img 
-              src={profile.avatar_url} 
-              alt={profile.name}
-              className="w-20 h-20 mx-auto rounded-full object-cover border-2 border-card mb-4"
+          {/* Tappable Avatar */}
+          <div className="flex justify-center mb-4">
+            <AvatarUpload
+              currentUrl={profile.avatar_url}
+              name={profile.name}
+              uploadPath={user.id}
+              onUpload={async (url) => {
+                await updateProfile({ avatar_url: url });
+              }}
+              size="lg"
             />
+          </div>
+          
+          {/* Tappable Name */}
+          <button
+            onClick={() => setEditField("name")}
+            className="inline-flex items-center gap-1.5 group"
+          >
+            <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
+            <Pencil className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+          
+          {/* Location: tappable or add button */}
+          {profile.location ? (
+            <button
+              onClick={() => setEditField("location")}
+              className="flex items-center justify-center gap-1 mt-1 group mx-auto"
+            >
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{profile.location}</span>
+              <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
           ) : (
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-deep to-primary-light flex items-center justify-center text-2xl font-bold text-primary-foreground mb-4">
-              {profile.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-          
-          <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
-          
-          {profile.location && (
-            <p className="text-sm text-muted flex items-center justify-center gap-1 mt-1">
-              <MapPin className="w-3.5 h-3.5" />
-              {profile.location}
-            </p>
+            <button
+              onClick={() => setEditField("location")}
+              className="flex items-center justify-center gap-1 mt-2 text-sm text-primary mx-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {language === "it" ? "Aggiungi località" : "Add location"}
+            </button>
           )}
 
-          {profile.bio && (
-            <p className="text-sm text-muted mt-3 leading-relaxed">{profile.bio}</p>
+          {/* Bio: tappable or add button */}
+          {profile.bio ? (
+            <button
+              onClick={() => setEditField("bio")}
+              className="block w-full text-left mt-3 group"
+            >
+              <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+              <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                {language === "it" ? "Modifica" : "Edit"}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setEditField("bio")}
+              className="flex items-center justify-center gap-1 mt-3 text-sm text-primary mx-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {language === "it" ? "Aggiungi bio" : "Add bio"}
+            </button>
           )}
 
           <div className="flex items-center justify-center gap-2 mt-3">
             {isCertified && <CertificationBadge certified={true} />}
-            <span className="text-xs text-muted bg-secondary px-2 py-1 rounded-full">
+            <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
               {roleLabels[role]}
             </span>
           </div>
 
           {certification && (certification.status === "approved") && (
-            <p className="text-sm text-muted mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               {certification.agency} · {certification.level}
             </p>
           )}
@@ -127,7 +182,7 @@ const Profile = () => {
 
         {/* Certification Status */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-muted mb-3">{t("certification")}</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("certification")}</h3>
           <CertificationStatusBadge 
             status={certification?.status || null} 
             rejectionReason={certification?.rejection_reason}
@@ -151,7 +206,8 @@ const Profile = () => {
             pbs={personalBests}
             editable
             onToggleVisibility={(show) => toggleVisibility(show)}
-            onAddClick={() => navigate("/settings")}
+            onAddClick={() => setPbSheetOpen(true)}
+            onEditClick={() => setPbSheetOpen(true)}
           />
         </div>
 
@@ -169,10 +225,10 @@ const Profile = () => {
 
           {/* Search Visibility Toggle */}
           <div className="w-full p-4 flex items-center gap-3 border-b">
-            <Eye className="w-5 h-5 text-muted" />
+            <Eye className="w-5 h-5 text-muted-foreground" />
             <div className="flex-1">
               <span className="text-foreground">{language === "it" ? "Visibile nella ricerca" : "Visible in search"}</span>
-              <p className="text-xs text-muted mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {language === "it" 
                   ? "Altri utenti possono trovarti cercando il tuo nome"
                   : "Other users can find you by searching your name"}
@@ -190,19 +246,11 @@ const Profile = () => {
             onClick={toggleLanguage}
             className="w-full p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors border-b"
           >
-            <Globe className="w-5 h-5 text-muted" />
+            <Globe className="w-5 h-5 text-muted-foreground" />
             <div className="flex-1 text-left">
               <span className="text-foreground">Lingua / Language</span>
             </div>
-            <span className="text-sm text-muted uppercase">{language}</span>
-          </button>
-
-          <button
-            onClick={() => navigate("/settings")}
-            className="w-full p-4 flex items-center gap-3 hover:bg-secondary/50 transition-colors border-b"
-          >
-            <Settings className="w-5 h-5 text-muted" />
-            <span className="text-foreground">{t("settings")}</span>
+            <span className="text-sm text-muted-foreground uppercase">{language}</span>
           </button>
 
           <button
@@ -214,6 +262,27 @@ const Profile = () => {
           </button>
         </div>
       </div>
+
+      {/* Inline Edit Dialog */}
+      <ProfileEditDialog
+        open={editField !== null}
+        onOpenChange={(open) => { if (!open) setEditField(null); }}
+        field={editField || "name"}
+        currentValue={
+          editField === "name" ? profile.name :
+          editField === "bio" ? (profile.bio || "") :
+          editField === "location" ? (profile.location || "") : ""
+        }
+        onSave={handleFieldSave}
+      />
+
+      {/* Personal Bests Sheet */}
+      <PersonalBestsSheet
+        open={pbSheetOpen}
+        onOpenChange={setPbSheetOpen}
+        personalBests={personalBests}
+        onSave={upsertPersonalBests}
+      />
 
       {/* Certification Dialog */}
       <Dialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
