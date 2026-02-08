@@ -29,7 +29,7 @@ export const GroupHeroCard = ({
       <div className="relative p-6">
         <div className="flex items-start gap-4">
           {/* Avatar */}
-          <div className="w-20 h-20 rounded-2xl bg-[#234567] flex items-center justify-center text-3xl font-bold text-white shadow-lg flex-shrink-0">
+          <div className="w-20 h-20 rounded-2xl avatar-gradient flex items-center justify-center text-3xl font-bold text-white shadow-lg flex-shrink-0">
             {avatarUrl ? (
               <img src={avatarUrl} alt={name} className="w-full h-full object-cover rounded-2xl" />
             ) : (

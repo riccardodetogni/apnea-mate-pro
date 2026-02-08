@@ -413,7 +413,7 @@ const Search = () => {
               {people.map(person => (
                 <div key={person.id} className="bg-card rounded-xl border p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#234567] flex items-center justify-center text-lg font-bold text-white shrink-0">
+                    <div className="w-12 h-12 rounded-full avatar-gradient flex items-center justify-center text-lg font-bold text-white shrink-0">
                       {person.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
