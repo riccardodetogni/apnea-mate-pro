@@ -1,157 +1,113 @@
 
-
-# Apply Deep Blue Sea Palette and Remove All Gradients
+# Fix Creator Label Clarity and Member List Text Colors
 
 ## Overview
 
-Replace the current teal-to-blue gradient theme with a clean, uniform monochromatic deep blue palette from the "Deep Blue Sea" color palette. Remove all gradients from buttons, avatars, card overlays, and navigation. Ensure white text throughout and fix all remaining black text issues.
+Two distinct issues to address:
+1. The session creator label on SessionCard and SessionDetails is not clearly indicating that the person is the "organizer" of the session
+2. Member names in GroupMembersSheet and related people lists appear as black text on dark backgrounds
 
-## Color Palette
+## Issues Found
 
-From the reference palette (color-hex.com/color-palette/4444):
+### Issue 1: Creator label not clear enough
 
-| Hex | HSL | Usage |
-|---|---|---|
-| `#012345` | 210 97% 14% | Cards, bubbles (darkest) |
-| `#123456` | 210 65% 20% | Secondary surfaces, hover states on cards |
-| `#234567` | 210 49% 27% | Accents, borders on dark surfaces |
-| `#345678` | 210 40% 34% | Secondary buttons, badges |
-| `#456789` | 210 33% 40% | Primary buttons, active states (lightest) |
+In **SessionCard.tsx** (line 130-131), the creator's name and role are shown but there's no label like "Organizzatore" or "Creato da" to make it clear this person created the session.
 
-All text on dark surfaces will be white or white with alpha.
+In **SessionDetails.tsx** (line 404), the creator card shows the name and role but the section has no heading or label indicating "Organizer".
 
-## What Changes
+### Issue 2: Black text in member/people lists
 
-### 1. CSS Variables (`src/index.css`)
+**GroupMembersSheet.tsx** (line 129): Member names use `text-foreground` (dark) on `bg-card` (dark navy) -- invisible.
+Also line 115: Avatar fallback text uses no explicit color, inheriting dark.
+Also line 31: The "member" role badge uses `bg-muted text-muted-foreground` which are dark colors on dark card.
 
-- `--card` changes from `221 51% 28%` to `210 97% 14%` (#012345)
-- `--primary` changes from `228 80% 58%` to `210 33% 40%` (#456789)
-- Remove `--primary-deep` and `--primary-light` (no longer needed for gradients), or repurpose them as solid colors from the palette
-- `--accent` changes to `210 40% 34%` (#345678)
-- `--ring` updated to match new primary
-- `--shadow-elevated` changes to a simpler shadow using palette colors instead of gradient blue
+**GroupMembersSection.tsx** (line 45): Avatar initials use `text-muted-foreground` which is dark.
 
-### 2. Remove All Gradients (`src/index.css`)
+**GroupMembersSheet.tsx** (line 90): Search icon uses `text-muted` (dark).
 
-**`.btn-primary-gradient`**: Replace `linear-gradient(...)` with solid `#456789`
+## Changes
 
-**`.card-session::before` / `::after`**: Remove the radial gradient pseudo-elements entirely (or make them transparent)
+### 1. `src/components/community/SessionCard.tsx`
+- Add a small label "Organizzato da" (Organized by) before the creator name, or change the role text beneath the name to show "Organizzatore" for clarity
+- Change the role subtitle from just "Istruttore"/"Utente" to "Organizzatore - Istruttore"/"Organizzatore" to make the relationship clear
 
-**`.card-group::before` / `::after`**: Same -- remove radial gradient pseudo-elements
+### 2. `src/pages/SessionDetails.tsx`
+- Add a section heading "Organizzatore" above the creator card (like how "Partecipanti confermati" has a heading)
+- This makes it immediately clear who created/organized the session
 
-**`.avatar-user`**: Replace gradient background with solid `#234567`
+### 3. `src/components/groups/GroupMembersSheet.tsx`
+- Line 112: Add `border-white/8` to the member card border (dark-compatible)
+- Line 115: Change avatar `bg-muted` to `bg-white/10` and add `text-card-foreground` for the initial
+- Line 129: Change `text-foreground` to `text-card-foreground` on member names
+- Line 31: Change member role badge from `bg-muted text-muted-foreground` to `bg-white/10 text-white/55`
+- Line 90: Change search icon from `text-muted` to `text-muted-foreground`
+- Line 81: Add `bg-card` styling to the SheetContent for consistency (currently uses `bg-background` from the Sheet default)
 
-**`.nav-item.active::after`**: Replace gradient with solid `#456789`
-
-**`body` background**: Remove the two radial gradients, use plain `bg-background` or a very subtle single-color wash
-
-### 3. Button Variants (`src/components/ui/button.tsx`)
-
-- `pill` variant: Remove `btn-primary-gradient`, use solid bg `bg-primary text-white`
-- `pillOutline` variant: Keep as is (translucent outline on dark)
-- `primaryGradient` variant: Remove gradient, use solid `bg-primary text-white`
-- `social` variant: Keep as is
-
-### 4. Component Gradient Removals
-
-**`CommunityHeader.tsx`** (line 27): AvatarFallback uses `bg-gradient-to-br from-accent to-primary` -- change to solid `bg-[#234567]`
-
-**`SessionDetails.tsx`** (line 400): Creator avatar uses `bg-gradient-to-br from-primary-deep to-primary-light` -- change to solid `bg-[#234567]`
-
-**`UserProfile.tsx`** (line 119): Profile avatar uses `bg-gradient-to-br from-primary-deep to-primary-light` -- change to solid `bg-[#234567]`
-
-**`GroupHeroCard.tsx`** (line 28): Container uses `bg-gradient-to-br from-primary/20 via-primary/10 to-background` -- change to solid `bg-card`; Avatar (line 38) uses `bg-gradient-to-br from-primary to-primary/70` -- change to solid `bg-[#234567]`; Background pattern blurs -- remove
-
-**`SpotCard.tsx`** (line 89): Placeholder image uses `bg-gradient-to-br from-primary/20 to-primary/5` -- change to solid `bg-[#012345]`
-
-### 5. Fix Remaining Black Text Issues
-
-**`GroupHeroCard.tsx`**:
-- Line 48: `text-foreground` on name -- change to `text-card-foreground`
-- Line 50: `text-muted` on location -- change to `text-white/55`
-- Line 55: `text-muted` on members -- change to `text-white/55`
-- Line 86: `text-muted-foreground` on community badge -- change to `text-white/55`
-
-**`GroupDetails.tsx`**:
-- Line 180: `text-foreground` on description heading -- change to `text-foreground` (this is on light bg, correct)
-- Line 181: `text-muted` on description body -- this uses the light background so `text-muted` is the dark alpha which is actually correct here
-- Line 189: `text-muted-foreground` on tags -- change to appropriate visible color
-- Line 201: `text-foreground` on courses heading -- correct (light bg)
-
-**`GroupSessionsList.tsx`**:
-- Line 55: `text-primary` on month -- this should stay or change to `text-white/70`
-- Line 58: `text-primary` on day -- change to `text-white/90`
-- Line 64: `text-card-foreground` -- correct
-- Line 66-72: `text-white/55` -- correct
-
-**`SpotCard.tsx`** (used on light background):
-- Line 100: `text-foreground` on name -- correct (light bg)
-- Line 105: `text-muted` on location -- correct (light bg)
-
-**`CertificationStatus.tsx`**:
-- Line 57: `text-muted` on description -- this component sits on a light bg, but `text-muted` resolves to `222 47% 11% / 0.45` which might be invisible. Change to `text-foreground/60` or keep.
-
-### 6. Update `tailwind.config.ts`
-
-- Remove `accent-2` color (no longer needed for gradient endpoint)
-- Update primary colors to use the new palette values
-
-## Files to Modify
-
-| File | Changes |
-|---|---|
-| `src/index.css` | New palette variables, remove all gradient CSS, remove pseudo-element overlays, simplify body background |
-| `tailwind.config.ts` | Update primary/accent colors |
-| `src/components/ui/button.tsx` | Remove gradient variants, use solid colors |
-| `src/components/community/CommunityHeader.tsx` | Solid avatar bg |
-| `src/components/groups/GroupHeroCard.tsx` | Remove gradient bg, fix text colors to white |
-| `src/components/groups/GroupSessionsList.tsx` | Fix date badge colors |
-| `src/pages/SessionDetails.tsx` | Solid creator avatar bg |
-| `src/pages/UserProfile.tsx` | Solid profile avatar bg |
-| `src/pages/GroupDetails.tsx` | Fix tag text colors |
-| `src/components/spots/SpotCard.tsx` | Solid placeholder bg |
+### 4. `src/components/groups/GroupMembersSection.tsx`
+- Line 45: Change avatar `text-muted-foreground` to `text-white/70` (these avatars sit on `bg-muted` which is dark due to the dark alpha)
+- Line 61: Same fix for the "+N" counter
 
 ## Technical Details
 
-### Gradient Removal Pattern
+### SessionCard creator label pattern
 
-Before:
-```text
-background: linear-gradient(135deg, hsl(185 57% 52%), hsl(228 80% 58%));
+Current:
+```tsx
+<span className="text-[11px] text-white/55">{t(creatorRole)}</span>
+// Shows just "Istruttore" or "Utente"
 ```
 
 After:
-```text
-background: #456789;
+```tsx
+<span className="text-[11px] text-white/55">
+  {t("organizer")} {creatorRole !== "user" ? `· ${t(creatorRole)}` : ""}
+</span>
 ```
 
-### Card Overlay Removal
+This adds an i18n key "organizer" = "Organizzatore" that makes it explicit.
 
-Before (card-session has ::before and ::after pseudo-elements with radial gradients):
-```text
-.card-session::before {
-  background: radial-gradient(circle, rgba(63, 189, 200, 0.28), transparent 62%);
-}
-.card-session::after {
-  background: radial-gradient(circle, rgba(63, 102, 232, 0.22), transparent 62%);
-}
+### SessionDetails creator heading
+
+Current: No heading above the creator card.
+
+After:
+```tsx
+<h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+  Organizzatore
+</h3>
+<div className="bg-card rounded-2xl ...">
 ```
 
-After: Remove the ::before and ::after rules entirely, keeping the base card styling clean.
-
-### Avatar Solid Color
+### GroupMembersSheet text fix pattern
 
 Before:
-```text
-background: linear-gradient(135deg, hsl(185 57% 52%), hsl(228 80% 58%));
+```tsx
+<p className="font-medium text-foreground truncate">  // BLACK on dark
 ```
 
 After:
-```text
-background: #234567;
+```tsx
+<p className="font-medium text-card-foreground truncate">  // WHITE on dark
 ```
 
-### Scope
+### Member role badge fix
 
-This is purely a visual change. No logic, database, routing, or functional changes. Only CSS variables, Tailwind classes, and component styling are affected.
+Before:
+```tsx
+member: { label: "memberBadge", icon: User, className: "bg-muted text-muted-foreground" }
+```
 
+After:
+```tsx
+member: { label: "memberBadge", icon: User, className: "bg-white/10 text-white/55" }
+```
+
+### Files to modify
+
+| File | Changes |
+|---|---|
+| `src/components/community/SessionCard.tsx` | Add "Organizzatore" label to creator section |
+| `src/pages/SessionDetails.tsx` | Add "Organizzatore" heading above creator card |
+| `src/components/groups/GroupMembersSheet.tsx` | Fix member name to `text-card-foreground`, avatar to `bg-white/10 text-card-foreground`, member badge to `bg-white/10 text-white/55`, border to `border-white/8` |
+| `src/components/groups/GroupMembersSection.tsx` | Fix avatar initial color to `text-white/70` |
+| `src/lib/i18n.ts` | Add "organizer" translation key (IT: "Organizzatore", EN: "Organizer") |
