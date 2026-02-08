@@ -141,9 +141,10 @@ const SpotMap = ({
       marker.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
         onSelectSpot(spot.id);
-        mapRef.current?.setView([spot.latitude!, spot.longitude!], Math.max(mapRef.current.getZoom(), 12), {
+        mapRef.current?.panTo([spot.latitude!, spot.longitude!], {
           animate: true,
-          duration: 0.4,
+          duration: 0.5,
+          easeLinearity: 0.25,
         });
       });
 
