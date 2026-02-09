@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -41,85 +41,62 @@ export interface Certification {
   updated_at: string;
 }
 
+interface ProfileData {
+  profile: Profile | null;
+  role: AppRole;
+  certification: Certification | null;
+}
+
+async function fetchProfileData(userId: string): Promise<ProfileData> {
+  const { data: profileData, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (profileError && profileError.code !== "PGRST116") {
+    console.error("Error fetching profile:", profileError);
+  }
+
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+
+  let role: AppRole = "regular";
+  if (roles && roles.length > 0) {
+    const roleOrder: AppRole[] = ["admin", "instructor", "certified", "regular"];
+    role = roleOrder.find(r => roles.some(ur => ur.role === r)) || "regular";
+  }
+
+  const { data: certData, error: certError } = await supabase
+    .from("certifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (certError) {
+    console.error("Error fetching certification:", certError);
+  }
+
+  return { profile: profileData, role, certification: certData };
+}
+
 export const useProfile = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [role, setRole] = useState<AppRole>("regular");
-  const [certification, setCertification] = useState<Certification | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchProfile = useCallback(async () => {
-    if (!user) {
-      setProfile(null);
-      setRole("regular");
-      setCertification(null);
-      setLoading(false);
-      return;
-    }
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: () => fetchProfileData(user!.id),
+    enabled: !!user,
+  });
 
-    try {
-      // Fetch profile
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("Error fetching profile:", profileError);
-      }
-      setProfile(profileData);
-
-      // Fetch role
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .single();
-
-      if (roleError && roleError.code !== "PGRST116") {
-        console.error("Error fetching role:", roleError);
-      }
-      
-      // Get highest role
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
-      
-      if (roles && roles.length > 0) {
-        const roleOrder: AppRole[] = ["admin", "instructor", "certified", "regular"];
-        const highestRole = roleOrder.find(r => roles.some(ur => ur.role === r)) || "regular";
-        setRole(highestRole);
-      } else {
-        setRole("regular");
-      }
-
-      // Fetch latest certification
-      const { data: certData, error: certError } = await supabase
-        .from("certifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("submitted_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (certError) {
-        console.error("Error fetching certification:", certError);
-      }
-      setCertification(certData);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  const profile = data?.profile ?? null;
+  const role = data?.role ?? "regular";
+  const certification = data?.certification ?? null;
 
   const updateProfile = async (updates: Partial<Pick<Profile, "name" | "location" | "avatar_url" | "search_visibility" | "bio">>) => {
     if (!user || !profile) return { error: new Error("No user or profile") };
@@ -130,13 +107,15 @@ export const useProfile = () => {
       .eq("user_id", user.id);
 
     if (!error) {
-      setProfile({ ...profile, ...updates });
+      queryClient.setQueryData(["profile", user.id], (old: ProfileData | undefined) =>
+        old ? { ...old, profile: { ...old.profile!, ...updates } } : old
+      );
     }
 
     return { error };
   };
 
-  const submitCertification = async (data: {
+  const submitCertification = async (certData: {
     agency: string;
     level: string;
     certification_id?: string;
@@ -148,17 +127,19 @@ export const useProfile = () => {
       .from("certifications")
       .insert({
         user_id: user.id,
-        agency: data.agency,
-        level: data.level,
-        certification_id: data.certification_id || null,
-        document_url: data.document_url || null,
+        agency: certData.agency,
+        level: certData.level,
+        certification_id: certData.certification_id || null,
+        document_url: certData.document_url || null,
         status: "pending",
       })
       .select()
       .single();
 
     if (!error && newCert) {
-      setCertification(newCert);
+      queryClient.setQueryData(["profile", user.id], (old: ProfileData | undefined) =>
+        old ? { ...old, certification: newCert } : old
+      );
     }
 
     return { error, data: newCert };
@@ -178,6 +159,6 @@ export const useProfile = () => {
     isAdmin,
     updateProfile,
     submitCertification,
-    refreshProfile: fetchProfile,
+    refreshProfile: () => queryClient.invalidateQueries({ queryKey: ["profile", user?.id] }),
   };
 };

@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CommunityHeader } from "@/components/community/CommunityHeader";
 import { SearchBar } from "@/components/community/SearchBar";
@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Community = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  
   const { toast } = useToast();
   
   // Community context with user info, location, and permissions
@@ -75,31 +75,7 @@ const Community = () => {
     fromFollowing: boolean;
   }>({ open: false, session: null, fromFollowing: false });
 
-
-  // Refresh data when returning from child pages
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        refetchSessions();
-        refetchFollowingSessions();
-        refetchGroups();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [refetchSessions, refetchFollowingSessions, refetchGroups]);
-
-  // Also refresh on route change back to community
-  useEffect(() => {
-    if (location.pathname === '/community') {
-      refetchSessions();
-      refetchFollowingSessions();
-      refetchGroups();
-    }
-  }, [location.pathname, refetchSessions, refetchFollowingSessions, refetchGroups]);
+  // React Query handles refetchOnWindowFocus automatically
 
   // Handle session join with safety check
   const handleJoinSession = useCallback((session: SessionWithDetails, fromFollowing = false) => {
