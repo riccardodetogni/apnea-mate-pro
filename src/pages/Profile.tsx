@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -51,11 +51,6 @@ const Profile = () => {
   const [editField, setEditField] = useState<"name" | "bio" | "location" | null>(null);
   
 
-  useEffect(() => {
-    if (!user && !loading) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
 
   const handleLogout = async () => {
     await signOut();

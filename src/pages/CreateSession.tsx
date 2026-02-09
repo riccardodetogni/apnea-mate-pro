@@ -82,11 +82,6 @@ const CreateSession = () => {
 
   const canCreate = isCertified || isInstructor;
 
-  useEffect(() => {
-    if (!user && !profileLoading) {
-      navigate("/auth");
-    }
-  }, [user, profileLoading, navigate]);
 
   // Auto-fill session_type based on selected spot's environment_type
   useEffect(() => {

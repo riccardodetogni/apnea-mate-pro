@@ -75,12 +75,6 @@ const Community = () => {
     fromFollowing: boolean;
   }>({ open: false, session: null, fromFollowing: false });
 
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!contextLoading && !user) {
-      navigate("/auth");
-    }
-  }, [user, contextLoading, navigate]);
 
   // Refresh data when returning from child pages
   useEffect(() => {
