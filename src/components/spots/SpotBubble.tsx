@@ -28,7 +28,7 @@ const SpotBubble = ({
     <div className="fixed bottom-24 left-4 right-4 z-[1001] max-w-[430px] mx-auto animate-in slide-in-from-bottom duration-300">
       <div
         onClick={onViewDetails}
-        className="card-session p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+        className="card-session !p-3 !flex-row !items-center !gap-3 cursor-pointer active:scale-[0.98] transition-transform"
       >
         {/* Environment emoji */}
         <div className="w-11 h-11 rounded-xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-xl shrink-0">
