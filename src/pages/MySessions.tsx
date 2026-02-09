@@ -60,13 +60,13 @@ const MySessions = () => {
     return (
       <button
         onClick={() => navigate(`/sessions/${session.id}`, { state: { from: '/my-sessions' } })}
-        className="w-full bg-card rounded-2xl border border-white/8 p-4 text-left hover:border-primary/30 transition-colors"
+        className="card-session w-full p-4 text-left hover:border-primary/30 transition-colors cursor-pointer"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <h3 className="font-semibold text-card-foreground">{session.title}</h3>
             {session.spot && (
-              <p className="text-sm text-white/55 flex items-center gap-1 mt-0.5">
+              <p className="text-sm text-[hsl(var(--card-muted))] flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 {session.spot.name}
               </p>
@@ -77,7 +77,7 @@ const MySessions = () => {
           </Badge>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-white/55">
+        <div className="flex items-center gap-4 text-sm text-[hsl(var(--card-muted))]">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(session.date_time)}
@@ -88,11 +88,11 @@ const MySessions = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/8">
-          <span className="text-xs text-white/55">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[hsl(var(--card-border))]">
+          <span className="text-xs text-[hsl(var(--card-muted))]">
             {mapSessionType(session.session_type)} · {participation.confirmed_count}/{session.max_participants} partecipanti
           </span>
-          <span className="text-xs text-white/55">
+          <span className="text-xs text-[hsl(var(--card-muted))]">
             Organizzatore: {session.creator?.name || "—"}
           </span>
         </div>
@@ -104,13 +104,13 @@ const MySessions = () => {
     return (
       <button
         onClick={() => navigate(`/sessions/${session.id}`, { state: { from: '/my-sessions' } })}
-        className="w-full bg-card rounded-2xl border border-white/8 p-4 text-left hover:border-primary/30 transition-colors"
+        className="card-session w-full p-4 text-left hover:border-primary/30 transition-colors cursor-pointer"
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <h3 className="font-semibold text-card-foreground">{session.title}</h3>
             {session.spot && (
-              <p className="text-sm text-white/55 flex items-center gap-1 mt-0.5">
+              <p className="text-sm text-[hsl(var(--card-muted))] flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 {session.spot.name}
               </p>
@@ -123,14 +123,14 @@ const MySessions = () => {
                 {session.pending_count}
               </Badge>
             )}
-            <Badge variant="outline" className="bg-white/10 text-primary border-primary/30">
+            <Badge variant="outline" className="bg-[hsl(var(--badge-blue-bg))] text-primary border-primary/30">
               <Crown className="w-3 h-3 mr-1" />
               Creata da te
             </Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-white/55">
+        <div className="flex items-center gap-4 text-sm text-[hsl(var(--card-muted))]">
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(session.date_time)}
@@ -141,8 +141,8 @@ const MySessions = () => {
           </span>
         </div>
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/8">
-          <span className="text-xs text-white/55">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[hsl(var(--card-border))]">
+          <span className="text-xs text-[hsl(var(--card-muted))]">
             {mapSessionType(session.session_type)} · {session.confirmed_count}/{session.max_participants} confermati
           </span>
           {session.pending_count > 0 && (
