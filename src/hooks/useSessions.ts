@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -119,222 +120,160 @@ interface UseSessionsOptions {
   filterByFollowing?: boolean;
 }
 
+async function fetchSessionsData(user: { id: string } | null, excludeJoined: boolean, filterByFollowing: boolean) {
+  let followingIds: string[] = [];
+  if (filterByFollowing && user) {
+    const { data: followsData } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", user.id);
+    followingIds = followsData?.map(f => f.following_id) || [];
+    
+    if (followingIds.length === 0) {
+      return [];
+    }
+  }
+
+  let query = supabase
+    .from("sessions")
+    .select(`
+      *,
+      spot:spots(id, name, environment_type, location, latitude, longitude)
+    `)
+    .eq("status", "active")
+    .gte("date_time", new Date().toISOString())
+    .order("date_time", { ascending: true })
+    .limit(30);
+
+  if (filterByFollowing && followingIds.length > 0) {
+    query = query.in("creator_id", followingIds);
+  }
+
+  const { data: sessionsData, error: sessionsError } = await query;
+  if (sessionsError) throw sessionsError;
+
+  const creatorIds = [...new Set(sessionsData?.map(s => s.creator_id) || [])];
+  
+  let creatorProfiles: Record<string, { name: string; avatar_url: string | null; user_id: string }> = {};
+  let creatorRoles: Record<string, string> = {};
+  
+  if (creatorIds.length > 0) {
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("user_id, name, avatar_url")
+      .in("user_id", creatorIds);
+
+    if (profilesData) {
+      profilesData.forEach(p => {
+        creatorProfiles[p.user_id] = { name: p.name, avatar_url: p.avatar_url, user_id: p.user_id };
+      });
+    }
+
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .in("user_id", creatorIds);
+
+    if (rolesData) {
+      rolesData.forEach(r => {
+        const current = creatorRoles[r.user_id];
+        if (!current || (r.role === "instructor" && current !== "admin") || (r.role === "admin")) {
+          creatorRoles[r.user_id] = r.role;
+        }
+      });
+    }
+  }
+
+  const sessionIds = sessionsData?.map(s => s.id) || [];
+  let participantCounts: Record<string, number> = {};
+  let userParticipations: Map<string, "pending" | "confirmed"> = new Map();
+
+  if (sessionIds.length > 0) {
+    const { data: participantsData } = await supabase
+      .from("session_participants")
+      .select("session_id, user_id, status")
+      .in("session_id", sessionIds)
+      .in("status", ["pending", "confirmed"]);
+
+    if (participantsData) {
+      participantsData.forEach(p => {
+        if (p.status === "confirmed") {
+          participantCounts[p.session_id] = (participantCounts[p.session_id] || 0) + 1;
+        }
+        if (user && p.user_id === user.id) {
+          userParticipations.set(p.session_id, p.status as "pending" | "confirmed");
+        }
+      });
+    }
+  }
+
+  let enrichedSessions = sessionsData?.map(session => {
+    const role = creatorRoles[session.creator_id];
+    let creatorRole: "user" | "instructor" | "instructorF" = "user";
+    if (role === "instructor" || role === "admin") {
+      creatorRole = "instructor";
+    }
+    const participationStatus = userParticipations.get(session.id);
+    return {
+      ...session,
+      creator: creatorProfiles[session.creator_id] || null,
+      creatorRole,
+      participants_count: participantCounts[session.id] || 0,
+      is_joined: participationStatus === "confirmed",
+      is_pending: participationStatus === "pending",
+    };
+  }) || [];
+
+  if (excludeJoined) {
+    enrichedSessions = enrichedSessions.filter(s => !s.is_joined);
+  }
+
+  return enrichedSessions as Session[];
+}
+
 export const useSessions = (options: UseSessionsOptions = {}) => {
   const { excludeJoined = false, filterByFollowing = false } = options;
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchSessions = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data: sessions = [], isLoading: loading, error } = useQuery({
+    queryKey: ["sessions", { excludeJoined, filterByFollowing, userId: user?.id }],
+    queryFn: () => fetchSessionsData(user, excludeJoined, filterByFollowing),
+  });
 
-      let followingIds: string[] = [];
-      if (filterByFollowing && user) {
-        const { data: followsData } = await supabase
-          .from("follows")
-          .select("following_id")
-          .eq("follower_id", user.id);
-        followingIds = followsData?.map(f => f.following_id) || [];
-        
-        if (followingIds.length === 0) {
-          setSessions([]);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Build query
-      let query = supabase
-        .from("sessions")
-        .select(`
-          *,
-          spot:spots(id, name, environment_type, location, latitude, longitude)
-        `)
-        .eq("status", "active")
-        .gte("date_time", new Date().toISOString())
-        .order("date_time", { ascending: true })
-        .limit(30);
-
-      if (filterByFollowing && followingIds.length > 0) {
-        query = query.in("creator_id", followingIds);
-      }
-
-      const { data: sessionsData, error: sessionsError } = await query;
-      if (sessionsError) throw sessionsError;
-
-      // Get unique creator IDs
-      const creatorIds = [...new Set(sessionsData?.map(s => s.creator_id) || [])];
-      
-      // Fetch creator profiles and roles
-      let creatorProfiles: Record<string, { name: string; avatar_url: string | null; user_id: string }> = {};
-      let creatorRoles: Record<string, string> = {};
-      
-      if (creatorIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, name, avatar_url")
-          .in("user_id", creatorIds);
-
-        if (profilesData) {
-          profilesData.forEach(p => {
-            creatorProfiles[p.user_id] = { 
-              name: p.name, 
-              avatar_url: p.avatar_url,
-              user_id: p.user_id 
-            };
-          });
-        }
-
-        // Fetch roles
-        const { data: rolesData } = await supabase
-          .from("user_roles")
-          .select("user_id, role")
-          .in("user_id", creatorIds);
-
-        if (rolesData) {
-          rolesData.forEach(r => {
-            // Keep highest role
-            const current = creatorRoles[r.user_id];
-            if (!current || 
-                (r.role === "instructor" && current !== "admin") ||
-                (r.role === "admin")) {
-              creatorRoles[r.user_id] = r.role;
-            }
-          });
-        }
-      }
-
-      // Fetch participant counts and user participations
-      const sessionIds = sessionsData?.map(s => s.id) || [];
-      let participantCounts: Record<string, number> = {};
-      let userParticipations: Map<string, "pending" | "confirmed"> = new Map();
-
-      if (sessionIds.length > 0) {
-        // Count both pending and confirmed as they both reserve capacity
-        const { data: participantsData } = await supabase
-          .from("session_participants")
-          .select("session_id, user_id, status")
-          .in("session_id", sessionIds)
-          .in("status", ["pending", "confirmed"]);
-
-        if (participantsData) {
-          participantsData.forEach(p => {
-            // Only count confirmed for display, but track user participation for both
-            if (p.status === "confirmed") {
-              participantCounts[p.session_id] = (participantCounts[p.session_id] || 0) + 1;
-            }
-            if (user && p.user_id === user.id) {
-              userParticipations.set(p.session_id, p.status as "pending" | "confirmed");
-            }
-          });
-        }
-      }
-
-      let enrichedSessions = sessionsData?.map(session => {
-        const role = creatorRoles[session.creator_id];
-        let creatorRole: "user" | "instructor" | "instructorF" = "user";
-        if (role === "instructor" || role === "admin") {
-          creatorRole = "instructor";
-        }
-
-        const participationStatus = userParticipations.get(session.id);
-
-        return {
-          ...session,
-          creator: creatorProfiles[session.creator_id] || null,
-          creatorRole,
-          participants_count: participantCounts[session.id] || 0,
-          is_joined: participationStatus === "confirmed",
-          is_pending: participationStatus === "pending",
-        };
-      }) || [];
-
-      // Filter out joined sessions if requested
-      if (excludeJoined) {
-        enrichedSessions = enrichedSessions.filter(s => !s.is_joined);
-      }
-
-      setSessions(enrichedSessions as Session[]);
-    } catch (err) {
-      console.error("Error fetching sessions:", err);
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, excludeJoined, filterByFollowing]);
-
-  // Set up realtime subscription
+  // Realtime subscription
   useEffect(() => {
-    fetchSessions();
-
-    // Subscribe to session_participants changes for realtime updates
-    channelRef.current = supabase
-      .channel('session-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'session_participants',
-        },
-        () => {
-          // Refetch sessions when participants change
-          fetchSessions();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sessions',
-        },
-        () => {
-          // Refetch when sessions change
-          fetchSessions();
-        }
-      )
+    const channel = supabase
+      .channel(`session-updates-${filterByFollowing ? "following" : "all"}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "session_participants" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "sessions" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      })
       .subscribe();
 
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
-  }, [fetchSessions]);
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient, filterByFollowing]);
 
   const joinSession = async (sessionId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-
     const { error } = await supabase
       .from("session_participants")
-      .insert({
-        session_id: sessionId,
-        user_id: user.id,
-        status: "pending", // Requests start as pending, session creator must approve
-      });
-
-    // Don't need to manually refetch - realtime will handle it
+      .insert({ session_id: sessionId, user_id: user.id, status: "pending" });
     return { error };
   };
 
   const leaveSession = async (sessionId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-
     const { error } = await supabase
       .from("session_participants")
       .delete()
       .eq("session_id", sessionId)
       .eq("user_id", user.id);
-
     return { error };
   };
 
-  // Transform to UI-friendly format
   const formattedSessions: SessionWithDetails[] = sessions.map(session => ({
     id: session.id,
     spotName: session.spot?.name || "Spot sconosciuto",
@@ -360,8 +299,8 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     sessions: formattedSessions,
     rawSessions: sessions,
     loading,
-    error,
-    refetch: fetchSessions,
+    error: error as Error | null,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ["sessions", { excludeJoined, filterByFollowing, userId: user?.id }] }),
     joinSession,
     leaveSession,
   };
