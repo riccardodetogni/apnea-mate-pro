@@ -45,11 +45,11 @@ export const NotificationsDrawer = ({ open, onOpenChange }: NotificationsDrawerP
     const { metadata, type } = notification;
 
     if (type.startsWith("session_") && metadata.session_id) {
-      navigate(`/session/${metadata.session_id}`);
+      navigate(`/sessions/${metadata.session_id}`);
     } else if (type.startsWith("group_") && metadata.group_id) {
-      navigate(`/group/${metadata.group_id}`);
+      navigate(`/groups/${metadata.group_id}`);
     } else if (type === "new_follower" && metadata.user_id) {
-      navigate(`/user/${metadata.user_id}`);
+      navigate(`/users/${metadata.user_id}`);
     }
   };
 
