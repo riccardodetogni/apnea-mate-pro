@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyParticipations, MyCreatedSession } from "@/hooks/useMyParticipations";
@@ -53,11 +52,6 @@ const MySessions = () => {
     cancelParticipation 
   } = useMyParticipations();
 
-  useEffect(() => {
-    if (!user && !loading) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
 
   const SessionCard = ({ participation, isPending }: { participation: any; isPending: boolean }) => {
     const session = participation.session;

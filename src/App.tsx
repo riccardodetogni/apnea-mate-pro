@@ -28,6 +28,7 @@ import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import DiscoverFreedivers from "./pages/DiscoverFreedivers";
+import RequireAuth from "./components/auth/RequireAuth";
 
 const queryClient = new QueryClient();
 
@@ -43,26 +44,26 @@ const App = () => (
               <Route path="/" element={<Navigate to="/community" replace />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/spots" element={<Spots />} />
-              <Route path="/spots/:id" element={<SpotDetails />} />
-              <Route path="/create" element={<Create />} />
-              <Route path="/create/session" element={<CreateSession />} />
-              <Route path="/sessions/:id" element={<SessionDetails />} />
-              <Route path="/sessions/:id/edit" element={<EditSession />} />
-              <Route path="/my-sessions" element={<MySessions />} />
-              <Route path="/groups" element={<Groups />} />
-              <Route path="/groups/:id" element={<GroupDetails />} />
-              <Route path="/groups/:id/manage" element={<GroupManage />} />
-              <Route path="/create/group" element={<CreateGroup />} />
-              <Route path="/training" element={<Training />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/users/:id" element={<UserProfile />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/discover" element={<DiscoverFreedivers />} />
+              <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+              <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
+              <Route path="/spots" element={<RequireAuth><Spots /></RequireAuth>} />
+              <Route path="/spots/:id" element={<RequireAuth><SpotDetails /></RequireAuth>} />
+              <Route path="/create" element={<RequireAuth><Create /></RequireAuth>} />
+              <Route path="/create/session" element={<RequireAuth><CreateSession /></RequireAuth>} />
+              <Route path="/sessions/:id" element={<RequireAuth><SessionDetails /></RequireAuth>} />
+              <Route path="/sessions/:id/edit" element={<RequireAuth><EditSession /></RequireAuth>} />
+              <Route path="/my-sessions" element={<RequireAuth><MySessions /></RequireAuth>} />
+              <Route path="/groups" element={<RequireAuth><Groups /></RequireAuth>} />
+              <Route path="/groups/:id" element={<RequireAuth><GroupDetails /></RequireAuth>} />
+              <Route path="/groups/:id/manage" element={<RequireAuth><GroupManage /></RequireAuth>} />
+              <Route path="/create/group" element={<RequireAuth><CreateGroup /></RequireAuth>} />
+              <Route path="/training" element={<RequireAuth><Training /></RequireAuth>} />
+              <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+              <Route path="/users/:id" element={<RequireAuth><UserProfile /></RequireAuth>} />
+              <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
+              <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
+              <Route path="/discover" element={<RequireAuth><DiscoverFreedivers /></RequireAuth>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

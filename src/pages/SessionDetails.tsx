@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSessionDetails } from "@/hooks/useSessionDetails";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ import {
   Loader2,
   AlertTriangle,
   Pencil,
+  Share2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -84,11 +85,18 @@ const SessionDetails = () => {
   const [safetyModalOpen, setSafetyModalOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user && !loading) {
-      navigate("/auth");
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: session?.title,
+        text: `Partecipa alla sessione "${session?.title}"`,
+        url: window.location.href,
+      });
+    } catch {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({ title: "Link copiato!" });
     }
-  }, [user, loading, navigate]);
+  };
 
   const handleJoinRequest = () => {
     if (!session) return;
@@ -341,14 +349,22 @@ const SessionDetails = () => {
           <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="font-semibold text-lg truncate flex-1">{session.title}</h1>
-        {session.isCreator && session.status === "active" && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate(`/sessions/${id}/edit`)}
+            onClick={handleShare}
             className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-muted transition-colors"
           >
-            <Pencil className="w-4 h-4 text-foreground" />
+            <Share2 className="w-4 h-4 text-foreground" />
           </button>
-        )}
+          {session.isCreator && session.status === "active" && (
+            <button
+              onClick={() => navigate(`/sessions/${id}/edit`)}
+              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-muted transition-colors"
+            >
+              <Pencil className="w-4 h-4 text-foreground" />
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
@@ -398,9 +414,17 @@ const SessionDetails = () => {
           className="bg-card rounded-2xl border border-white/8 p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
           onClick={() => navigate(`/users/${session.creator_id}`, { state: { from: `/sessions/${id}` } })}
         >
-          <div className="w-12 h-12 rounded-full avatar-gradient flex items-center justify-center text-lg font-bold text-white">
-            {session.creator?.name?.charAt(0).toUpperCase() || "?"}
-          </div>
+          {session.creator?.avatar_url ? (
+            <img
+              src={session.creator.avatar_url}
+              alt={session.creator.name}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full avatar-gradient flex items-center justify-center text-lg font-bold text-white">
+              {session.creator?.name?.charAt(0).toUpperCase() || "?"}
+            </div>
+          )}
           <div className="flex-1">
             <p className="font-medium text-card-foreground">{session.creator?.name || "Organizzatore"}</p>
             <p className="text-sm text-white/55 flex items-center gap-1">
@@ -466,12 +490,21 @@ const SessionDetails = () => {
                 <div className="space-y-2">
                   {pendingParticipants.map(p => (
                     <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/10">
-                      <div
-                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-card-foreground cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
-                        onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
-                      >
-                        {p.profile?.name?.charAt(0).toUpperCase() || "?"}
-                      </div>
+                      {p.profile?.avatar_url ? (
+                        <img
+                          src={p.profile.avatar_url}
+                          alt={p.profile.name}
+                          className="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                          onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                        />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-sm font-medium text-white cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                          onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                        >
+                          {p.profile?.name?.charAt(0).toUpperCase() || "?"}
+                        </div>
+                      )}
                       <span
                         className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
@@ -520,12 +553,21 @@ const SessionDetails = () => {
                 <div className="space-y-2">
                   {confirmedParticipants.map(p => (
                     <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/10">
-                      <div
-                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-card-foreground cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
-                        onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
-                      >
-                        {p.profile?.name?.charAt(0).toUpperCase() || "?"}
-                      </div>
+                      {p.profile?.avatar_url ? (
+                        <img
+                          src={p.profile.avatar_url}
+                          alt={p.profile.name}
+                          className="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                          onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                        />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-sm font-medium text-white cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                          onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
+                        >
+                          {p.profile?.name?.charAt(0).toUpperCase() || "?"}
+                        </div>
+                      )}
                       <span
                         className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}

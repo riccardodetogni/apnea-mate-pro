@@ -102,11 +102,6 @@ const Onboarding = () => {
     }
   };
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-    }
-  }, [user, navigate]);
 
   useEffect(() => {
     if (profile) {
