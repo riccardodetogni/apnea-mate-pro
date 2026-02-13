@@ -65,7 +65,7 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-[hsl(var(--card-border))] p-6">
+    <div className="card-session !rounded-2xl !p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-[hsl(var(--card-muted))]">{t("personalBests")}</h3>
         {editable && pbs && (

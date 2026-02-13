@@ -97,7 +97,7 @@ const Profile = () => {
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
-        <div className="bg-card rounded-2xl border border-[hsl(var(--card-border))] p-6 text-center mb-6">
+        <div className="card-session !rounded-2xl !p-6 text-center mb-6">
           {/* Tappable Avatar */}
           <div className="flex justify-center mb-4">
             <AvatarUpload
@@ -208,7 +208,7 @@ const Profile = () => {
         </div>
 
         {/* Settings */}
-        <div className="bg-card rounded-2xl border border-[hsl(var(--card-border))] overflow-hidden">
+        <div className="card-session !rounded-2xl !p-0 overflow-hidden">
           {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
