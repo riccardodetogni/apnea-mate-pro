@@ -97,7 +97,7 @@ const Profile = () => {
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
-        <div className="bg-card rounded-2xl border border-white/8 p-6 text-center mb-6">
+        <div className="bg-card rounded-2xl border border-[hsl(var(--card-border))] p-6 text-center mb-6">
           {/* Tappable Avatar */}
           <div className="flex justify-center mb-4">
             <AvatarUpload
@@ -117,7 +117,7 @@ const Profile = () => {
             className="inline-flex items-center gap-1.5 group"
           >
             <h2 className="text-xl font-bold text-card-foreground">{profile.name}</h2>
-            <Pencil className="w-3.5 h-3.5 text-white/55 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Pencil className="w-3.5 h-3.5 text-[hsl(var(--card-muted))] opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
           
           {/* Location: tappable or add button */}
@@ -126,9 +126,9 @@ const Profile = () => {
               onClick={() => setEditField("location")}
               className="flex items-center justify-center gap-1 mt-1 group mx-auto"
             >
-              <MapPin className="w-3.5 h-3.5 text-white/55" />
-              <span className="text-sm text-white/55">{profile.location}</span>
-              <Pencil className="w-3 h-3 text-white/55 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <MapPin className="w-3.5 h-3.5 text-[hsl(var(--card-muted))]" />
+              <span className="text-sm text-[hsl(var(--card-muted))]">{profile.location}</span>
+              <Pencil className="w-3 h-3 text-[hsl(var(--card-muted))] opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           ) : (
             <button
@@ -146,7 +146,7 @@ const Profile = () => {
               onClick={() => setEditField("bio")}
               className="block w-full text-left mt-3 group"
             >
-              <p className="text-sm text-white/55 leading-relaxed">{profile.bio}</p>
+              <p className="text-sm text-[hsl(var(--card-muted))] leading-relaxed">{profile.bio}</p>
               <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                 {language === "it" ? "Modifica" : "Edit"}
               </span>
@@ -163,13 +163,13 @@ const Profile = () => {
 
           <div className="flex items-center justify-center gap-2 mt-3">
             {isCertified && <CertificationBadge certified={true} />}
-            <span className="text-xs text-white/55 bg-white/10 px-2 py-1 rounded-full">
+            <span className="text-xs text-[hsl(var(--card-muted))] bg-[hsl(var(--badge-blue-bg))] px-2 py-1 rounded-full">
               {roleLabels[role]}
             </span>
           </div>
 
           {certification && (certification.status === "approved") && (
-            <p className="text-sm text-white/55 mt-2">
+            <p className="text-sm text-[hsl(var(--card-muted))] mt-2">
               {certification.agency} · {certification.level}
             </p>
           )}
@@ -208,11 +208,11 @@ const Profile = () => {
         </div>
 
         {/* Settings */}
-        <div className="bg-card rounded-2xl border border-white/8 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-[hsl(var(--card-border))] overflow-hidden">
           {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
-              className="w-full p-4 flex items-center gap-3 hover:bg-white/10 transition-colors border-b border-white/8"
+              className="w-full p-4 flex items-center gap-3 hover:bg-[hsl(var(--badge-blue-bg))] transition-colors border-b border-[hsl(var(--card-border))]"
             >
               <Shield className="w-5 h-5 text-primary" />
               <span className="text-card-foreground font-medium">{t("adminDashboard")}</span>
@@ -220,11 +220,11 @@ const Profile = () => {
           )}
 
           {/* Search Visibility Toggle */}
-          <div className="w-full p-4 flex items-center gap-3 border-b border-white/8">
-            <Eye className="w-5 h-5 text-white/55" />
+          <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
+            <Eye className="w-5 h-5 text-[hsl(var(--card-muted))]" />
             <div className="flex-1">
               <span className="text-card-foreground">{language === "it" ? "Visibile nella ricerca" : "Visible in search"}</span>
-              <p className="text-xs text-white/55 mt-0.5">
+              <p className="text-xs text-[hsl(var(--card-muted))] mt-0.5">
                 {language === "it" 
                   ? "Altri utenti possono trovarti cercando il tuo nome"
                   : "Other users can find you by searching your name"}
@@ -240,13 +240,13 @@ const Profile = () => {
 
           <button
             onClick={toggleLanguage}
-            className="w-full p-4 flex items-center gap-3 hover:bg-white/10 transition-colors border-b border-white/8"
+            className="w-full p-4 flex items-center gap-3 hover:bg-[hsl(var(--badge-blue-bg))] transition-colors border-b border-[hsl(var(--card-border))]"
           >
-            <Globe className="w-5 h-5 text-white/55" />
+            <Globe className="w-5 h-5 text-[hsl(var(--card-muted))]" />
             <div className="flex-1 text-left">
               <span className="text-card-foreground">Lingua / Language</span>
             </div>
-            <span className="text-sm text-white/55 uppercase">{language}</span>
+            <span className="text-sm text-[hsl(var(--card-muted))] uppercase">{language}</span>
           </button>
 
           <button

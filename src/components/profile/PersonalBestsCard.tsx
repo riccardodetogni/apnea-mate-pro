@@ -65,12 +65,12 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-white/8 p-6">
+    <div className="bg-card rounded-2xl border border-[hsl(var(--card-border))] p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-white/55">{t("personalBests")}</h3>
+        <h3 className="text-sm font-medium text-[hsl(var(--card-muted))]">{t("personalBests")}</h3>
         {editable && pbs && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/55">{t("showOnProfile")}</span>
+            <span className="text-xs text-[hsl(var(--card-muted))]">{t("showOnProfile")}</span>
             <Switch
               checked={pbs.show_on_profile}
               onCheckedChange={(checked) => onToggleVisibility?.(checked)}
@@ -109,7 +109,7 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
                     if (e.key === "Escape") cancelEditing();
                   }}
                 />
-                <span className="text-xs text-white/55 w-8 text-center">
+                <span className="text-xs text-[hsl(var(--card-muted))] w-8 text-center">
                   {unit === "time" ? "m:ss" : "m"}
                 </span>
                 <button
@@ -121,9 +121,9 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
                 </button>
                 <button
                   onClick={cancelEditing}
-                  className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0"
+                  className="w-7 h-7 rounded-full bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center flex-shrink-0"
                 >
-                  <X className="w-3.5 h-3.5 text-white/55" />
+                  <X className="w-3.5 h-3.5 text-[hsl(var(--card-muted))]" />
                 </button>
               </div>
             );
@@ -138,11 +138,11 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
                 disabled={!editable}
                 className="flex items-center gap-3 py-1.5 w-full text-left group"
               >
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center flex-shrink-0">
                   <Icon className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-white/55">{language === "it" ? labelIt : labelEn}</p>
+                  <p className="text-xs text-[hsl(var(--card-muted))]">{language === "it" ? labelIt : labelEn}</p>
                 </div>
                 <span className="text-sm font-semibold text-card-foreground tabular-nums">
                   {displayValue}{displayUnit}
@@ -159,11 +159,11 @@ export const PersonalBestsCard = ({ pbs, editable = false, onToggleVisibility, o
                 onClick={() => startEditing(key, unit)}
                 className="flex items-center gap-3 py-1.5 w-full text-left"
               >
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4 h-4 text-white/55" />
+                <div className="w-8 h-8 rounded-lg bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-[hsl(var(--card-muted))]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-white/55">{language === "it" ? labelIt : labelEn}</p>
+                  <p className="text-xs text-[hsl(var(--card-muted))]">{language === "it" ? labelIt : labelEn}</p>
                 </div>
                 <span className="text-xs text-primary flex items-center gap-0.5">
                   <Plus className="w-3 h-3" />
