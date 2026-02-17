@@ -369,12 +369,13 @@ const SessionDetails = () => {
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Session Info Card */}
-        <div className="bg-card rounded-2xl border border-white/8 p-5 mb-4">
+        <div className="card-session !rounded-2xl !p-0 mb-4">
+          <div className="relative z-[1] p-5">
           <div className="flex items-start justify-between mb-3">
             <div>
               <h2 className="text-xl font-bold text-card-foreground">{session.title}</h2>
               {session.spot && (
-                <p className="text-sm text-white/55 flex items-center gap-1 mt-1">
+                <p className="text-sm text-[hsl(var(--card-muted))] flex items-center gap-1 mt-1">
                   <MapPin className="w-3.5 h-3.5" />
                   {session.spot.name} · {session.spot.location}
                 </p>
@@ -386,26 +387,27 @@ const SessionDetails = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="flex items-center gap-2 text-sm text-white/70">
+            <div className="flex items-center gap-2 text-sm text-[hsl(var(--card-soft))]">
               <Calendar className="w-4 h-4 text-primary" />
               <span>{formatDateTime(session.date_time)}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-white/70">
+            <div className="flex items-center gap-2 text-sm text-[hsl(var(--card-soft))]">
               <Clock className="w-4 h-4 text-primary" />
               <span>{session.duration_minutes} min</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-white/70">
+            <div className="flex items-center gap-2 text-sm text-[hsl(var(--card-soft))]">
               <Users className="w-4 h-4 text-primary" />
               <span>{session.confirmedCount}/{session.max_participants} confermati</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-white/55">
+            <div className="flex items-center gap-2 text-sm text-[hsl(var(--card-muted))]">
               <span>{mapSessionType(session.session_type)}</span>
             </div>
           </div>
 
           {session.description && (
-            <p className="text-sm text-white/55 border-t border-white/8 pt-3">{session.description}</p>
+            <p className="text-sm text-[hsl(var(--card-muted))] border-t border-[hsl(var(--card-border))] pt-3">{session.description}</p>
           )}
+          </div>
         </div>
 
         {/* Creator */}
