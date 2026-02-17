@@ -1,74 +1,177 @@
 
 
-# Full Color and Gradient Consistency Fix
+# Breathing Training Feature
 
-The previous pass fixed some outer containers but missed the inner elements. Here's everything still inconsistent:
+## Overview
 
-## 1. GroupHeroCard.tsx -- Missing gradient + hardcoded colors
-- Line 28: `bg-card border border-white/8` -- needs `card-session` class with overrides
-- Line 44: `text-white/55` -- needs `text-[hsl(var(--card-muted))]`
-- Line 49: `text-white/55` -- same
-- Line 54: `text-white/20` -- needs `text-[hsl(var(--card-border))]`
-- Line 75: `bg-white/10 text-white/85` -- needs semantic tokens
-- Line 80: `bg-white/10 text-white/55` -- needs semantic tokens
+Transform the Training tab into a full breathing exercise trainer with two modes: **CO2 Tables** and **Quadratic Breathing**. Includes a visual countdown timer, step table, audio beeps, and voice announcements using the browser's built-in Speech Synthesis API (no external API keys needed).
 
-## 2. GroupSessionsList.tsx -- Missing gradient + hardcoded colors
-- Line 50: `bg-card border border-white/8` -- needs `card-session` with flex overrides
-- Line 53: `bg-white/10` -- needs `bg-[hsl(var(--badge-blue-bg))]`
-- Line 54: `text-white/70` -- needs `text-[hsl(var(--card-soft))]`
-- Line 57: `text-white/90` -- needs `text-card-foreground`
-- Line 65: `text-white/55` -- needs `text-[hsl(var(--card-muted))]`
-- Line 74: `text-white/55` -- same
-- Line 80: `text-white/55` -- same
+---
 
-## 3. GroupDetails.tsx -- Tags hardcoded
-- Line 189: `bg-primary/10 text-primary` -- needs `badge-tag` class
+## Two Training Modes
 
-## 4. SpotDetails.tsx -- Missing gradient + hardcoded colors on all cards
-- Line 194: hero section `bg-card border border-white/8` -- needs `card-session`
-- Line 196: `bg-white/10` -- needs semantic token
-- Line 201: `text-white/55` -- needs semantic token
-- Line 206: `bg-white/10 text-primary` -- badge needs fix
-- Line 217-219: description card same issues
-- Line 263-265: empty session card hardcoded colors
-- Lines 277, 285, 287: session cards missing gradient + hardcoded colors
+### 1. CO2 Table
+A series of breath-hold cycles where hold time stays constant and breathing (recovery) time decreases each round, training CO2 tolerance.
 
-## 5. SessionDetails.tsx -- Missing gradient + hardcoded colors on all cards
-- Line 372: info card `bg-card border border-white/8` -- needs `card-session`
-- Line 377, 389, 393, 397, 401: `text-white/55`, `text-white/70` -- needs semantic tokens
-- Line 407: `border-white/8` -- needs semantic token
-- Line 414: creator card same issues
-- Line 430: `text-white/55`
-- Line 483, 492, 545, 555: participant list containers + items hardcoded
-- Line 582: `text-white/55`
+- **Default**: 8 rounds, hold = 2:00, breath starts at 2:00 and decreases by 15s each round (minimum 15s)
+- **Customizable**: number of rounds, hold duration, starting breath time, decrease step
+- User can also create custom tables with manual per-row values
 
-## 6. MySessions.tsx -- "Creata da te" badge visibility
-- Line 126: `text-primary` on dark card -- needs `text-[hsl(var(--card-foreground))]` for visibility
+### 2. Quadratic Breathing (Box Breathing)
+A 4-phase cycle: Inhale - Hold - Exhale - Hold, repeated for N rounds.
 
-## Plan of Changes
+- **Default**: 4s inhale, 4s hold, 4s exhale, 4s hold, 10 rounds
+- **Customizable**: each phase duration independently, number of rounds
 
-### GroupHeroCard.tsx
-- Replace outer div with `card-session !rounded-2xl !p-0` and wrap content in a relative div
-- Replace all `text-white/55` with `text-[hsl(var(--card-muted))]`
-- Replace `text-white/20` with `text-[hsl(var(--card-border))]`
-- Replace `bg-white/10` with `bg-[hsl(var(--badge-blue-bg))]`
+---
 
-### GroupSessionsList.tsx
-- Apply `card-session` to each session button with `!p-3 !flex-row !items-center !gap-3`
-- Replace all hardcoded white opacity colors with semantic tokens
+## Audio and Voice
 
-### GroupDetails.tsx
-- Replace tag styling `bg-primary/10 text-primary` with `badge-tag` class
+All audio runs client-side using browser built-in APIs -- no API keys or external services required:
 
-### SpotDetails.tsx
-- Apply `card-session` to hero section, description card, empty session state, and each session card
-- Replace all `text-white/55`, `bg-white/10`, `border-white/8` with semantic tokens
+- **Web Speech API** (`window.speechSynthesis`) for voice: "Breathe", "Hold", "Exhale", "10 seconds remaining", "3", "2", "1"
+- **Web Audio API** (`AudioContext`) for beep/tick sounds on phase transitions and countdown ticks
+- Volume toggle to mute/unmute
 
-### SessionDetails.tsx
-- Apply `card-session` to session info card, creator card, pending list, and confirmed list containers
-- Replace all `text-white/55`, `text-white/70`, `bg-white/10`, `border-white/8` with semantic tokens
+---
 
-### MySessions.tsx
-- Change "Creata da te" badge from `text-primary` to `text-[hsl(var(--card-foreground))]`
+## Screen Flow
 
-This covers all remaining inconsistencies across the entire app where hardcoded colors and missing gradients exist on dark card backgrounds.
+```text
+/training (main)
+  |-- Mode selection: CO2 Table | Quadratic Breathing
+  |
+  |-- [CO2 Table selected]
+  |     |-- Configuration screen (rounds, hold time, breath time, step)
+  |     |-- Preview table (like the reference screenshot)
+  |     |-- Start -> Active timer screen
+  |
+  |-- [Quadratic selected]
+  |     |-- Configuration screen (inhale, hold, exhale, hold, rounds)
+  |     |-- Start -> Active timer screen
+  |
+  |-- Active Timer Screen:
+        |-- Large circular countdown (like reference app)
+        |-- Current phase label ("Hold" / "Breathe" / "Inhale" / "Exhale")
+        |-- Current round indicator
+        |-- Step table below with active row highlighted (CO2 mode)
+        |-- Pause / Resume / Stop controls
+```
+
+---
+
+## UI Components
+
+### Training Home (`src/pages/Training.tsx`)
+- Replace current empty state with mode selection cards
+- Two cards: "CO2 Table" and "Quadratic Breathing" with icons and descriptions
+- History section placeholder for future training logs
+
+### CO2 Table Config (`src/components/training/Co2TableConfig.tsx`)
+- Form with sliders/inputs: rounds (4-12), hold time, start breath time, decrease step
+- Preview table showing all rounds with computed hold/breath times
+- "Start Training" button
+
+### Quadratic Config (`src/components/training/QuadraticConfig.tsx`)
+- Form with sliders for each phase (inhale, hold1, exhale, hold2) in seconds (1-20s)
+- Rounds selector (1-30)
+- Visual preview of one cycle
+- "Start Training" button
+
+### Timer Screen (`src/components/training/TrainingTimer.tsx`)
+- Large circular progress indicator (SVG circle with stroke-dasharray animation)
+- Big countdown text (MM:SS or just seconds for short phases)
+- Phase label with color coding (blue = breathe/inhale, orange/red = hold, green = exhale)
+- Round progress (e.g. "Round 3/8")
+- Controls: Pause/Resume, Stop (with confirmation)
+- For CO2 mode: table below timer showing all rows, current row highlighted with play icon (like reference)
+
+### Audio Engine (`src/hooks/useTrainingAudio.ts`)
+- Hook managing Web Speech API for voice and Web Audio API for beeps
+- `speak(text)` -- says "Breathe", "Hold", "Exhale"
+- `beep(frequency, duration)` -- short beep for transitions
+- `countdown(seconds)` -- voice "3, 2, 1" and "10 seconds remaining"
+- Mute/unmute state
+- Cleanup on unmount
+
+### Timer Logic (`src/hooks/useTrainingTimer.ts`)
+- Core timer hook managing the training session state
+- Tracks: current phase, current round, seconds remaining, paused state, completed
+- Handles phase transitions (breath -> hold -> breath for CO2; inhale -> hold -> exhale -> hold for quadratic)
+- Triggers audio callbacks at phase start, 10s remaining, and final 3-2-1
+- Uses `requestAnimationFrame` or `setInterval` with drift correction for accuracy
+
+---
+
+## Data Model
+
+No database tables needed initially -- this is a local, in-session feature. Training configs can be stored in component state. Future enhancement: save training history to database.
+
+Types defined in `src/types/training.ts`:
+
+```typescript
+type TrainingMode = "co2" | "quadratic";
+
+interface Co2TableConfig {
+  rounds: number;
+  holdSeconds: number;
+  startBreathSeconds: number;
+  decreaseStep: number;
+}
+
+interface QuadraticConfig {
+  inhaleSeconds: number;
+  hold1Seconds: number;
+  exhaleSeconds: number;
+  hold2Seconds: number;
+  rounds: number;
+}
+
+type TrainingPhase = "inhale" | "hold" | "exhale" | "breathe";
+
+interface TrainingStep {
+  phase: TrainingPhase;
+  durationSeconds: number;
+  round: number;
+}
+```
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/types/training.ts` | Type definitions |
+| `src/hooks/useTrainingAudio.ts` | Voice + beep audio engine |
+| `src/hooks/useTrainingTimer.ts` | Timer state machine |
+| `src/components/training/Co2TableConfig.tsx` | CO2 table setup form + preview |
+| `src/components/training/QuadraticConfig.tsx` | Quadratic breathing setup form |
+| `src/components/training/TrainingTimer.tsx` | Active timer with circular progress |
+| `src/components/training/CircularProgress.tsx` | SVG circular countdown component |
+| `src/components/training/TrainingStepTable.tsx` | Step table for CO2 mode (like reference) |
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/pages/Training.tsx` | Replace empty state with mode selection + timer integration |
+| `src/lib/i18n.ts` | Add training-related translation keys (IT + EN) |
+
+---
+
+## i18n Keys to Add
+
+Italian and English translations for: breathe, hold, exhale, inhale, co2Table, quadraticBreathing, rounds, holdTime, breathTime, decreaseStep, startTraining, pauseTraining, resumeTraining, stopTraining, trainingComplete, round, phase names, configuration labels, "10 seconds remaining", etc.
+
+---
+
+## Design Details
+
+- Circular timer uses SVG with animated `stroke-dashoffset` matching the app's primary gradient colors
+- Phase colors: Inhale/Breathe = `--primary` (blue), Hold = `--warning` (amber), Exhale = `--success` (green)
+- All cards use `card-session` class for gradient consistency
+- Controls use existing Button variants (`primaryGradient`, `pillOutline`)
+- Config forms use existing Slider and Input components
+- Keep Screen Awake: use `navigator.wakeLock` API during active training to prevent screen from turning off
+
