@@ -34,9 +34,16 @@ export const useTrainingAudio = () => {
     try {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = getLanguage() === "it" ? "it-IT" : "en-US";
+      const lang = getLanguage() === "it" ? "it-IT" : "en-US";
+      utterance.lang = lang;
       utterance.rate = 1;
       utterance.volume = 1;
+      // Explicitly select a voice matching the language
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const match = voices.find(v => v.lang.startsWith(lang.split("-")[0]));
+        if (match) utterance.voice = match;
+      }
       window.speechSynthesis.speak(utterance);
     } catch {}
   }, [muted]);

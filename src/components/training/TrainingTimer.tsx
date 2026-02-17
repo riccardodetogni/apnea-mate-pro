@@ -45,8 +45,11 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
   }, [audio]);
 
   const onCountdown = useCallback((seconds: number) => {
-    audio.speakCountdown(seconds);
-  }, [audio]);
+    // Only speak countdown for CO2 mode, not quadratic (too frequent)
+    if (mode === "co2") {
+      audio.speakCountdown(seconds);
+    }
+  }, [audio, mode]);
 
   const onComplete = useCallback(() => {
     audio.beep(1200, 300);
