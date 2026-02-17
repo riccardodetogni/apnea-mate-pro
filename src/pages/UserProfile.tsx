@@ -115,7 +115,8 @@ const UserProfile = () => {
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Profile card */}
-        <div className="bg-card rounded-2xl border border-white/8 p-6 text-center mb-6">
+        <div className="card-session !rounded-2xl !p-0 text-center mb-6">
+          <div className="relative z-[1] p-6">
           <div className="w-20 h-20 mx-auto rounded-full avatar-gradient flex items-center justify-center text-2xl font-bold text-white mb-4">
             {profile.name.charAt(0).toUpperCase()}
           </div>
@@ -123,25 +124,25 @@ const UserProfile = () => {
           <h2 className="text-xl font-bold text-card-foreground">{profile.name}</h2>
           
           {profile.location && (
-            <p className="text-sm text-white/55 flex items-center justify-center gap-1 mt-1">
+            <p className="text-sm text-[hsl(var(--card-muted))] flex items-center justify-center gap-1 mt-1">
               <MapPin className="w-3.5 h-3.5" />
               {profile.location}
             </p>
           )}
 
           {profile.bio && (
-            <p className="text-sm text-white/55 mt-3 leading-relaxed">{profile.bio}</p>
+            <p className="text-sm text-[hsl(var(--card-muted))] mt-3 leading-relaxed">{profile.bio}</p>
           )}
 
           <div className="flex items-center justify-center gap-2 mt-3">
             {isCertified && <CertificationBadge certified={true} />}
-            <span className="text-xs text-white/55 bg-white/10 px-2 py-1 rounded-full">
+            <span className="text-xs text-[hsl(var(--card-muted))] bg-[hsl(var(--badge-blue-bg))] px-2 py-1 rounded-full">
               {roleLabels[role] || roleLabels.regular}
             </span>
           </div>
 
           {/* Followers count */}
-          <p className="text-sm text-white/55 mt-3">
+          <p className="text-sm text-[hsl(var(--card-muted))] mt-3">
             <span className="font-medium text-card-foreground">{followersCount}</span> {language === "it" ? "follower" : "followers"}
           </p>
 
@@ -168,6 +169,7 @@ const UserProfile = () => {
               )}
             </Button>
           )}
+          </div>
         </div>
 
         {/* Personal Bests (public) */}
@@ -189,10 +191,12 @@ const UserProfile = () => {
                 <button
                   key={group.id}
                   onClick={() => navigate(`/groups/${group.id}`)}
-                  className="w-full bg-card rounded-xl border border-white/8 p-3 text-left hover:bg-white/10 transition-colors"
+                  className="w-full card-session !rounded-xl !p-3 text-left"
                 >
+                  <div className="relative z-[1]">
                   <p className="font-medium text-card-foreground text-sm">{group.name}</p>
-                  <p className="text-xs text-white/55">{group.location}</p>
+                  <p className="text-xs text-[hsl(var(--card-muted))]">{group.location}</p>
+                  </div>
                 </button>
               ))}
             </div>
@@ -207,10 +211,12 @@ const UserProfile = () => {
           </h3>
           
           {sessions.length === 0 ? (
-            <div className="bg-card rounded-xl border border-white/8 p-4 text-center">
-              <p className="text-sm text-white/55">
+            <div className="card-session !rounded-xl !p-0 text-center">
+              <div className="relative z-[1] p-4">
+              <p className="text-sm text-[hsl(var(--card-muted))]">
                 {language === "it" ? "Nessuna sessione pubblica in programma" : "No upcoming public sessions"}
               </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-2">
@@ -218,10 +224,11 @@ const UserProfile = () => {
                 <button
                   key={session.id}
                   onClick={() => navigate(`/sessions/${session.id}`)}
-                  className="w-full bg-card rounded-xl border border-white/8 p-4 text-left hover:bg-white/10 transition-colors"
+                  className="w-full card-session !rounded-xl !p-0 text-left"
                 >
+                  <div className="relative z-[1] p-4">
                   <p className="font-medium text-card-foreground">{session.title}</p>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-white/55">
+                  <div className="flex items-center gap-2 mt-1 text-xs text-[hsl(var(--card-muted))]">
                     <span>
                       {format(new Date(session.date_time), "d MMM, HH:mm", { 
                         locale: language === "it" ? it : enUS 
@@ -235,8 +242,9 @@ const UserProfile = () => {
                     )}
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <span className="text-xs bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{session.session_type}</span>
-                    <span className="text-xs bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{session.level}</span>
+                    <span className="text-xs bg-[hsl(var(--badge-blue-bg))] text-[hsl(var(--card-soft))] px-2 py-0.5 rounded-full">{session.session_type}</span>
+                    <span className="text-xs bg-[hsl(var(--badge-blue-bg))] text-[hsl(var(--card-soft))] px-2 py-0.5 rounded-full">{session.level}</span>
+                  </div>
                   </div>
                 </button>
               ))}
