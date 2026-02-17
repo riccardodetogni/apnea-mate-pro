@@ -14,8 +14,8 @@ const Training = () => {
   const [trainingSteps, setTrainingSteps] = useState<TrainingStep[]>([]);
   const [trainingMode, setTrainingMode] = useState<TrainingMode>("co2");
 
-  const handleStartCo2 = (config: Co2Config) => {
-    setTrainingSteps(generateCo2Steps(config));
+  const handleStartCo2 = (config: Co2Config, customSteps?: TrainingStep[]) => {
+    setTrainingSteps(customSteps ?? generateCo2Steps(config));
     setTrainingMode("co2");
     setScreen("timer");
   };
