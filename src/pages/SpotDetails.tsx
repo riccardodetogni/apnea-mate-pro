@@ -191,19 +191,19 @@ const SpotDetails = () => {
       </div>
 
       {/* Hero section */}
-      <div className="bg-card rounded-2xl border border-white/8 p-5 mb-4">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">
+      <div className="card-session !rounded-2xl !p-0 mb-4">
+        <div className="relative z-[1] p-5 flex items-start gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-3xl">
             {environmentIcons[spot.environment_type] || "📍"}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-card-foreground mb-1">{spot.name}</h2>
-            <div className="flex items-center gap-1.5 text-white/55 text-sm mb-2">
+            <div className="flex items-center gap-1.5 text-[hsl(var(--card-muted))] text-sm mb-2">
               <MapPin className="w-3.5 h-3.5" />
               <span className="truncate">{spot.location}</span>
             </div>
             <div className="flex gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-primary text-xs font-medium">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[hsl(var(--badge-blue-bg))] text-card-foreground text-xs font-medium">
                 <Waves className="w-3 h-3" />
                 {t(environmentLabels[spot.environment_type] as any) || spot.environment_type}
               </span>
@@ -214,8 +214,8 @@ const SpotDetails = () => {
 
       {/* Description */}
       {spot.description && (
-        <div className="bg-card rounded-xl border border-white/8 p-4 mb-4">
-          <p className="text-sm text-white/55 leading-relaxed">{spot.description}</p>
+        <div className="card-session !rounded-xl !p-0 mb-4">
+          <p className="relative z-[1] p-4 text-sm text-[hsl(var(--card-muted))] leading-relaxed">{spot.description}</p>
         </div>
       )}
 
@@ -260,9 +260,11 @@ const SpotDetails = () => {
         <h3 className="text-base font-semibold text-foreground">{t("sessionsAtSpot")}</h3>
         
         {sessions.length === 0 ? (
-          <div className="bg-card rounded-xl border border-white/8 p-6 text-center">
-            <Calendar className="w-8 h-8 text-white/55 mx-auto mb-2" />
-            <p className="text-sm text-white/55">{t("noSessionsAtSpot")}</p>
+          <div className="card-session !rounded-xl !p-0">
+            <div className="relative z-[1] p-6 text-center">
+              <Calendar className="w-8 h-8 text-[hsl(var(--card-muted))] mx-auto mb-2" />
+              <p className="text-sm text-[hsl(var(--card-muted))]">{t("noSessionsAtSpot")}</p>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -274,17 +276,17 @@ const SpotDetails = () => {
               return (
                 <div
                   key={session.id}
-                  className="bg-card rounded-xl border border-white/8 p-4 cursor-pointer hover:border-primary/30 transition-colors"
+                  className="card-session !rounded-xl !p-0 cursor-pointer hover:border-primary/30 transition-colors"
                   onClick={(e) => {
                     if ((e.target as HTMLElement).closest('button')) return;
                     navigate(`/sessions/${session.id}`, { state: { from: `/spots/${id}` } });
                   }}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="relative z-[1] p-4 flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-white/55 mb-1">{formatSessionDate(session.date_time)}</p>
+                      <p className="text-xs text-[hsl(var(--card-muted))] mb-1">{formatSessionDate(session.date_time)}</p>
                       <h4 className="font-medium text-card-foreground mb-1.5 truncate">{session.title}</h4>
-                      <div className="flex items-center gap-3 text-xs text-white/55">
+                      <div className="flex items-center gap-3 text-xs text-[hsl(var(--card-muted))]">
                         <span className="badge-level">{t(session.level as any)}</span>
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />

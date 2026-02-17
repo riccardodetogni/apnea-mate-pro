@@ -25,8 +25,8 @@ export const GroupHeroCard = ({
   const initial = name.charAt(0).toUpperCase();
 
   return (
-    <div className="relative rounded-2xl overflow-hidden bg-card border border-white/8">
-      <div className="relative p-6">
+    <div className="card-session !rounded-2xl !p-0">
+      <div className="relative z-[1] p-6">
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="w-20 h-20 rounded-2xl avatar-gradient flex items-center justify-center text-3xl font-bold text-white shadow-lg flex-shrink-0">
@@ -41,17 +41,17 @@ export const GroupHeroCard = ({
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-card-foreground mb-1 truncate">{name}</h1>
             
-            <div className="flex items-center gap-1.5 text-white/55 text-sm mb-2">
+            <div className="flex items-center gap-1.5 text-[hsl(var(--card-muted))] text-sm mb-2">
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="truncate">{location}</span>
             </div>
 
-            <div className="flex items-center gap-3 text-sm text-white/55">
+            <div className="flex items-center gap-3 text-sm text-[hsl(var(--card-muted))]">
               <div className="flex items-center gap-1">
                 <Users className="w-3.5 h-3.5" />
                 <span>{memberCount} {t("members")}</span>
               </div>
-              <span className="text-white/20">·</span>
+              <span className="text-[hsl(var(--card-border))]">·</span>
               <span>{activityType}</span>
             </div>
           </div>
@@ -72,12 +72,12 @@ export const GroupHeroCard = ({
             </span>
           )}
           {groupType === "school" && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-white/85 text-xs font-medium">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[hsl(var(--badge-blue-bg))] text-card-foreground text-xs font-medium">
               {t("groupTypeSchool")}
             </span>
           )}
           {groupType === "community" && !isInstructorLed && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-white/55 text-xs font-medium">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[hsl(var(--badge-blue-bg))] text-[hsl(var(--card-muted))] text-xs font-medium">
               {t("spontaneousGroup")}
             </span>
           )}
