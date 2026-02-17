@@ -1,170 +1,74 @@
 
 
-# Performance Optimization: React Query Caching + Lazy-Loaded Routes
+# Full Color and Gradient Consistency Fix
 
-## Overview
+The previous pass fixed some outer containers but missed the inner elements. Here's everything still inconsistent:
 
-The app feels slow because every page navigation triggers full data re-fetches with loading spinners, and the entire app bundle loads upfront. This plan addresses both issues:
+## 1. GroupHeroCard.tsx -- Missing gradient + hardcoded colors
+- Line 28: `bg-card border border-white/8` -- needs `card-session` class with overrides
+- Line 44: `text-white/55` -- needs `text-[hsl(var(--card-muted))]`
+- Line 49: `text-white/55` -- same
+- Line 54: `text-white/20` -- needs `text-[hsl(var(--card-border))]`
+- Line 75: `bg-white/10 text-white/85` -- needs semantic tokens
+- Line 80: `bg-white/10 text-white/55` -- needs semantic tokens
 
-- **React Query migration**: Cache data so revisiting pages shows instant content (stale-while-revalidate pattern)
-- **Lazy-loaded routes**: Split the bundle so only the current page loads, reducing initial load time
+## 2. GroupSessionsList.tsx -- Missing gradient + hardcoded colors
+- Line 50: `bg-card border border-white/8` -- needs `card-session` with flex overrides
+- Line 53: `bg-white/10` -- needs `bg-[hsl(var(--badge-blue-bg))]`
+- Line 54: `text-white/70` -- needs `text-[hsl(var(--card-soft))]`
+- Line 57: `text-white/90` -- needs `text-card-foreground`
+- Line 65: `text-white/55` -- needs `text-[hsl(var(--card-muted))]`
+- Line 74: `text-white/55` -- same
+- Line 80: `text-white/55` -- same
 
-## What Changes for Users
+## 3. GroupDetails.tsx -- Tags hardcoded
+- Line 189: `bg-primary/10 text-primary` -- needs `badge-tag` class
 
-- Navigating between pages will feel nearly instant -- previously loaded data appears immediately
-- Background refreshes happen silently without spinners
-- Initial app load is faster since only the current page code downloads
-- The app will show a brief loading indicator only on the very first visit to each page
+## 4. SpotDetails.tsx -- Missing gradient + hardcoded colors on all cards
+- Line 194: hero section `bg-card border border-white/8` -- needs `card-session`
+- Line 196: `bg-white/10` -- needs semantic token
+- Line 201: `text-white/55` -- needs semantic token
+- Line 206: `bg-white/10 text-primary` -- badge needs fix
+- Line 217-219: description card same issues
+- Line 263-265: empty session card hardcoded colors
+- Lines 277, 285, 287: session cards missing gradient + hardcoded colors
 
-## Detailed Changes
+## 5. SessionDetails.tsx -- Missing gradient + hardcoded colors on all cards
+- Line 372: info card `bg-card border border-white/8` -- needs `card-session`
+- Line 377, 389, 393, 397, 401: `text-white/55`, `text-white/70` -- needs semantic tokens
+- Line 407: `border-white/8` -- needs semantic token
+- Line 414: creator card same issues
+- Line 430: `text-white/55`
+- Line 483, 492, 545, 555: participant list containers + items hardcoded
+- Line 582: `text-white/55`
 
-### 1. Configure QueryClient with sensible defaults (`src/App.tsx`)
+## 6. MySessions.tsx -- "Creata da te" badge visibility
+- Line 126: `text-primary` on dark card -- needs `text-[hsl(var(--card-foreground))]` for visibility
 
-Set `staleTime: 2 * 60 * 1000` (2 minutes) and `gcTime: 10 * 60 * 1000` (10 minutes) so data is served from cache on navigation and silently refreshed in the background.
+## Plan of Changes
 
-### 2. Lazy-load all page routes (`src/App.tsx`)
+### GroupHeroCard.tsx
+- Replace outer div with `card-session !rounded-2xl !p-0` and wrap content in a relative div
+- Replace all `text-white/55` with `text-[hsl(var(--card-muted))]`
+- Replace `text-white/20` with `text-[hsl(var(--card-border))]`
+- Replace `bg-white/10` with `bg-[hsl(var(--badge-blue-bg))]`
 
-Replace all eager `import` statements with `React.lazy()` and wrap the routes in `<Suspense>` with a lightweight fallback spinner. Pages to lazy-load:
+### GroupSessionsList.tsx
+- Apply `card-session` to each session button with `!p-3 !flex-row !items-center !gap-3`
+- Replace all hardcoded white opacity colors with semantic tokens
 
-- Auth, ResetPassword, Onboarding
-- Community, Spots, SpotDetails
-- Create, CreateSession, CreateGroup
-- SessionDetails, EditSession, MySessions
-- Groups, GroupDetails, GroupManage
-- Training, Profile, Settings
-- UserProfile, Search, Admin
-- DiscoverFreedivers, NotFound
+### GroupDetails.tsx
+- Replace tag styling `bg-primary/10 text-primary` with `badge-tag` class
 
-### 3. Migrate `useSessions` to React Query (`src/hooks/useSessions.ts`)
+### SpotDetails.tsx
+- Apply `card-session` to hero section, description card, empty session state, and each session card
+- Replace all `text-white/55`, `bg-white/10`, `border-white/8` with semantic tokens
 
-- Replace `useState` + `useEffect` + `useCallback` with `useQuery`
-- Query key: `["sessions", { excludeJoined, filterByFollowing, userId }]`
-- Keep the fetch logic as-is but return data from `queryFn`
-- Keep realtime subscription but call `queryClient.invalidateQueries` instead of manual refetch
-- Keep `joinSession`/`leaveSession` as mutations using `useMutation` with optimistic or invalidation-based updates
-- Remove manual `setLoading` / `setSessions` / `setError` state
+### SessionDetails.tsx
+- Apply `card-session` to session info card, creator card, pending list, and confirmed list containers
+- Replace all `text-white/55`, `text-white/70`, `bg-white/10`, `border-white/8` with semantic tokens
 
-### 4. Migrate `useGroups` to React Query (`src/hooks/useGroups.ts`)
+### MySessions.tsx
+- Change "Creata da te" badge from `text-primary` to `text-[hsl(var(--card-foreground))]`
 
-- Query key: `["groups", userId]`
-- Same pattern: `useQuery` for fetching, realtime invalidation, `useMutation` for join/leave
-- Remove manual state management
-
-### 5. Migrate `useMyParticipations` to React Query (`src/hooks/useMyParticipations.ts`)
-
-- Query key: `["my-participations", userId]`
-- Same pattern with realtime invalidation
-
-### 6. Migrate `useProfile` to React Query (`src/hooks/useProfile.ts`)
-
-- Query key: `["profile", userId]`
-- Keep `updateProfile` and `submitCertification` as mutations that invalidate the profile query
-- This is especially impactful since the profile is used by `useCommunityContext` which runs on the Community page
-
-### 7. Migrate `useSpots` to React Query (`src/hooks/useSpots.ts`)
-
-- Query key: `["spots"]`
-- Simple migration -- no realtime needed
-
-### 8. Migrate `useMyGroups` to React Query (`src/hooks/useMyGroups.ts`)
-
-- Query key: `["my-groups", userId]`
-- Simple migration
-
-### 9. Migrate `useNotifications` to React Query (`src/hooks/useNotifications.ts`)
-
-- Query key: `["notifications", userId]`
-- Keep realtime subscription for INSERT/UPDATE but use `queryClient.setQueryData` for optimistic local updates
-- Mutations for `markAsRead`, `markAllAsRead`, `deleteAll`
-
-### 10. Remove redundant refetch-on-navigate in `Community.tsx`
-
-Lines 80-102 have `visibilitychange` and `location.pathname` listeners that force full refetches. These are unnecessary with React Query's `refetchOnWindowFocus` (enabled by default) and stale-while-revalidate caching.
-
-### 11. Keep `useSearch` as-is
-
-Search is user-initiated (not cached between navigations), so it doesn't benefit from React Query migration. Leave it using local state.
-
-### 12. Keep `useCommunityContext` as-is
-
-This is a composition hook (combines auth + profile + location + filters). It already delegates to `useProfile` which will be cached via React Query. No direct changes needed.
-
-## Technical Details
-
-### React Query Pattern (applied to each hook)
-
-```text
-// Before (manual state)
-const [data, setData] = useState([]);
-const [loading, setLoading] = useState(true);
-const fetchFn = useCallback(async () => {
-  setLoading(true);
-  const result = await supabase.from("table").select("*");
-  setData(result.data);
-  setLoading(false);
-}, []);
-useEffect(() => { fetchFn(); }, [fetchFn]);
-
-// After (React Query)
-const { data = [], isLoading } = useQuery({
-  queryKey: ["table", userId],
-  queryFn: async () => {
-    const { data, error } = await supabase.from("table").select("*");
-    if (error) throw error;
-    return data;
-  },
-  enabled: !!userId,
-});
-```
-
-### Realtime Integration Pattern
-
-```text
-useEffect(() => {
-  const channel = supabase
-    .channel("channel-name")
-    .on("postgres_changes", { event: "*", schema: "public", table: "sessions" }, () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-    })
-    .subscribe();
-  return () => { supabase.removeChannel(channel); };
-}, [queryClient]);
-```
-
-### Lazy Loading Pattern
-
-```text
-const Community = lazy(() => import("./pages/Community"));
-const Spots = lazy(() => import("./pages/Spots"));
-// ... etc
-
-<Suspense fallback={<PageSpinner />}>
-  <Routes>
-    <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
-    ...
-  </Routes>
-</Suspense>
-```
-
-## Files to Modify
-
-| File | Changes |
-|---|---|
-| `src/App.tsx` | QueryClient defaults, lazy imports, Suspense wrapper |
-| `src/hooks/useSessions.ts` | Migrate to useQuery + useMutation + realtime invalidation |
-| `src/hooks/useGroups.ts` | Migrate to useQuery + useMutation + realtime invalidation |
-| `src/hooks/useMyParticipations.ts` | Migrate to useQuery + useMutation + realtime invalidation |
-| `src/hooks/useProfile.ts` | Migrate to useQuery + useMutation |
-| `src/hooks/useSpots.ts` | Migrate to useQuery |
-| `src/hooks/useMyGroups.ts` | Migrate to useQuery |
-| `src/hooks/useNotifications.ts` | Migrate to useQuery + useMutation + realtime setQueryData |
-| `src/pages/Community.tsx` | Remove manual refetch-on-navigate logic (lines 80-102) |
-
-## Scope
-
-- No database or schema changes
-- No visual/UI changes
-- No new dependencies (React Query is already installed)
-- All existing interfaces and return types remain the same for backward compatibility
-- Realtime subscriptions are preserved
-
+This covers all remaining inconsistencies across the entire app where hardcoded colors and missing gradients exist on dark card backgrounds.
