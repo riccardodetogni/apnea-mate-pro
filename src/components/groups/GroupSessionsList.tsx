@@ -47,22 +47,22 @@ export const GroupSessionsList = ({ sessions, groupId }: GroupSessionsListProps)
             <button
               key={session.id}
               onClick={() => navigate(`/sessions/${session.id}`, { state: { from: groupId ? `/groups/${groupId}` : '/groups' } })}
-              className="w-full p-3 rounded-xl bg-card border border-white/8 hover:border-primary/30 transition-colors text-left flex items-center gap-3"
+              className="card-session !p-3 !flex-row !items-center !gap-3 w-full hover:border-primary/30 transition-colors text-left flex items-center gap-3"
             >
               {/* Date badge */}
-              <div className="w-12 h-12 rounded-lg bg-white/10 flex flex-col items-center justify-center flex-shrink-0">
-                <span className="text-xs text-white/70 font-medium uppercase">
+              <div className="relative z-[1] w-12 h-12 rounded-lg bg-[hsl(var(--badge-blue-bg))] flex flex-col items-center justify-center flex-shrink-0">
+                <span className="text-xs text-[hsl(var(--card-soft))] font-medium uppercase">
                   {format(date, "MMM", { locale: it })}
                 </span>
-                <span className="text-lg font-bold text-white/90">
+                <span className="text-lg font-bold text-card-foreground">
                   {format(date, "d")}
                 </span>
               </div>
 
               {/* Info */}
-              <div className="flex-1 min-w-0">
+              <div className="relative z-[1] flex-1 min-w-0">
                 <h4 className="font-medium text-card-foreground truncate">{session.title}</h4>
-                <div className="flex items-center gap-2 text-xs text-white/55 mt-0.5">
+                <div className="flex items-center gap-2 text-xs text-[hsl(var(--card-muted))] mt-0.5">
                   <span>{format(date, "HH:mm")}</span>
                   {session.spot_name && (
                     <>
@@ -71,13 +71,13 @@ export const GroupSessionsList = ({ sessions, groupId }: GroupSessionsListProps)
                     </>
                   )}
                 </div>
-                <div className="flex items-center gap-1 text-xs text-white/55 mt-1">
+                <div className="flex items-center gap-1 text-xs text-[hsl(var(--card-muted))] mt-1">
                   <Users className="w-3 h-3" />
                   <span>{spotsLeft} {t("spots")}</span>
                 </div>
               </div>
 
-              <ChevronRight className="w-4 h-4 text-white/55 flex-shrink-0" />
+              <ChevronRight className="relative z-[1] w-4 h-4 text-[hsl(var(--card-muted))] flex-shrink-0" />
             </button>
           );
         })}

@@ -123,7 +123,7 @@ const MySessions = () => {
                 {session.pending_count}
               </Badge>
             )}
-            <Badge variant="outline" className="bg-[hsl(var(--badge-blue-bg))] text-primary border-primary/30">
+            <Badge variant="outline" className="bg-[hsl(var(--badge-blue-bg))] text-[hsl(var(--card-foreground))] border-primary/30">
               <Crown className="w-3 h-3 mr-1" />
               Creata da te
             </Badge>

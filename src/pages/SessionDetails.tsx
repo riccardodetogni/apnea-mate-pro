@@ -411,9 +411,10 @@ const SessionDetails = () => {
         {/* Creator */}
         <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("organizer" as any)}</h3>
         <div
-          className="bg-card rounded-2xl border border-white/8 p-4 mb-4 flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors"
+          className="card-session !rounded-2xl !p-0 mb-4 cursor-pointer hover:border-primary/30 transition-colors"
           onClick={() => navigate(`/users/${session.creator_id}`, { state: { from: `/sessions/${id}` } })}
         >
+          <div className="relative z-[1] p-4 flex items-center gap-3">
           {session.creator?.avatar_url ? (
             <img
               src={session.creator.avatar_url}
@@ -427,7 +428,7 @@ const SessionDetails = () => {
           )}
           <div className="flex-1">
             <p className="font-medium text-card-foreground">{session.creator?.name || "Organizzatore"}</p>
-            <p className="text-sm text-white/55 flex items-center gap-1">
+            <p className="text-sm text-[hsl(var(--card-muted))] flex items-center gap-1">
               {session.creatorRole === "instructor" && (
                 <>
                   <Award className="w-3.5 h-3.5 text-primary" />
@@ -436,6 +437,7 @@ const SessionDetails = () => {
               )}
               {session.creatorRole === "user" && "Apneista"}
             </p>
+          </div>
           </div>
         </div>
 
@@ -480,7 +482,8 @@ const SessionDetails = () => {
           <div className="space-y-4">
             {/* Pending Requests */}
             {pendingParticipants.length > 0 && (
-              <div className="bg-card rounded-2xl border border-white/8 p-4">
+              <div className="card-session !rounded-2xl !p-0">
+                <div className="relative z-[1] p-4">
                 <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-warning/20 text-warning flex items-center justify-center text-sm">
                     {pendingParticipants.length}
@@ -489,7 +492,7 @@ const SessionDetails = () => {
                 </h3>
                 <div className="space-y-2">
                   {pendingParticipants.map(p => (
-                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/10">
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-[hsl(var(--badge-blue-bg))]">
                       {p.profile?.avatar_url ? (
                         <img
                           src={p.profile.avatar_url}
@@ -538,11 +541,13 @@ const SessionDetails = () => {
                     </div>
                   ))}
                 </div>
+                </div>
               </div>
             )}
 
             {/* Confirmed Participants */}
-            <div className="bg-card rounded-2xl border border-white/8 p-4">
+            <div className="card-session !rounded-2xl !p-0">
+              <div className="relative z-[1] p-4">
               <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-success/20 text-success flex items-center justify-center text-sm">
                   {confirmedParticipants.length}
@@ -552,7 +557,7 @@ const SessionDetails = () => {
               {confirmedParticipants.length > 0 ? (
                 <div className="space-y-2">
                   {confirmedParticipants.map(p => (
-                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-white/10">
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-[hsl(var(--badge-blue-bg))]">
                       {p.profile?.avatar_url ? (
                         <img
                           src={p.profile.avatar_url}
@@ -579,8 +584,9 @@ const SessionDetails = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-white/55">Nessun partecipante confermato</p>
+                <p className="text-sm text-[hsl(var(--card-muted))]">Nessun partecipante confermato</p>
               )}
+              </div>
             </div>
 
             {/* Cancel Session */}
