@@ -290,6 +290,14 @@ const translations = {
     updateLater: "Puoi aggiornarli in qualsiasi momento dalle impostazioni",
     onboardingStepPB: "Record personali",
     organizer: "Organizzatore",
+    myPresets: "I miei preset",
+    savePreset: "Salva preset",
+    presetName: "Nome del preset",
+    presetSaved: "Preset salvato!",
+    presetDeleted: "Preset eliminato",
+    deletePreset: "Elimina preset",
+    deletePresetConfirm: "Vuoi eliminare questo preset?",
+    presetNamePlaceholder: "Es. CO2 Avanzata",
   },
   en: {
     // App
@@ -577,6 +585,14 @@ const translations = {
     updateLater: "You can update these anytime from settings",
     onboardingStepPB: "Personal bests",
     organizer: "Organizer",
+    myPresets: "My presets",
+    savePreset: "Save preset",
+    presetName: "Preset name",
+    presetSaved: "Preset saved!",
+    presetDeleted: "Preset deleted",
+    deletePreset: "Delete preset",
+    deletePresetConfirm: "Delete this preset?",
+    presetNamePlaceholder: "E.g. Advanced CO2",
   },
 };
 

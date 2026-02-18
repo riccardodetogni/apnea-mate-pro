@@ -475,6 +475,36 @@ export type Database = {
         }
         Relationships: []
       }
+      training_presets: {
+        Row: {
+          config: Json
+          created_at: string
+          custom_rows: Json | null
+          id: string
+          mode: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          config: Json
+          created_at?: string
+          custom_rows?: Json | null
+          id?: string
+          mode: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          custom_rows?: Json | null
+          id?: string
+          mode?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
