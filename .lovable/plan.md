@@ -1,177 +1,87 @@
 
 
-# Breathing Training Feature
+# Save & Load Custom Training Presets
 
 ## Overview
 
-Transform the Training tab into a full breathing exercise trainer with two modes: **CO2 Tables** and **Quadratic Breathing**. Includes a visual countdown timer, step table, audio beeps, and voice announcements using the browser's built-in Speech Synthesis API (no external API keys needed).
+Allow users to save their configured training tables (CO2 or Quadratic) with a custom name, then quickly load them from the config screen. Presets are stored in the database, tied to the user's account, so they persist across devices.
 
 ---
 
-## Two Training Modes
+## Database
 
-### 1. CO2 Table
-A series of breath-hold cycles where hold time stays constant and breathing (recovery) time decreases each round, training CO2 tolerance.
+### New table: `training_presets`
 
-- **Default**: 8 rounds, hold = 2:00, breath starts at 2:00 and decreases by 15s each round (minimum 15s)
-- **Customizable**: number of rounds, hold duration, starting breath time, decrease step
-- User can also create custom tables with manual per-row values
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | PK, default `gen_random_uuid()` |
+| `user_id` | uuid | NOT NULL, references the authenticated user |
+| `name` | text | NOT NULL, user-chosen label (e.g. "My CO2 Advanced") |
+| `mode` | text | NOT NULL, either `"co2"` or `"quadratic"` |
+| `config` | jsonb | NOT NULL, stores either `Co2TableConfig` or `QuadraticConfig` values |
+| `custom_rows` | jsonb | NULL, for CO2 mode only -- stores manually edited per-row `[{breathe, hold}]` array |
+| `created_at` | timestamptz | default `now()` |
 
-### 2. Quadratic Breathing (Box Breathing)
-A 4-phase cycle: Inhale - Hold - Exhale - Hold, repeated for N rounds.
-
-- **Default**: 4s inhale, 4s hold, 4s exhale, 4s hold, 10 rounds
-- **Customizable**: each phase duration independently, number of rounds
-
----
-
-## Audio and Voice
-
-All audio runs client-side using browser built-in APIs -- no API keys or external services required:
-
-- **Web Speech API** (`window.speechSynthesis`) for voice: "Breathe", "Hold", "Exhale", "10 seconds remaining", "3", "2", "1"
-- **Web Audio API** (`AudioContext`) for beep/tick sounds on phase transitions and countdown ticks
-- Volume toggle to mute/unmute
+### RLS policies
+- SELECT: `auth.uid() = user_id`
+- INSERT: `auth.uid() = user_id`
+- UPDATE: `auth.uid() = user_id`
+- DELETE: `auth.uid() = user_id`
 
 ---
 
-## Screen Flow
+## UX Flow
 
-```text
-/training (main)
-  |-- Mode selection: CO2 Table | Quadratic Breathing
-  |
-  |-- [CO2 Table selected]
-  |     |-- Configuration screen (rounds, hold time, breath time, step)
-  |     |-- Preview table (like the reference screenshot)
-  |     |-- Start -> Active timer screen
-  |
-  |-- [Quadratic selected]
-  |     |-- Configuration screen (inhale, hold, exhale, hold, rounds)
-  |     |-- Start -> Active timer screen
-  |
-  |-- Active Timer Screen:
-        |-- Large circular countdown (like reference app)
-        |-- Current phase label ("Hold" / "Breathe" / "Inhale" / "Exhale")
-        |-- Current round indicator
-        |-- Step table below with active row highlighted (CO2 mode)
-        |-- Pause / Resume / Stop controls
-```
+### Saving a preset
+- On both CO2 and Quadratic config screens, add a **"Save"** button (bookmark icon) next to the "Start Training" button.
+- Tapping it opens a small dialog asking for a name (text input + confirm).
+- The current slider values (and custom rows for CO2) are saved to the database.
+
+### Loading a preset
+- On both config screens, a **"My Presets"** section appears above the sliders if the user has saved presets for that mode.
+- Each preset shown as a small chip/card with the name and a brief summary (e.g. "8 rounds, 2:00 hold" or "4-4-4-4, 10 rounds").
+- Tapping a preset loads its config into the sliders (and custom rows if present).
+- Long-press or swipe/trash icon to delete a preset.
 
 ---
 
-## UI Components
+## Technical Details
 
-### Training Home (`src/pages/Training.tsx`)
-- Replace current empty state with mode selection cards
-- Two cards: "CO2 Table" and "Quadratic Breathing" with icons and descriptions
-- History section placeholder for future training logs
-
-### CO2 Table Config (`src/components/training/Co2TableConfig.tsx`)
-- Form with sliders/inputs: rounds (4-12), hold time, start breath time, decrease step
-- Preview table showing all rounds with computed hold/breath times
-- "Start Training" button
-
-### Quadratic Config (`src/components/training/QuadraticConfig.tsx`)
-- Form with sliders for each phase (inhale, hold1, exhale, hold2) in seconds (1-20s)
-- Rounds selector (1-30)
-- Visual preview of one cycle
-- "Start Training" button
-
-### Timer Screen (`src/components/training/TrainingTimer.tsx`)
-- Large circular progress indicator (SVG circle with stroke-dasharray animation)
-- Big countdown text (MM:SS or just seconds for short phases)
-- Phase label with color coding (blue = breathe/inhale, orange/red = hold, green = exhale)
-- Round progress (e.g. "Round 3/8")
-- Controls: Pause/Resume, Stop (with confirmation)
-- For CO2 mode: table below timer showing all rows, current row highlighted with play icon (like reference)
-
-### Audio Engine (`src/hooks/useTrainingAudio.ts`)
-- Hook managing Web Speech API for voice and Web Audio API for beeps
-- `speak(text)` -- says "Breathe", "Hold", "Exhale"
-- `beep(frequency, duration)` -- short beep for transitions
-- `countdown(seconds)` -- voice "3, 2, 1" and "10 seconds remaining"
-- Mute/unmute state
-- Cleanup on unmount
-
-### Timer Logic (`src/hooks/useTrainingTimer.ts`)
-- Core timer hook managing the training session state
-- Tracks: current phase, current round, seconds remaining, paused state, completed
-- Handles phase transitions (breath -> hold -> breath for CO2; inhale -> hold -> exhale -> hold for quadratic)
-- Triggers audio callbacks at phase start, 10s remaining, and final 3-2-1
-- Uses `requestAnimationFrame` or `setInterval` with drift correction for accuracy
-
----
-
-## Data Model
-
-No database tables needed initially -- this is a local, in-session feature. Training configs can be stored in component state. Future enhancement: save training history to database.
-
-Types defined in `src/types/training.ts`:
-
-```typescript
-type TrainingMode = "co2" | "quadratic";
-
-interface Co2TableConfig {
-  rounds: number;
-  holdSeconds: number;
-  startBreathSeconds: number;
-  decreaseStep: number;
-}
-
-interface QuadraticConfig {
-  inhaleSeconds: number;
-  hold1Seconds: number;
-  exhaleSeconds: number;
-  hold2Seconds: number;
-  rounds: number;
-}
-
-type TrainingPhase = "inhale" | "hold" | "exhale" | "breathe";
-
-interface TrainingStep {
-  phase: TrainingPhase;
-  durationSeconds: number;
-  round: number;
-}
-```
-
----
-
-## Files to Create
+### New files
 
 | File | Purpose |
-|------|---------|
-| `src/types/training.ts` | Type definitions |
-| `src/hooks/useTrainingAudio.ts` | Voice + beep audio engine |
-| `src/hooks/useTrainingTimer.ts` | Timer state machine |
-| `src/components/training/Co2TableConfig.tsx` | CO2 table setup form + preview |
-| `src/components/training/QuadraticConfig.tsx` | Quadratic breathing setup form |
-| `src/components/training/TrainingTimer.tsx` | Active timer with circular progress |
-| `src/components/training/CircularProgress.tsx` | SVG circular countdown component |
-| `src/components/training/TrainingStepTable.tsx` | Step table for CO2 mode (like reference) |
+|------|-------|
+| `src/hooks/useTrainingPresets.ts` | Hook to CRUD presets from the database using `supabase` client + `react-query` |
 
-## Files to Modify
+### Modified files
 
 | File | Change |
 |------|--------|
-| `src/pages/Training.tsx` | Replace empty state with mode selection + timer integration |
-| `src/lib/i18n.ts` | Add training-related translation keys (IT + EN) |
+| `src/components/training/Co2TableConfig.tsx` | Add save button, presets list, load logic |
+| `src/components/training/QuadraticConfig.tsx` | Add save button, presets list, load logic |
+| `src/types/training.ts` | Add `TrainingPreset` interface |
+| `src/lib/i18n.ts` | Add i18n keys: savePreset, presetName, myPresets, deletePreset, presetSaved, etc. |
 
----
+### `useTrainingPresets` hook API
 
-## i18n Keys to Add
+```typescript
+const {
+  presets,        // TrainingPreset[] filtered by mode
+  isLoading,
+  savePreset,     // (name, mode, config, customRows?) => Promise
+  deletePreset,   // (id) => Promise
+} = useTrainingPresets(mode: TrainingMode);
+```
 
-Italian and English translations for: breathe, hold, exhale, inhale, co2Table, quadraticBreathing, rounds, holdTime, breathTime, decreaseStep, startTraining, pauseTraining, resumeTraining, stopTraining, trainingComplete, round, phase names, configuration labels, "10 seconds remaining", etc.
+- Uses `useQuery` to fetch presets for the current user filtered by mode.
+- Uses `useMutation` for save and delete with query invalidation.
 
----
+### Config component changes
 
-## Design Details
-
-- Circular timer uses SVG with animated `stroke-dashoffset` matching the app's primary gradient colors
-- Phase colors: Inhale/Breathe = `--primary` (blue), Hold = `--warning` (amber), Exhale = `--success` (green)
-- All cards use `card-session` class for gradient consistency
-- Controls use existing Button variants (`primaryGradient`, `pillOutline`)
-- Config forms use existing Slider and Input components
-- Keep Screen Awake: use `navigator.wakeLock` API during active training to prevent screen from turning off
+Both `Co2TableConfig` and `QuadraticConfig` will:
+1. Call `useTrainingPresets("co2")` / `useTrainingPresets("quadratic")`
+2. Render a horizontal scroll of preset chips above the sliders (if any exist)
+3. On chip tap: set local state from `preset.config` (and `preset.custom_rows` for CO2)
+4. Add a save button that opens a Dialog with a name input
+5. Add a delete icon on each preset chip
 
