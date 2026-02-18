@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { t } from "@/lib/i18n";
 import { QuadraticConfig as QConfig } from "@/types/training";
-import { Play, ArrowLeft } from "lucide-react";
+import { Play, ArrowLeft, Bookmark, Trash2 } from "lucide-react";
+import { useTrainingPresets } from "@/hooks/useTrainingPresets";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface QuadraticConfigProps {
   onStart: (config: QConfig) => void;
@@ -18,11 +22,31 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
     hold2Seconds: 4,
     rounds: 10,
   });
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [presetName, setPresetName] = useState("");
+
+  const { presets, savePreset, deletePreset } = useTrainingPresets("quadratic");
 
   const cycleTime = config.inhaleSeconds + config.hold1Seconds + config.exhaleSeconds + config.hold2Seconds;
   const totalTime = cycleTime * config.rounds;
   const totalMin = Math.floor(totalTime / 60);
   const totalSec = totalTime % 60;
+
+  const handleSavePreset = () => {
+    if (!presetName.trim()) return;
+    savePreset.mutate({ name: presetName.trim(), config });
+    setSaveDialogOpen(false);
+    setPresetName("");
+  };
+
+  const loadPreset = (preset: typeof presets[0]) => {
+    setConfig(preset.config as QConfig);
+  };
+
+  const presetSummary = (preset: typeof presets[0]) => {
+    const c = preset.config as QConfig;
+    return `${c.inhaleSeconds}-${c.hold1Seconds}-${c.exhaleSeconds}-${c.hold2Seconds} · ${c.rounds}r`;
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -31,6 +55,34 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
       </button>
 
       <h2 className="text-xl font-bold text-foreground">{t("quadraticBreathing")}</h2>
+
+      {/* Presets */}
+      {presets.length > 0 && (
+        <div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t("myPresets")}</div>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex gap-2 pb-2">
+              {presets.map(p => (
+                <div
+                  key={p.id}
+                  className="card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group"
+                  onClick={() => loadPreset(p)}
+                >
+                  <div className="text-sm font-semibold text-foreground truncate pr-6">{p.name}</div>
+                  <div className="text-[10px] text-[hsl(var(--card-muted))]">{presetSummary(p)}</div>
+                  <button
+                    onClick={e => { e.stopPropagation(); deletePreset.mutate(p.id); }}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      )}
 
       <div className="space-y-5">
         <div>
@@ -90,10 +142,33 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
         </div>
       </div>
 
-      <Button variant="primaryGradient" size="lg" className="w-full rounded-full" onClick={() => onStart(config)}>
-        <Play className="w-4 h-4" />
-        {t("startTraining")}
-      </Button>
+      <div className="flex gap-3">
+        <Button variant="primaryGradient" size="lg" className="flex-1 rounded-full" onClick={() => onStart(config)}>
+          <Play className="w-4 h-4" />
+          {t("startTraining")}
+        </Button>
+        <Button variant="pillOutline" size="lg" className="rounded-full" onClick={() => { setPresetName(""); setSaveDialogOpen(true); }}>
+          <Bookmark className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("savePreset")}</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder={t("presetNamePlaceholder")}
+            value={presetName}
+            onChange={e => setPresetName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSavePreset()}
+            autoFocus
+          />
+          <Button onClick={handleSavePreset} disabled={!presetName.trim() || savePreset.isPending}>
+            {t("save")}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

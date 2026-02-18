@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { t } from "@/lib/i18n";
 import { Co2TableConfig as Co2Config, formatTime } from "@/types/training";
-import { Play, ArrowLeft } from "lucide-react";
+import { Play, ArrowLeft, Bookmark, Trash2 } from "lucide-react";
+import { useTrainingPresets } from "@/hooks/useTrainingPresets";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface Co2TableConfigProps {
   onStart: (config: Co2Config, customSteps?: { phase: "breathe" | "hold"; durationSeconds: number; round: number }[]) => void;
@@ -31,15 +35,17 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     startBreathSeconds: 120,
     decreaseStep: 15,
   });
-  // null = generated from sliders, array = user has manually edited at least one cell
   const [customRows, setCustomRows] = useState<RowData[] | null>(null);
   const [editingCell, setEditingCell] = useState<{ row: number; field: "breathe" | "hold" } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [presetName, setPresetName] = useState("");
+
+  const { presets, savePreset, deletePreset } = useTrainingPresets("co2");
 
   const rows = customRows ?? computeRows(config);
   const totalSeconds = rows.reduce((acc, r) => acc + r.breathe + r.hold, 0);
 
-  // When any slider changes, reset custom rows
   const updateConfig = (patch: Partial<Co2Config>) => {
     setConfig(c => ({ ...c, ...patch }));
     setCustomRows(null);
@@ -47,7 +53,6 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
   };
 
   const handleCellClick = (rowIdx: number, field: "breathe" | "hold") => {
-    // Initialize custom rows from current computed rows if not yet customized
     if (!customRows) {
       setCustomRows(computeRows(config));
     }
@@ -91,6 +96,29 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     onStart(config, steps);
   };
 
+  const handleSavePreset = () => {
+    if (!presetName.trim()) return;
+    savePreset.mutate({
+      name: presetName.trim(),
+      config,
+      customRows: customRows ?? null,
+    });
+    setSaveDialogOpen(false);
+    setPresetName("");
+  };
+
+  const loadPreset = (preset: typeof presets[0]) => {
+    const c = preset.config as Co2Config;
+    setConfig(c);
+    setCustomRows(preset.custom_rows ?? null);
+    setEditingCell(null);
+  };
+
+  const presetSummary = (preset: typeof presets[0]) => {
+    const c = preset.config as Co2Config;
+    return `${c.rounds}r · ${formatTime(c.holdSeconds)}`;
+  };
+
   return (
     <div className="flex flex-col gap-5">
       <button onClick={onBack} className="flex items-center gap-2 text-[hsl(var(--muted))] text-sm">
@@ -98,6 +126,34 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
       </button>
 
       <h2 className="text-xl font-bold text-foreground">{t("co2Table")}</h2>
+
+      {/* Presets */}
+      {presets.length > 0 && (
+        <div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{t("myPresets")}</div>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex gap-2 pb-2">
+              {presets.map(p => (
+                <div
+                  key={p.id}
+                  className="card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group"
+                  onClick={() => loadPreset(p)}
+                >
+                  <div className="text-sm font-semibold text-foreground truncate pr-6">{p.name}</div>
+                  <div className="text-[10px] text-[hsl(var(--card-muted))]">{presetSummary(p)}</div>
+                  <button
+                    onClick={e => { e.stopPropagation(); deletePreset.mutate(p.id); }}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      )}
 
       <div className="space-y-5">
         <div>
@@ -126,7 +182,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
         </div>
       </div>
 
-      {/* Preview table — tap any cell to edit */}
+      {/* Preview table */}
       <div className="card-session !rounded-xl !p-0 overflow-hidden">
         <div className="grid grid-cols-[40px_1fr_1fr] text-xs text-[hsl(var(--card-muted))] uppercase tracking-wider">
           <div className="p-2 text-center">#</div>
@@ -164,10 +220,33 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
         </div>
       </div>
 
-      <Button variant="primaryGradient" size="lg" className="w-full rounded-full" onClick={handleStart}>
-        <Play className="w-4 h-4" />
-        {t("startTraining")}
-      </Button>
+      <div className="flex gap-3">
+        <Button variant="primaryGradient" size="lg" className="flex-1 rounded-full" onClick={handleStart}>
+          <Play className="w-4 h-4" />
+          {t("startTraining")}
+        </Button>
+        <Button variant="pillOutline" size="lg" className="rounded-full" onClick={() => { setPresetName(""); setSaveDialogOpen(true); }}>
+          <Bookmark className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("savePreset")}</DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder={t("presetNamePlaceholder")}
+            value={presetName}
+            onChange={e => setPresetName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSavePreset()}
+            autoFocus
+          />
+          <Button onClick={handleSavePreset} disabled={!presetName.trim() || savePreset.isPending}>
+            {t("save")}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

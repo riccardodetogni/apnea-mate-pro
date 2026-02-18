@@ -52,6 +52,16 @@ export const generateQuadraticSteps = (config: QuadraticConfig): TrainingStep[] 
   return steps;
 };
 
+export interface TrainingPreset {
+  id: string;
+  user_id: string;
+  name: string;
+  mode: TrainingMode;
+  config: Co2TableConfig | QuadraticConfig;
+  custom_rows: { breathe: number; hold: number }[] | null;
+  created_at: string;
+}
+
 export const formatTime = (seconds: number): string => {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
