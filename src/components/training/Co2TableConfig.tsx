@@ -225,8 +225,8 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
           <Play className="w-4 h-4" />
           {t("startTraining")}
         </Button>
-        <Button variant="pillOutline" size="lg" className="rounded-full" onClick={() => { setPresetName(""); setSaveDialogOpen(true); }}>
-          <Bookmark className="w-4 h-4" />
+        <Button variant="outline" size="icon" className="rounded-full h-11 w-11 border-primary/40 text-primary hover:bg-primary/10" onClick={() => { setPresetName(""); setSaveDialogOpen(true); }}>
+          <Bookmark className="w-5 h-5" />
         </Button>
       </div>
 
