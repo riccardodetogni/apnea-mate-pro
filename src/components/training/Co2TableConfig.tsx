@@ -38,6 +38,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
   const [customRows, setCustomRows] = useState<RowData[] | null>(null);
   const [editingCell, setEditingCell] = useState<{ row: number; field: "breathe" | "hold" } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
 
@@ -50,6 +51,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     setConfig(c => ({ ...c, ...patch }));
     setCustomRows(null);
     setEditingCell(null);
+    setSelectedPresetId(null);
   };
 
   const handleCellClick = (rowIdx: number, field: "breathe" | "hold") => {
@@ -73,6 +75,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     }
     if (seconds < 1) seconds = 1;
 
+    setSelectedPresetId(null);
     setCustomRows(prev => {
       const base = prev ?? computeRows(config);
       const updated = [...base];
@@ -112,6 +115,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     setConfig(c);
     setCustomRows(preset.custom_rows ?? null);
     setEditingCell(null);
+    setSelectedPresetId(preset.id);
   };
 
   const presetSummary = (preset: typeof presets[0]) => {
@@ -134,12 +138,12 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
               {presets.map(p => (
-                <div
+                 <div
                   key={p.id}
-                  className="card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group"
+                  className={`card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group ${selectedPresetId === p.id ? 'border-primary/60 ring-1 ring-primary/30' : ''}`}
                   onClick={() => loadPreset(p)}
                 >
-                  <div className="text-sm font-semibold text-foreground truncate pr-6">{p.name}</div>
+                  <div className="text-sm font-semibold text-card-foreground truncate pr-6">{p.name}</div>
                   <div className="text-[10px] text-[hsl(var(--card-muted))]">{presetSummary(p)}</div>
                   <button
                     onClick={e => { e.stopPropagation(); deletePreset.mutate(p.id); }}
