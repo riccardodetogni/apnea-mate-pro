@@ -65,5 +65,23 @@ export const useTrainingPresets = (mode: TrainingMode) => {
     },
   });
 
-  return { presets, isLoading, savePreset, deletePreset };
+  const updatePreset = useMutation({
+    mutationFn: async ({ id, config, customRows }: {
+      id: string;
+      config: Co2TableConfig | QuadraticConfig;
+      customRows?: { breathe: number; hold: number }[] | null;
+    }) => {
+      const { error } = await supabase
+        .from("training_presets" as any)
+        .update({ config: config as any, custom_rows: customRows ?? null } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training-presets", mode] });
+      toast.success(t("presetUpdated"));
+    },
+  });
+
+  return { presets, isLoading, savePreset, deletePreset, updatePreset };
 };

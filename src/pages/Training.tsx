@@ -52,9 +52,9 @@ const Training = () => {
               className="card-session !rounded-2xl !p-5 text-left"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center shrink-0">
-                  <TableProperties className="w-6 h-6 text-primary" />
-                </div>
+                 <div className="w-12 h-12 rounded-xl bg-[hsl(185,57%,52%)]/20 flex items-center justify-center shrink-0">
+                   <TableProperties className="w-6 h-6 text-[hsl(185,57%,52%)]" />
+                 </div>
                 <div>
                   <h3 className="font-semibold text-card-foreground text-base">{t("co2Table")}</h3>
                   <p className="text-sm text-[hsl(var(--card-muted))] mt-0.5">{t("co2TableDesc")}</p>
@@ -68,9 +68,9 @@ const Training = () => {
               className="card-session !rounded-2xl !p-5 text-left"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center shrink-0">
-                  <Wind className="w-6 h-6 text-[hsl(142,71%,45%)]" />
-                </div>
+                 <div className="w-12 h-12 rounded-xl bg-[hsl(142,71%,45%)]/20 flex items-center justify-center shrink-0">
+                   <Wind className="w-6 h-6 text-[hsl(142,71%,45%)]" />
+                 </div>
                 <div>
                   <h3 className="font-semibold text-card-foreground text-base">{t("quadraticBreathing")}</h3>
                   <p className="text-sm text-[hsl(var(--card-muted))] mt-0.5">{t("quadraticBreathingDesc")}</p>
