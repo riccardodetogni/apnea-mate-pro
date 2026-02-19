@@ -22,6 +22,7 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
     hold2Seconds: 4,
     rounds: 10,
   });
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
 
@@ -41,6 +42,7 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
 
   const loadPreset = (preset: typeof presets[0]) => {
     setConfig(preset.config as QConfig);
+    setSelectedPresetId(preset.id);
   };
 
   const presetSummary = (preset: typeof presets[0]) => {
@@ -65,10 +67,10 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
               {presets.map(p => (
                 <div
                   key={p.id}
-                  className="card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group"
+                  className={`card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group ${selectedPresetId === p.id ? 'border-primary/60 ring-1 ring-primary/30' : ''}`}
                   onClick={() => loadPreset(p)}
                 >
-                  <div className="text-sm font-semibold text-foreground truncate pr-6">{p.name}</div>
+                  <div className="text-sm font-semibold text-card-foreground truncate pr-6">{p.name}</div>
                   <div className="text-[10px] text-[hsl(var(--card-muted))]">{presetSummary(p)}</div>
                   <button
                     onClick={e => { e.stopPropagation(); deletePreset.mutate(p.id); }}
@@ -89,35 +91,35 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("inhale")}: {config.inhaleSeconds}s
           </label>
-          <Slider value={[config.inhaleSeconds]} onValueChange={([v]) => setConfig(c => ({ ...c, inhaleSeconds: v }))} min={1} max={20} step={1} />
+          <Slider value={[config.inhaleSeconds]} onValueChange={([v]) => { setConfig(c => ({ ...c, inhaleSeconds: v })); setSelectedPresetId(null); }} min={1} max={20} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("hold")} 1: {config.hold1Seconds}s
           </label>
-          <Slider value={[config.hold1Seconds]} onValueChange={([v]) => setConfig(c => ({ ...c, hold1Seconds: v }))} min={1} max={20} step={1} />
+          <Slider value={[config.hold1Seconds]} onValueChange={([v]) => { setConfig(c => ({ ...c, hold1Seconds: v })); setSelectedPresetId(null); }} min={1} max={20} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("exhale")}: {config.exhaleSeconds}s
           </label>
-          <Slider value={[config.exhaleSeconds]} onValueChange={([v]) => setConfig(c => ({ ...c, exhaleSeconds: v }))} min={1} max={20} step={1} />
+          <Slider value={[config.exhaleSeconds]} onValueChange={([v]) => { setConfig(c => ({ ...c, exhaleSeconds: v })); setSelectedPresetId(null); }} min={1} max={20} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("hold")} 2: {config.hold2Seconds}s
           </label>
-          <Slider value={[config.hold2Seconds]} onValueChange={([v]) => setConfig(c => ({ ...c, hold2Seconds: v }))} min={1} max={20} step={1} />
+          <Slider value={[config.hold2Seconds]} onValueChange={([v]) => { setConfig(c => ({ ...c, hold2Seconds: v })); setSelectedPresetId(null); }} min={1} max={20} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("rounds")}: {config.rounds}
           </label>
-          <Slider value={[config.rounds]} onValueChange={([v]) => setConfig(c => ({ ...c, rounds: v }))} min={1} max={30} step={1} />
+          <Slider value={[config.rounds]} onValueChange={([v]) => { setConfig(c => ({ ...c, rounds: v })); setSelectedPresetId(null); }} min={1} max={30} step={1} />
         </div>
       </div>
 

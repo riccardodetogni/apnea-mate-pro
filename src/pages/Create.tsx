@@ -9,21 +9,21 @@ const createOptions = [
     icon: Calendar, 
     label: "createSession",
     description: "Organizza un allenamento o uscita",
-    color: "bg-white/10 text-primary",
+    color: "bg-gradient-to-br from-primary/30 to-primary/10 text-primary",
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
     description: "Crea un gruppo locale di apneisti",
-    color: "bg-white/10 text-success",
+    color: "bg-gradient-to-br from-success/30 to-success/10 text-success",
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
     description: "Registra il tuo allenamento personale",
-    color: "bg-white/10 text-warning",
+    color: "bg-gradient-to-br from-warning/30 to-warning/10 text-warning",
   },
 ];
 
