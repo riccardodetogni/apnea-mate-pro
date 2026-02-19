@@ -39,10 +39,12 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
   const [editingCell, setEditingCell] = useState<{ row: number; field: "breathe" | "hold" } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [hasModified, setHasModified] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [choiceDialogOpen, setChoiceDialogOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
 
-  const { presets, savePreset, deletePreset } = useTrainingPresets("co2");
+  const { presets, savePreset, deletePreset, updatePreset } = useTrainingPresets("co2");
 
   const rows = customRows ?? computeRows(config);
   const totalSeconds = rows.reduce((acc, r) => acc + r.breathe + r.hold, 0);
@@ -51,7 +53,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     setConfig(c => ({ ...c, ...patch }));
     setCustomRows(null);
     setEditingCell(null);
-    setSelectedPresetId(null);
+    if (selectedPresetId) setHasModified(true);
   };
 
   const handleCellClick = (rowIdx: number, field: "breathe" | "hold") => {
@@ -75,7 +77,7 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     }
     if (seconds < 1) seconds = 1;
 
-    setSelectedPresetId(null);
+    if (selectedPresetId) setHasModified(true);
     setCustomRows(prev => {
       const base = prev ?? computeRows(config);
       const updated = [...base];
@@ -110,12 +112,33 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
     setPresetName("");
   };
 
+  const handleUpdatePreset = () => {
+    if (!selectedPresetId) return;
+    updatePreset.mutate({
+      id: selectedPresetId,
+      config,
+      customRows: customRows ?? null,
+    });
+    setHasModified(false);
+    setChoiceDialogOpen(false);
+  };
+
+  const handleBookmarkClick = () => {
+    if (selectedPresetId && hasModified) {
+      setChoiceDialogOpen(true);
+    } else {
+      setPresetName("");
+      setSaveDialogOpen(true);
+    }
+  };
+
   const loadPreset = (preset: typeof presets[0]) => {
     const c = preset.config as Co2Config;
     setConfig(c);
     setCustomRows(preset.custom_rows ?? null);
     setEditingCell(null);
     setSelectedPresetId(preset.id);
+    setHasModified(false);
   };
 
   const presetSummary = (preset: typeof presets[0]) => {
@@ -140,11 +163,15 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
               {presets.map(p => (
                  <div
                   key={p.id}
-                  className={`card-session !rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group ${selectedPresetId === p.id ? 'border-primary/60 ring-1 ring-primary/30' : ''}`}
+                  className={`!rounded-xl !p-3 !min-w-[140px] cursor-pointer flex-shrink-0 relative group ${
+                    selectedPresetId === p.id 
+                      ? 'bg-gradient-to-br from-[hsl(185,57%,52%)] to-[hsl(228,80%,58%)] border border-white/30 rounded-xl' 
+                      : 'card-session'
+                  }`}
                   onClick={() => loadPreset(p)}
                 >
-                  <div className="text-sm font-semibold text-card-foreground truncate pr-6">{p.name}</div>
-                  <div className="text-[10px] text-[hsl(var(--card-muted))]">{presetSummary(p)}</div>
+                  <div className="text-sm font-semibold text-white truncate pr-6">{p.name}</div>
+                  <div className={`text-[10px] ${selectedPresetId === p.id ? 'text-white/70' : 'text-[hsl(var(--card-muted))]'}`}>{presetSummary(p)}</div>
                   <button
                     onClick={e => { e.stopPropagation(); deletePreset.mutate(p.id); }}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
@@ -229,11 +256,12 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
           <Play className="w-4 h-4" />
           {t("startTraining")}
         </Button>
-        <Button variant="outline" size="icon" className="rounded-full h-11 w-11 border-primary/40 text-primary hover:bg-primary/10" onClick={() => { setPresetName(""); setSaveDialogOpen(true); }}>
+        <Button variant="outline" size="icon" className="rounded-full h-11 w-11 border-primary/40 text-primary hover:bg-primary/10" onClick={handleBookmarkClick}>
           <Bookmark className="w-5 h-5" />
         </Button>
       </div>
 
+      {/* Save new preset dialog */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -249,6 +277,23 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
           <Button onClick={handleSavePreset} disabled={!presetName.trim() || savePreset.isPending}>
             {t("save")}
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update or save as new dialog */}
+      <Dialog open={choiceDialogOpen} onOpenChange={setChoiceDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("presetModified")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <Button variant="primaryGradient" onClick={handleUpdatePreset} disabled={updatePreset.isPending}>
+              {t("updatePreset")}
+            </Button>
+            <Button variant="outline" onClick={() => { setChoiceDialogOpen(false); setPresetName(""); setSaveDialogOpen(true); }}>
+              {t("saveAsNew")}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

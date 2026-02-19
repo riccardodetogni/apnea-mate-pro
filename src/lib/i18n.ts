@@ -298,6 +298,10 @@ const translations = {
     deletePreset: "Elimina preset",
     deletePresetConfirm: "Vuoi eliminare questo preset?",
     presetNamePlaceholder: "Es. CO2 Avanzata",
+    updatePreset: "Aggiorna preset",
+    saveAsNew: "Salva come nuovo",
+    presetModified: "Hai modificato il preset",
+    presetUpdated: "Preset aggiornato!",
   },
   en: {
     // App
@@ -593,6 +597,10 @@ const translations = {
     deletePreset: "Delete preset",
     deletePresetConfirm: "Delete this preset?",
     presetNamePlaceholder: "E.g. Advanced CO2",
+    updatePreset: "Update preset",
+    saveAsNew: "Save as new",
+    presetModified: "You modified the preset",
+    presetUpdated: "Preset updated!",
   },
 };
 

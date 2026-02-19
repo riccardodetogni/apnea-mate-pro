@@ -9,21 +9,21 @@ const createOptions = [
     icon: Calendar, 
     label: "createSession",
     description: "Organizza un allenamento o uscita",
-    color: "bg-gradient-to-br from-primary/30 to-primary/10 text-primary",
+    color: "bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]",
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
     description: "Crea un gruppo locale di apneisti",
-    color: "bg-gradient-to-br from-success/30 to-success/10 text-success",
+    color: "bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]",
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
     description: "Registra il tuo allenamento personale",
-    color: "bg-gradient-to-br from-warning/30 to-warning/10 text-warning",
+    color: "bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]",
   },
 ];
 
