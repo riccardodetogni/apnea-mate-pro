@@ -9,24 +9,21 @@ const createOptions = [
     icon: Calendar, 
     label: "createSession",
     description: "Organizza un allenamento o uscita",
-    bubbleStyle: { background: "linear-gradient(135deg, rgba(63,189,200,0.40), rgba(63,102,232,0.25))", color: "hsl(185,57%,72%)" },
-    cardStyle: { background: "linear-gradient(135deg, rgba(63,189,200,0.25) 0%, rgba(35,58,107,1) 60%)" },
+    iconClass: "bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]",
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
     description: "Crea un gruppo locale di apneisti",
-    bubbleStyle: { background: "linear-gradient(135deg, rgba(34,197,94,0.35), rgba(16,185,129,0.20))", color: "hsl(142,71%,65%)" },
-    cardStyle: { background: "linear-gradient(135deg, rgba(34,197,94,0.25) 0%, rgba(35,58,107,1) 60%)" },
+    iconClass: "bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]",
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
     description: "Registra il tuo allenamento personale",
-    bubbleStyle: { background: "linear-gradient(135deg, rgba(245,158,11,0.35), rgba(239,68,68,0.18))", color: "hsl(38,92%,68%)" },
-    cardStyle: { background: "linear-gradient(135deg, rgba(245,158,11,0.25) 0%, rgba(35,58,107,1) 60%)" },
+    iconClass: "bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]",
   },
 ];
 
@@ -61,23 +58,21 @@ const Create = () => {
         </div>
       </header>
 
-      <div className="space-y-3">
-        {createOptions.map(({ id, icon: Icon, label, description, bubbleStyle, cardStyle }) => (
+      <div className="flex flex-col gap-3">
+        {createOptions.map(({ id, icon: Icon, label, description, iconClass }) => (
           <button
             key={id}
             onClick={() => handleOptionClick(id)}
-            className="w-full p-4 rounded-2xl border border-white/12 transition-all text-left flex items-center gap-4"
-            style={cardStyle}
+            className="card-session !rounded-2xl !p-5 text-left"
           >
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={bubbleStyle}
-            >
-              <Icon className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-card-foreground">{t(label as any)}</h3>
-              <p className="text-sm text-white/55">{description}</p>
+            <div className="flex items-start gap-4">
+              <div className={`w-12 h-12 rounded-xl ${iconClass} flex items-center justify-center shrink-0`}>
+                <Icon className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-card-foreground text-base">{t(label as any)}</h3>
+                <p className="text-sm text-[hsl(var(--card-muted))] mt-0.5">{description}</p>
+              </div>
             </div>
           </button>
         ))}
