@@ -9,21 +9,21 @@ const createOptions = [
     icon: Calendar, 
     label: "createSession",
     description: "Organizza un allenamento o uscita",
-    bubbleStyle: { background: "rgba(63,189,200,0.18)", color: "hsl(185,57%,52%)" },
+    bubbleStyle: { background: "linear-gradient(135deg, rgba(63,189,200,0.35), rgba(63,102,232,0.20))", color: "hsl(185,57%,62%)" },
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
     description: "Crea un gruppo locale di apneisti",
-    bubbleStyle: { background: "rgba(34,197,94,0.18)", color: "hsl(142,71%,45%)" },
+    bubbleStyle: { background: "linear-gradient(135deg, rgba(34,197,94,0.30), rgba(16,185,129,0.15))", color: "hsl(142,71%,55%)" },
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
     description: "Registra il tuo allenamento personale",
-    bubbleStyle: { background: "rgba(245,158,11,0.18)", color: "hsl(38,92%,50%)" },
+    bubbleStyle: { background: "linear-gradient(135deg, rgba(245,158,11,0.30), rgba(239,68,68,0.15))", color: "hsl(38,92%,60%)" },
   },
 ];
 
