@@ -9,21 +9,21 @@ const createOptions = [
     icon: Calendar, 
     label: "createSession",
     description: "Organizza un allenamento o uscita",
-    color: "bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]",
+    bubbleStyle: { background: "rgba(63,189,200,0.18)", color: "hsl(185,57%,52%)" },
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
     description: "Crea un gruppo locale di apneisti",
-    color: "bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]",
+    bubbleStyle: { background: "rgba(34,197,94,0.18)", color: "hsl(142,71%,45%)" },
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
     description: "Registra il tuo allenamento personale",
-    color: "bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]",
+    bubbleStyle: { background: "rgba(245,158,11,0.18)", color: "hsl(38,92%,50%)" },
   },
 ];
 
@@ -59,13 +59,16 @@ const Create = () => {
       </header>
 
       <div className="space-y-3">
-        {createOptions.map(({ id, icon: Icon, label, description, color }) => (
+        {createOptions.map(({ id, icon: Icon, label, description, bubbleStyle }) => (
           <button
             key={id}
             onClick={() => handleOptionClick(id)}
             className="w-full p-4 rounded-2xl bg-card border border-white/8 hover:border-primary/30 transition-all text-left flex items-center gap-4"
           >
-            <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}>
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={bubbleStyle}
+            >
               <Icon className="w-6 h-6" />
             </div>
             <div className="flex-1">
