@@ -1,97 +1,99 @@
 
 
-# Fix Create Page Icons, Preset Selection Style & Save/Update Flow
+## Chat Unificata -- Piano di Implementazione
 
-## Issues
+### Concept
 
-1. **Create page icon "bubbles" are all blue** -- The gradient classes use `primary` which is blue. The icons inside Training.tsx use `badge-blue-bg` (translucent white). Need distinct, vivid colors per category.
-2. **Preset selection highlight is too subtle** -- Should use the same teal-to-blue gradient background (like the "Unisciti"/"Start Training" buttons) to clearly show which preset is active.
-3. **No way to update an existing preset** -- When a preset is loaded and then modified, the user needs two clear options: "Save changes to this preset" or "Save as new preset".
+Una sezione **Messaggi** accessibile dalla bottom nav, che mostra tutte le conversazioni in un'unica lista (stile WhatsApp). Ogni conversazione può essere di 3 tipi:
+- **Sessione**: chat tra i partecipanti di una sessione
+- **Gruppo**: chat tra i membri di un gruppo
+- **Diretta (DM)**: conversazione 1-a-1 tra due utenti
 
----
+### Database (2 nuove tabelle)
 
-## Changes
+**`conversations`** -- una riga per ogni chat
+| Colonna | Tipo | Note |
+|---------|------|-------|
+| id | uuid PK | |
+| type | text | `'session'`, `'group'`, `'dm'` |
+| session_id | uuid nullable | FK → sessions, per type=session |
+| group_id | uuid nullable | FK → groups, per type=group |
+| created_at | timestamptz | |
 
-### 1. Create.tsx -- Distinct icon bubble colors
+**`messages`** -- i messaggi
+| Colonna | Tipo | Note |
+|---------|------|-------|
+| id | uuid PK | |
+| conversation_id | uuid FK | → conversations |
+| sender_id | uuid | user id |
+| content | text | testo del messaggio |
+| created_at | timestamptz | |
 
-Replace the current gradient classes with vivid, distinct backgrounds. The `primary` color is blue (HSL 228 80% 58%), so all three look the same. Fix:
-- Session: use teal/accent (`bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]`)
-- Group: use green/success (`bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]`)
-- Training: use amber/warning (`bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]`)
+**`conversation_participants`** -- chi partecipa (per DM e per tracking "ultimo letto")
+| Colonna | Tipo | Note |
+|---------|------|-------|
+| id | uuid PK | |
+| conversation_id | uuid FK | |
+| user_id | uuid | |
+| last_read_at | timestamptz nullable | per badge "non letto" |
+| joined_at | timestamptz | |
 
-### 2. Training.tsx -- Also fix the icon bubbles on the training home screen
+### RLS Policies
+- **conversations**: SELECT se l'utente è in `conversation_participants` OR è membro del gruppo/sessione collegata
+- **messages**: SELECT/INSERT se l'utente partecipa alla conversazione
+- **conversation_participants**: SELECT se user è partecipante, INSERT/UPDATE solo per il proprio record
 
-The CO2 and Quadratic cards both use `bg-[hsl(var(--badge-blue-bg))]` which is the same translucent white. Give them distinct icon colors:
-- CO2: teal accent background
-- Quadratic: green background
+### Logica di creazione conversazioni
+- **Sessione**: la conversazione si crea automaticamente quando la sessione viene creata (o al primo messaggio). Tutti i partecipanti confermati + creatore vi accedono.
+- **Gruppo**: la conversazione si crea quando il gruppo viene creato. Tutti i membri approvati vi accedono.
+- **DM**: si crea al primo messaggio. Si cerca prima se esiste già una conversazione DM tra i due utenti.
 
-### 3. Preset chips -- Selected state uses gradient background
+### UI -- Nuove pagine e componenti
 
-When a preset is selected, instead of a subtle border ring, apply the `btn-primary-gradient` style (teal-to-blue gradient) to the chip so it visually matches "active" elements elsewhere. Unselected chips keep the default `card-session` dark navy look.
+1. **`/messages`** -- Lista conversazioni (nuova tab nella bottom nav, icona `MessageCircle`)
+   - Lista ordinata per ultimo messaggio
+   - Ogni riga: avatar, nome (sessione/gruppo/utente), preview ultimo messaggio, timestamp, badge non letti
+   - FAB per "Nuovo messaggio" (cerca utente per DM)
 
-Selected preset chip classes: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] border-white/30` (matching `btn-primary-gradient`).
+2. **`/messages/:conversationId`** -- Thread di chat
+   - Header con nome conversazione e back button
+   - Lista messaggi scrollabile (bubble layout, miei a destra, altri a sinistra)
+   - Input in basso con bottone invio
+   - Polling ogni 10s con `useQuery` + `refetchInterval`
 
-### 4. Save/Update preset flow
+3. **Accesso rapido da contesti esistenti**
+   - **SessionDetails**: bottone "Chat" che naviga alla conversazione della sessione
+   - **GroupDetails**: bottone "Chat" che naviga alla conversazione del gruppo
+   - **UserProfile**: bottone "Messaggio" che crea/apre DM
 
-Add an `updatePreset` mutation to `useTrainingPresets` that updates an existing preset by ID.
+### Polling
+- Lista conversazioni: `refetchInterval: 15000` (15s)
+- Thread attivo: `refetchInterval: 10000` (10s)
+- Badge non letti nella bottom nav: `refetchInterval: 30000` (30s)
 
-When a preset is loaded and then modified (slider or table edit), track a `hasModified` boolean. When the user taps the bookmark button:
-- If `selectedPresetId` is set AND `hasModified` is true: show a dialog with two buttons -- "Aggiorna preset" (update existing) and "Salva come nuovo" (save as new with name input).
-- If no preset is selected: show the current "save new" dialog.
+### Bottom Nav
+Aggiungere icona **Messaggi** (con badge contatore non letti) alla barra inferiore. Attualmente ci sono 4 tab -- diventa 5: Community, Spots, Messaggi, Training, Profile.
 
-### 5. i18n keys
+### Files da creare/modificare
+1. **Migration SQL**: crea `conversations`, `messages`, `conversation_participants` + RLS + indici
+2. `src/hooks/useConversations.ts` -- lista conversazioni con ultimo messaggio
+3. `src/hooks/useChat.ts` -- messaggi di una conversazione + invio + polling
+4. `src/pages/Messages.tsx` -- lista conversazioni
+5. `src/pages/ChatThread.tsx` -- thread singolo
+6. `src/components/chat/ConversationItem.tsx` -- riga nella lista
+7. `src/components/chat/ChatBubble.tsx` -- bolla messaggio
+8. `src/components/chat/ChatInput.tsx` -- input messaggio
+9. `src/components/layout/BottomNav.tsx` -- aggiungere tab Messaggi + badge
+10. `src/pages/SessionDetails.tsx` -- bottone "Chat sessione"
+11. `src/pages/GroupDetails.tsx` -- bottone "Chat gruppo"
+12. `src/pages/UserProfile.tsx` -- bottone "Messaggio"
+13. `src/App.tsx` -- nuove routes `/messages` e `/messages/:id`
+14. `src/lib/i18n.ts` -- chiavi traduzione
 
-Add new keys:
-- `updatePreset`: "Aggiorna preset" / "Update preset"
-- `saveAsNew`: "Salva come nuovo" / "Save as new"
-- `presetModified`: "Hai modificato il preset" / "You modified the preset"
-- `presetUpdated`: "Preset aggiornato!" / "Preset updated!"
-
----
-
-## Technical Details
-
-### useTrainingPresets.ts changes
-
-Add `updatePreset` mutation:
-```typescript
-const updatePreset = useMutation({
-  mutationFn: async ({ id, config, customRows }: {
-    id: string;
-    config: Co2TableConfig | QuadraticConfig;
-    customRows?: { breathe: number; hold: number }[] | null;
-  }) => {
-    const { error } = await supabase
-      .from("training_presets")
-      .update({ config, custom_rows: customRows ?? null })
-      .eq("id", id);
-    if (error) throw error;
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["training-presets", mode] });
-    toast.success(t("presetUpdated"));
-  },
-});
-```
-
-### Co2TableConfig.tsx and QuadraticConfig.tsx changes
-
-State additions:
-- `hasModified: boolean` -- set to `true` when sliders/cells change while a preset is selected, reset to `false` when loading a preset.
-
-Bookmark button logic:
-- If `selectedPresetId && hasModified`: open a choice dialog with "Update preset" and "Save as new" buttons.
-- If no preset selected: open the existing name-input save dialog.
-
-Selected preset chip styling:
-- Selected: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] !border-white/30` (removes `card-session` dark bg, applies gradient)
-- Unselected: default `card-session` styling
-
-### Files to modify
-- `src/pages/Create.tsx` -- icon colors
-- `src/pages/Training.tsx` -- icon colors
-- `src/hooks/useTrainingPresets.ts` -- add `updatePreset` mutation
-- `src/components/training/Co2TableConfig.tsx` -- preset selection style, save/update flow
-- `src/components/training/QuadraticConfig.tsx` -- preset selection style, save/update flow
-- `src/lib/i18n.ts` -- new keys
+### Ordine di implementazione
+1. Migration DB (tabelle + RLS + indici)
+2. Hooks (`useConversations`, `useChat`)
+3. Componenti chat (bubble, input, item)
+4. Pagine (Messages, ChatThread)
+5. Integrazione (BottomNav, SessionDetails, GroupDetails, UserProfile, routes)
 
