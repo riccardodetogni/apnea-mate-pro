@@ -59,14 +59,15 @@ export const CommunityHeader = () => {
           <Calendar className="w-[18px] h-[18px] text-primary" />
         </button>
 
-        {/* New session button - compact icon+text */}
+        {/* Create button */}
         <Button 
           variant="primaryGradient" 
-          size="icon"
-          onClick={() => navigate("/create/session")}
-          className="w-9 h-9 rounded-full p-0"
+          size="sm"
+          onClick={() => navigate("/create")}
+          className="rounded-full px-3.5 h-9 gap-1.5 text-xs font-semibold"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
+          {t("navCreate")}
         </Button>
       </div>
     </header>
