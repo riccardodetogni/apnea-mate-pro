@@ -308,6 +308,15 @@ const translations = {
     musicFocus: "Focus",
     musicOff: "Nessuna",
     secondsShort: "secondi",
+    // Chat
+    messages: "Messaggi",
+    navMessages: "Messaggi",
+    noMessages: "Nessun messaggio",
+    noMessagesDesc: "Le tue conversazioni con sessioni, gruppi e altri apneisti appariranno qui",
+    chatPlaceholder: "Scrivi un messaggio...",
+    chatSession: "Chat sessione",
+    chatGroup: "Chat gruppo",
+    sendMessage: "Messaggio",
   },
   en: {
     // App
