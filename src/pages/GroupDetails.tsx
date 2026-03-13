@@ -157,6 +157,21 @@ const GroupDetails = () => {
             Lascia gruppo
           </Button>
         ) : null}
+        {user && group.is_member && (
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const convId = await getOrCreateGroupConversation(group.id, user.id);
+                navigate(`/messages/${convId}`);
+              } catch { /* ignore */ }
+            }}
+            className="gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            {t("chatGroup")}
+          </Button>
+        )}
         <Button variant="outline" onClick={handleShare} className="gap-2">
           <Share2 className="w-4 h-4" />
           Condividi

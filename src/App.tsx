@@ -85,6 +85,8 @@ const App = () => (
                 <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
                 <Route path="/discover" element={<RequireAuth><DiscoverFreedivers /></RequireAuth>} />
+                <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
+                <Route path="/messages/:id" element={<RequireAuth><ChatThread /></RequireAuth>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
