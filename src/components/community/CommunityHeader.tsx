@@ -62,12 +62,11 @@ export const CommunityHeader = () => {
         {/* New session button - compact icon+text */}
         <Button 
           variant="primaryGradient" 
-          size="pill"
+          size="icon"
           onClick={() => navigate("/create/session")}
-          className="text-[12px] py-1.5 px-2.5 h-9 gap-0.5"
+          className="w-9 h-9 rounded-full p-0"
         >
-          <Plus className="w-3.5 h-3.5" />
-          Nuova
+          <Plus className="w-4 h-4" />
         </Button>
       </div>
     </header>
