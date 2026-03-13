@@ -16,7 +16,7 @@ export const SearchBar = ({
   onToggleNearbyFilter,
 }: SearchBarProps) => {
   const [query, setQuery] = useState("");
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search
   useEffect(() => {
