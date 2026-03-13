@@ -302,6 +302,12 @@ const translations = {
     saveAsNew: "Salva come nuovo",
     presetModified: "Hai modificato il preset",
     presetUpdated: "Preset aggiornato!",
+    getReady: "Preparati",
+    backgroundMusic: "Musica di sottofondo",
+    musicOcean: "Oceano",
+    musicFocus: "Focus",
+    musicOff: "Nessuna",
+    secondsShort: "secondi",
   },
   en: {
     // App
