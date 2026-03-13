@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { it, enUS } from "date-fns/locale";
+import { getOrCreateDMConversation } from "@/hooks/useConversations";
 
 const UserProfile = () => {
   const { id } = useParams<{ id: string }>();
