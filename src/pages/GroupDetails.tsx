@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notifications";
+import { getOrCreateGroupConversation } from "@/hooks/useConversations";
 
 const GroupDetails = () => {
   const { id } = useParams<{ id: string }>();
