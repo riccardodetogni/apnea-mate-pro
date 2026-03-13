@@ -16,7 +16,8 @@ import {
   Loader2,
   UserPlus,
   UserMinus,
-  AlertCircle
+  AlertCircle,
+  MessageCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it, enUS } from "date-fns/locale";
