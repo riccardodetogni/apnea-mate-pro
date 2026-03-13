@@ -171,6 +171,23 @@ const UserProfile = () => {
               )}
             </Button>
           )}
+
+          {/* DM Button */}
+          {user && !isOwnProfile && (
+            <Button
+              variant="outline"
+              className="mt-2 w-full gap-2"
+              onClick={async () => {
+                try {
+                  const convId = await getOrCreateDMConversation(user.id, id!);
+                  navigate(`/messages/${convId}`);
+                } catch { /* ignore */ }
+              }}
+            >
+              <MessageCircle className="w-4 h-4" />
+              {t("sendMessage")}
+            </Button>
+          )}
           </div>
         </div>
 

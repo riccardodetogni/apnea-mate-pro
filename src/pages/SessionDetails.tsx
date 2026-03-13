@@ -432,7 +432,27 @@ const SessionDetails = () => {
           </div>
         </div>
 
-        {/* Creator */}
+        {/* Chat button for participants */}
+        {(session.isCreator || session.isParticipant) && (
+          <Button
+            variant="outline"
+            className="w-full mb-4 gap-2"
+            onClick={async () => {
+              try {
+                const convId = await getOrCreateSessionConversation(session.id, session.creator_id);
+                // Ensure current user is a participant in the conversation
+                await supabase.from("conversation_participants").upsert({
+                  conversation_id: convId,
+                  user_id: user!.id,
+                }, { onConflict: "conversation_id,user_id" });
+                navigate(`/messages/${convId}`);
+              } catch { /* ignore */ }
+            }}
+          >
+            <MessageCircle className="w-4 h-4" />
+            {t("chatSession")}
+          </Button>
+        )}
         <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("organizer" as any)}</h3>
         <div
           className="card-session !rounded-2xl !p-0 mb-4 cursor-pointer hover:border-primary/30 transition-colors"
