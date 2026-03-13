@@ -308,6 +308,15 @@ const translations = {
     musicFocus: "Focus",
     musicOff: "Nessuna",
     secondsShort: "secondi",
+    // Chat
+    messages: "Messaggi",
+    navMessages: "Messaggi",
+    noMessages: "Nessun messaggio",
+    noMessagesDesc: "Le tue conversazioni con sessioni, gruppi e altri apneisti appariranno qui",
+    chatPlaceholder: "Scrivi un messaggio...",
+    chatSession: "Chat sessione",
+    chatGroup: "Chat gruppo",
+    sendMessage: "Messaggio",
   },
   en: {
     // App
@@ -613,6 +622,15 @@ const translations = {
     musicFocus: "Focus",
     musicOff: "Off",
     secondsShort: "seconds",
+    // Chat
+    messages: "Messages",
+    navMessages: "Messages",
+    noMessages: "No messages",
+    noMessagesDesc: "Your conversations with sessions, groups and other freedivers will appear here",
+    chatPlaceholder: "Write a message...",
+    chatSession: "Session chat",
+    chatGroup: "Group chat",
+    sendMessage: "Message",
   },
 };
 

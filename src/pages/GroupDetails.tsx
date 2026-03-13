@@ -8,11 +8,12 @@ import { GroupMembersSheet } from "@/components/groups/GroupMembersSheet";
 import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notifications";
+import { getOrCreateGroupConversation } from "@/hooks/useConversations";
 
 const GroupDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -156,6 +157,21 @@ const GroupDetails = () => {
             Lascia gruppo
           </Button>
         ) : null}
+        {user && group.is_member && (
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const convId = await getOrCreateGroupConversation(group.id, user.id);
+                navigate(`/messages/${convId}`);
+              } catch { /* ignore */ }
+            }}
+            className="gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            {t("chatGroup")}
+          </Button>
+        )}
         <Button variant="outline" onClick={handleShare} className="gap-2">
           <Share2 className="w-4 h-4" />
           Condividi
