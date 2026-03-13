@@ -67,8 +67,7 @@ export const CommunityHeader = () => {
           className="text-[12px] py-1.5 px-2.5 h-9 gap-0.5"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden xs:inline">{t("newSession")}</span>
-          <span className="xs:hidden">Nuova</span>
+          Nuova
         </Button>
       </div>
     </header>
