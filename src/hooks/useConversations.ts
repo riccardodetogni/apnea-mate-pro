@@ -156,33 +156,33 @@ export const useConversations = () => {
 
 // Helper: get or create a conversation for a session
 export const getOrCreateSessionConversation = async (sessionId: string, creatorId: string): Promise<string> => {
-  // Check if conversation already exists
   const { data: existing } = await supabase
     .from("conversations")
     .select("id")
     .eq("session_id", sessionId)
     .eq("type", "session")
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (existing) return existing.id;
 
-  // Create conversation
-  const { data: conv, error } = await supabase
-    .from("conversations")
-    .insert({ type: "session", session_id: sessionId })
-    .select("id")
-    .single();
+  // Generate ID client-side so we can add participant before needing SELECT
+  const convId = crypto.randomUUID();
 
-  if (error || !conv) throw new Error("Failed to create session conversation");
-
-  // Add creator as participant
+  // Add creator as participant first (no RLS issue on insert)
   await supabase.from("conversation_participants").insert({
-    conversation_id: conv.id,
+    conversation_id: convId,
     user_id: creatorId,
   });
 
-  return conv.id;
+  // Now create conversation (SELECT will pass because participant exists)
+  const { error } = await supabase
+    .from("conversations")
+    .insert({ id: convId, type: "session", session_id: sessionId });
+
+  if (error) throw new Error("Failed to create session conversation");
+
+  return convId;
 };
 
 // Helper: get or create a conversation for a group
@@ -193,10 +193,9 @@ export const getOrCreateGroupConversation = async (groupId: string, userId: stri
     .eq("group_id", groupId)
     .eq("type", "group")
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (existing) {
-    // Ensure user is a participant
     await supabase.from("conversation_participants").upsert({
       conversation_id: existing.id,
       user_id: userId,
@@ -204,25 +203,24 @@ export const getOrCreateGroupConversation = async (groupId: string, userId: stri
     return existing.id;
   }
 
-  const { data: conv, error } = await supabase
-    .from("conversations")
-    .insert({ type: "group", group_id: groupId })
-    .select("id")
-    .single();
-
-  if (error || !conv) throw new Error("Failed to create group conversation");
+  const convId = crypto.randomUUID();
 
   await supabase.from("conversation_participants").insert({
-    conversation_id: conv.id,
+    conversation_id: convId,
     user_id: userId,
   });
 
-  return conv.id;
+  const { error } = await supabase
+    .from("conversations")
+    .insert({ id: convId, type: "group", group_id: groupId });
+
+  if (error) throw new Error("Failed to create group conversation");
+
+  return convId;
 };
 
 // Helper: get or create a DM conversation
 export const getOrCreateDMConversation = async (currentUserId: string, otherUserId: string): Promise<string> => {
-  // Find existing DM between these two users
   const { data: myConvs } = await supabase
     .from("conversation_participants")
     .select("conversation_id")
@@ -231,7 +229,6 @@ export const getOrCreateDMConversation = async (currentUserId: string, otherUser
   if (myConvs?.length) {
     const convIds = myConvs.map((c) => c.conversation_id);
 
-    // Check which of these are DMs that also have the other user
     const { data: dmConvs } = await supabase
       .from("conversations")
       .select("id")
@@ -252,20 +249,19 @@ export const getOrCreateDMConversation = async (currentUserId: string, otherUser
     }
   }
 
-  // Create new DM
-  const { data: conv, error } = await supabase
-    .from("conversations")
-    .insert({ type: "dm" })
-    .select("id")
-    .single();
+  const convId = crypto.randomUUID();
 
-  if (error || !conv) throw new Error("Failed to create DM conversation");
-
-  // Add both participants
+  // Add both participants first
   await supabase.from("conversation_participants").insert([
-    { conversation_id: conv.id, user_id: currentUserId },
-    { conversation_id: conv.id, user_id: otherUserId },
+    { conversation_id: convId, user_id: currentUserId },
+    { conversation_id: convId, user_id: otherUserId },
   ]);
 
-  return conv.id;
+  const { error } = await supabase
+    .from("conversations")
+    .insert({ id: convId, type: "dm" });
+
+  if (error) throw new Error("Failed to create DM conversation");
+
+  return convId;
 };
