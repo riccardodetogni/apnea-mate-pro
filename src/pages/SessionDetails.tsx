@@ -289,7 +289,7 @@ const SessionDetails = () => {
   };
 
   const handleLeave = async () => {
-    if (!session?.myParticipation) return;
+    if (!session?.myParticipation || !user) return;
 
     setActionLoading("leave");
     const { error } = await supabase
@@ -303,6 +303,26 @@ const SessionDetails = () => {
       toast({ title: "Errore", description: "Impossibile annullare", variant: "destructive" });
     } else {
       toast({ title: "Partecipazione annullata", description: "Hai lasciato la sessione" });
+
+      // Notify creator that a participant left
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .single();
+
+      await createNotification({
+        userId: session.creator_id,
+        type: "session_cancelled",
+        title: "Partecipante ritirato",
+        message: `${userProfile?.name || "Un utente"} ha lasciato la sessione "${session.title}"`,
+        metadata: {
+          session_id: session.id,
+          session_title: session.title,
+          user_id: user.id,
+          user_name: userProfile?.name || undefined,
+        },
+      });
     }
   };
 
