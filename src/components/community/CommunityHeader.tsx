@@ -3,7 +3,7 @@ import { t } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
-import { Calendar } from "lucide-react";
+import { Calendar, Plus } from "lucide-react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -16,10 +16,10 @@ export const CommunityHeader = () => {
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
-    <header className="flex items-center justify-between gap-3 mb-3.5">
+    <header className="flex items-center justify-between gap-2 mb-3.5">
       {/* User avatar */}
       <button 
-        className="cursor-pointer hover:opacity-90 transition-opacity"
+        className="cursor-pointer hover:opacity-90 transition-opacity shrink-0"
         onClick={() => navigate("/profile")}
       >
         <Avatar className="w-10 h-10 border-2 border-white/20 shadow-lg shadow-primary/20">
@@ -31,7 +31,7 @@ export const CommunityHeader = () => {
       </button>
 
       {/* Title group */}
-      <div className="text-center flex-1">
+      <div className="text-center flex-1 min-w-0">
         <span className="text-[13px] tracking-wide uppercase block" style={{ color: 'hsl(222 47% 11% / 0.45)' }}>
           {t("appName")}
         </span>
@@ -41,14 +41,14 @@ export const CommunityHeader = () => {
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         {/* Notification bell */}
         <NotificationBell />
 
         {/* My Sessions button */}
         <button
           onClick={() => navigate("/my-sessions")}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/60 transition-colors"
+          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/60 transition-colors"
           style={{ 
             background: 'rgba(255,255,255,0.86)',
             backdropFilter: 'blur(14px)',
@@ -56,17 +56,18 @@ export const CommunityHeader = () => {
           }}
           title="Le mie sessioni"
         >
-          <Calendar className="w-5 h-5 text-primary" />
+          <Calendar className="w-[18px] h-[18px] text-primary" />
         </button>
 
-        {/* New session button */}
+        {/* New session button - compact icon+text */}
         <Button 
           variant="primaryGradient" 
           size="pill"
           onClick={() => navigate("/create/session")}
-          className="text-[13px] py-2 px-3.5"
+          className="text-[12px] py-1.5 px-2.5 h-9 gap-0.5"
         >
-          {t("newSession")}
+          <Plus className="w-3.5 h-3.5" />
+          Nuova
         </Button>
       </div>
     </header>
