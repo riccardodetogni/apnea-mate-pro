@@ -32,6 +32,8 @@ const Search = lazy(() => import("./pages/Search"));
 const Admin = lazy(() => import("./pages/Admin"));
 const DiscoverFreedivers = lazy(() => import("./pages/DiscoverFreedivers"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Messages = lazy(() => import("./pages/Messages"));
+const ChatThread = lazy(() => import("./pages/ChatThread"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
