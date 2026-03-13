@@ -29,6 +29,7 @@ export interface TimerState {
   isPaused: boolean;
   isRunning: boolean;
   isCompleted: boolean;
+  isPreparation: boolean;
 }
 
 export const generateCo2Steps = (config: Co2TableConfig): TrainingStep[] => {

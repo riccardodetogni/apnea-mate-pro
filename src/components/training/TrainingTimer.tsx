@@ -1,12 +1,12 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { TrainingStep, TrainingMode, formatTime } from "@/types/training";
 import { CircularProgress } from "./CircularProgress";
 import { TrainingStepTable } from "./TrainingStepTable";
 import { useTrainingTimer } from "@/hooks/useTrainingTimer";
-import { useTrainingAudio } from "@/hooks/useTrainingAudio";
-import { Pause, Play, Square, Volume2, VolumeX, CheckCircle } from "lucide-react";
+import { useTrainingAudio, MusicTrack } from "@/hooks/useTrainingAudio";
+import { Pause, Play, Square, Volume2, VolumeX, CheckCircle, Music } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TrainingTimerProps {
   steps: TrainingStep[];
@@ -39,17 +44,19 @@ const phaseTextColors: Record<string, string> = {
 
 export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => {
   const audio = useTrainingAudio();
+  const [musicOpen, setMusicOpen] = useState(false);
+
+  const onPreparationStart = useCallback(() => {
+    audio.speakPreparation();
+  }, [audio]);
 
   const onPhaseChange = useCallback((step: TrainingStep) => {
     audio.speakPhase(step.phase);
   }, [audio]);
 
   const onCountdown = useCallback((seconds: number) => {
-    // Only speak countdown for CO2 mode, not quadratic (too frequent)
-    if (mode === "co2") {
-      audio.speakCountdown(seconds);
-    }
-  }, [audio, mode]);
+    audio.speakCountdown(seconds);
+  }, [audio]);
 
   const onComplete = useCallback(() => {
     audio.beep(1200, 300);
@@ -66,6 +73,7 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
     onCountdown,
     onComplete,
     onBeep,
+    onPreparationStart,
   });
 
   // Auto-start on mount
@@ -78,6 +86,11 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
   }, []);
 
   const lang = (typeof window !== "undefined" && localStorage.getItem("apnea-mate-lang")) || "it";
+
+  const handleMusicSelect = (track: MusicTrack) => {
+    audio.playMusic(track);
+    setMusicOpen(false);
+  };
 
   if (timer.isCompleted) {
     return (
@@ -93,6 +106,54 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
     );
   }
 
+  // Preparation phase screen
+  if (timer.isPreparation) {
+    return (
+      <div className="flex flex-col items-center gap-6">
+        {/* Top bar with mute + music */}
+        <div className="w-full flex items-center justify-end gap-2">
+          <Popover open={musicOpen} onOpenChange={setMusicOpen}>
+            <PopoverTrigger asChild>
+              <button className="p-2 rounded-full hover:bg-accent/10">
+                <Music className={`w-5 h-5 ${audio.musicTrack !== "off" ? "text-primary" : "text-muted-foreground"}`} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-40 p-2" align="end">
+              <div className="flex flex-col gap-1">
+                {(["ocean", "focus", "off"] as MusicTrack[]).map(track => (
+                  <button
+                    key={track}
+                    onClick={() => handleMusicSelect(track)}
+                    className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      audio.musicTrack === track ? "bg-primary/20 text-primary font-medium" : "hover:bg-accent/10 text-foreground"
+                    }`}
+                  >
+                    {t(track === "ocean" ? "musicOcean" : track === "focus" ? "musicFocus" : "musicOff")}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <button onClick={audio.toggleMute} className="p-2 rounded-full hover:bg-accent/10">
+            {audio.muted ? <VolumeX className="w-5 h-5 text-muted-foreground" /> : <Volume2 className="w-5 h-5 text-muted-foreground" />}
+          </button>
+        </div>
+
+        {/* Preparation label */}
+        <div className="text-2xl font-bold uppercase tracking-wider text-primary">
+          {t("getReady")}
+        </div>
+
+        {/* Circular countdown */}
+        <CircularProgress progress={timer.progress} phase="breathe" size={240} strokeWidth={8}>
+          <span className="text-5xl font-bold font-mono text-foreground">
+            {timer.secondsRemaining}
+          </span>
+        </CircularProgress>
+      </div>
+    );
+  }
+
   const currentPhase = timer.currentStep?.phase ?? "breathe";
 
   return (
@@ -102,9 +163,33 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
         <div className="text-sm text-muted-foreground">
           {t("round")} {timer.currentStep?.round ?? 1}/{timer.totalRounds}
         </div>
-        <button onClick={audio.toggleMute} className="p-2 rounded-full hover:bg-accent/10">
-          {audio.muted ? <VolumeX className="w-5 h-5 text-muted-foreground" /> : <Volume2 className="w-5 h-5 text-muted-foreground" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <Popover open={musicOpen} onOpenChange={setMusicOpen}>
+            <PopoverTrigger asChild>
+              <button className="p-2 rounded-full hover:bg-accent/10">
+                <Music className={`w-5 h-5 ${audio.musicTrack !== "off" ? "text-primary" : "text-muted-foreground"}`} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-40 p-2" align="end">
+              <div className="flex flex-col gap-1">
+                {(["ocean", "focus", "off"] as MusicTrack[]).map(track => (
+                  <button
+                    key={track}
+                    onClick={() => handleMusicSelect(track)}
+                    className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                      audio.musicTrack === track ? "bg-primary/20 text-primary font-medium" : "hover:bg-accent/10 text-foreground"
+                    }`}
+                  >
+                    {t(track === "ocean" ? "musicOcean" : track === "focus" ? "musicFocus" : "musicOff")}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <button onClick={audio.toggleMute} className="p-2 rounded-full hover:bg-accent/10">
+            {audio.muted ? <VolumeX className="w-5 h-5 text-muted-foreground" /> : <Volume2 className="w-5 h-5 text-muted-foreground" />}
+          </button>
+        </div>
       </div>
 
       {/* Phase label */}

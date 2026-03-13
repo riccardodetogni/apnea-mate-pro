@@ -607,6 +607,12 @@ const translations = {
     saveAsNew: "Save as new",
     presetModified: "You modified the preset",
     presetUpdated: "Preset updated!",
+    getReady: "Get ready",
+    backgroundMusic: "Background music",
+    musicOcean: "Ocean",
+    musicFocus: "Focus",
+    musicOff: "Off",
+    secondsShort: "seconds",
   },
 };
 
