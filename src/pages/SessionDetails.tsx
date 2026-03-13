@@ -6,6 +6,7 @@ import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
 import { createNotification } from "@/lib/notifications";
+import { getOrCreateSessionConversation } from "@/hooks/useConversations";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
