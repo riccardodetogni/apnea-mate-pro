@@ -1,12 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Globe, MapPin, Plus, Users, BarChart3 } from "lucide-react";
+import { Globe, MapPin, MessageCircle, Users, BarChart3 } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useConversations } from "@/hooks/useConversations";
 
 const navItems = [
   { path: "/community", icon: Globe, labelKey: "navCommunity" as const },
   { path: "/spots", icon: MapPin, labelKey: "navSpot" as const },
-  { path: "/create", icon: Plus, labelKey: "navCreate" as const },
+  { path: "/messages", icon: MessageCircle, labelKey: "navMessages" as const },
   { path: "/groups", icon: Users, labelKey: "navGroups" as const },
   { path: "/training", icon: BarChart3, labelKey: "navTraining" as const },
 ];
