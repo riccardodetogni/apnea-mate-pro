@@ -298,7 +298,8 @@
   
   /* Bottom navigation - glassmorphic */
   .bottom-nav-container {
-    @apply fixed bottom-0 left-0 right-0 flex justify-center pb-3.5 pointer-events-none z-[1002];
+    @apply fixed bottom-0 left-0 right-0 flex justify-center pointer-events-none z-[1002];
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
   
   .bottom-nav-inner {
