@@ -93,11 +93,12 @@ const FilterSection = ({
               disabled={disabled}
               className={`
                 px-3 py-1.5 rounded-full text-sm border transition-colors
-                ${isSelected
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border hover:border-primary/50"
+                ${disabled
+                  ? "bg-muted/20 text-muted border-border/50 cursor-not-allowed"
+                  : isSelected
+                    ? "bg-card text-card-foreground border-card"
+                    : "bg-secondary text-secondary-foreground border-border hover:border-card/50 cursor-pointer"
                 }
-                ${disabled ? "cursor-not-allowed" : "cursor-pointer"}
               `}
             >
               {t(option.label as any)}
