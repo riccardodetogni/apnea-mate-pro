@@ -260,8 +260,8 @@ const SessionDetails = () => {
   const handleCancelSession = async () => {
     setCancelDialogOpen(false);
     
-    // Get confirmed participants before cancelling
-    const confirmedParticipants = session?.participants.filter(p => p.status === "confirmed") || [];
+    // Get ALL participants (confirmed + pending) before cancelling
+    const allParticipants = session?.participants.filter(p => p.status === "confirmed" || p.status === "pending") || [];
     
     const { error } = await cancelSession();
 
@@ -270,8 +270,8 @@ const SessionDetails = () => {
     } else {
       toast({ title: "Sessione annullata", description: "La sessione è stata cancellata" });
 
-      // Notify all confirmed participants about the cancellation
-      for (const participant of confirmedParticipants) {
+      // Notify all confirmed AND pending participants about the cancellation
+      for (const participant of allParticipants) {
         await createNotification({
           userId: participant.user_id,
           type: "session_cancelled",
