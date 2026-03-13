@@ -143,6 +143,18 @@ const GroupManage = () => {
     } else {
       toast({ title: "Richiesta rifiutata" });
 
+      // Create in-app notification for rejected member
+      await createNotification({
+        userId: userId,
+        type: "group_request_approved", // reuse closest type - no "rejected" enum value exists
+        title: "Richiesta non accettata",
+        message: `La tua richiesta per il gruppo "${group!.name}" non è stata accettata`,
+        metadata: {
+          group_id: group!.id,
+          group_name: group!.name,
+        },
+      });
+
       // Send email notification for rejection
       try {
         await supabase.functions.invoke("send-group-notification", {

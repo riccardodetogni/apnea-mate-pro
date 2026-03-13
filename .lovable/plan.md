@@ -1,58 +1,97 @@
 
 
-## Notification System Analysis
+# Fix Create Page Icons, Preset Selection Style & Save/Update Flow
 
-### Identified Bugs and Missing Notifications
+## Issues
 
-#### BUG 1 (Critical): Community page join does NOT send any notification
-When a user joins a session from the **Community feed** (`Community.tsx`), the `confirmJoinSession` function calls `joinSession()` from `useSessions.ts`, which only inserts into `session_participants` and returns. **No `createNotification()` is called, and no email is sent.** The session creator has no idea someone requested to join.
+1. **Create page icon "bubbles" are all blue** -- The gradient classes use `primary` which is blue. The icons inside Training.tsx use `badge-blue-bg` (translucent white). Need distinct, vivid colors per category.
+2. **Preset selection highlight is too subtle** -- Should use the same teal-to-blue gradient background (like the "Unisciti"/"Start Training" buttons) to clearly show which preset is active.
+3. **No way to update an existing preset** -- When a preset is loaded and then modified, the user needs two clear options: "Save changes to this preset" or "Save as new preset".
 
-Compare with `SessionDetails.tsx` and `SpotDetails.tsx`, which both correctly call `createNotification()` + `send-session-notification` edge function after a successful join.
+---
 
-This is the main reason notifications "sometimes arrive, sometimes don't" -- it depends on which screen the user joins from.
+## Changes
 
-#### BUG 2: Group rejection does NOT create in-app notification
-In `GroupManage.tsx`, `handleReject` sends an email via `send-group-notification`, but does **not** call `createNotification()`. The rejected user gets no in-app notification (only email, if Resend works).
+### 1. Create.tsx -- Distinct icon bubble colors
 
-#### BUG 3: Session cancellation does not notify pending participants
-In `SessionDetails.tsx`, `handleCancelSession` only notifies `confirmed` participants. Pending participants are silently dropped with no notification.
+Replace the current gradient classes with vivid, distinct backgrounds. The `primary` color is blue (HSL 228 80% 58%), so all three look the same. Fix:
+- Session: use teal/accent (`bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]`)
+- Group: use green/success (`bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]`)
+- Training: use amber/warning (`bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]`)
 
-#### BUG 4: No notification when a user leaves/cancels their own participation
-When a user cancels their pending request or leaves a session, the creator receives no notification about it.
+### 2. Training.tsx -- Also fix the icon bubbles on the training home screen
 
-#### BUG 5: Community page group join sends no notification
-In `Community.tsx`, `handleJoinGroup` has a `// TODO: Implement request-based join` comment. Even for non-approval groups, no notification is sent to the group owner.
+The CO2 and Quadratic cards both use `bg-[hsl(var(--badge-blue-bg))]` which is the same translucent white. Give them distinct icon colors:
+- CO2: teal accent background
+- Quadratic: green background
 
-### Architecture Concerns
+### 3. Preset chips -- Selected state uses gradient background
 
-1. **Notification logic is scattered** across 5 different files (SessionDetails, SpotDetails, Community, GroupDetails, GroupManage). The `joinSession` in `useSessions.ts` is a dumb DB insert with no side effects, but the calling pages inconsistently add notifications on top.
+When a preset is selected, instead of a subtle border ring, apply the `btn-primary-gradient` style (teal-to-blue gradient) to the chip so it visually matches "active" elements elsewhere. Unselected chips keep the default `card-session` dark navy look.
 
-2. **No error feedback** if `createNotification()` fails -- the error is logged but the user has no idea the notification wasn't sent.
+Selected preset chip classes: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] border-white/30` (matching `btn-primary-gradient`).
 
-### Proposed Fix
+### 4. Save/Update preset flow
 
-**Centralize notification sending into `useSessions.ts` and `useGroups.ts` hooks** so that every join path automatically triggers notifications, regardless of which page initiates it.
+Add an `updatePreset` mutation to `useTrainingPresets` that updates an existing preset by ID.
 
-#### Changes:
+When a preset is loaded and then modified (slider or table edit), track a `hasModified` boolean. When the user taps the bookmark button:
+- If `selectedPresetId` is set AND `hasModified` is true: show a dialog with two buttons -- "Aggiorna preset" (update existing) and "Salva come nuovo" (save as new with name input).
+- If no preset is selected: show the current "save new" dialog.
 
-**1. `src/hooks/useSessions.ts`** -- Enhance `joinSession()` to also create the in-app notification and invoke the email edge function after a successful insert. This ensures Community, SessionDetails, and SpotDetails all get consistent behavior.
+### 5. i18n keys
 
-**2. `src/pages/SessionDetails.tsx`** -- Remove the duplicate notification logic from `confirmJoin` (now handled by the hook). Keep approve/reject/cancel notification logic here since those are only triggered from this page.
+Add new keys:
+- `updatePreset`: "Aggiorna preset" / "Update preset"
+- `saveAsNew`: "Salva come nuovo" / "Save as new"
+- `presetModified`: "Hai modificato il preset" / "You modified the preset"
+- `presetUpdated`: "Preset aggiornato!" / "Preset updated!"
 
-**3. `src/pages/SpotDetails.tsx`** -- Remove duplicate notification logic from `confirmJoin` (now handled by the hook). Refactor to use the shared `joinSession` from useSessions instead of raw Supabase insert.
+---
 
-**4. `src/pages/Community.tsx`** -- No changes needed (will automatically get notifications via the enhanced hook).
+## Technical Details
 
-**5. `src/pages/GroupManage.tsx`** -- Add missing `createNotification()` call for group rejection.
+### useTrainingPresets.ts changes
 
-**6. `src/pages/SessionDetails.tsx`** -- Fix cancellation to also notify **pending** participants.
+Add `updatePreset` mutation:
+```typescript
+const updatePreset = useMutation({
+  mutationFn: async ({ id, config, customRows }: {
+    id: string;
+    config: Co2TableConfig | QuadraticConfig;
+    customRows?: { breathe: number; hold: number }[] | null;
+  }) => {
+    const { error } = await supabase
+      .from("training_presets")
+      .update({ config, custom_rows: customRows ?? null })
+      .eq("id", id);
+    if (error) throw error;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["training-presets", mode] });
+    toast.success(t("presetUpdated"));
+  },
+});
+```
 
-**7. `src/pages/SessionDetails.tsx`** -- Add notification to creator when a participant **leaves** a session.
+### Co2TableConfig.tsx and QuadraticConfig.tsx changes
+
+State additions:
+- `hasModified: boolean` -- set to `true` when sliders/cells change while a preset is selected, reset to `false` when loading a preset.
+
+Bookmark button logic:
+- If `selectedPresetId && hasModified`: open a choice dialog with "Update preset" and "Save as new" buttons.
+- If no preset selected: open the existing name-input save dialog.
+
+Selected preset chip styling:
+- Selected: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] !border-white/30` (removes `card-session` dark bg, applies gradient)
+- Unselected: default `card-session` styling
 
 ### Files to modify
-1. `src/hooks/useSessions.ts` -- centralize join notification logic
-2. `src/pages/SessionDetails.tsx` -- remove duplicate notification on join, fix cancel to include pending, add leave notification
-3. `src/pages/SpotDetails.tsx` -- remove duplicate notification on join, use shared hook
-4. `src/pages/Community.tsx` -- remove redundant join logic (already uses hook)
-5. `src/pages/GroupManage.tsx` -- add missing rejection in-app notification
+- `src/pages/Create.tsx` -- icon colors
+- `src/pages/Training.tsx` -- icon colors
+- `src/hooks/useTrainingPresets.ts` -- add `updatePreset` mutation
+- `src/components/training/Co2TableConfig.tsx` -- preset selection style, save/update flow
+- `src/components/training/QuadraticConfig.tsx` -- preset selection style, save/update flow
+- `src/lib/i18n.ts` -- new keys
 

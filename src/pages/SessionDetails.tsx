@@ -260,8 +260,8 @@ const SessionDetails = () => {
   const handleCancelSession = async () => {
     setCancelDialogOpen(false);
     
-    // Get confirmed participants before cancelling
-    const confirmedParticipants = session?.participants.filter(p => p.status === "confirmed") || [];
+    // Get ALL participants (confirmed + pending) before cancelling
+    const allParticipants = session?.participants.filter(p => p.status === "confirmed" || p.status === "pending") || [];
     
     const { error } = await cancelSession();
 
@@ -270,8 +270,8 @@ const SessionDetails = () => {
     } else {
       toast({ title: "Sessione annullata", description: "La sessione è stata cancellata" });
 
-      // Notify all confirmed participants about the cancellation
-      for (const participant of confirmedParticipants) {
+      // Notify all confirmed AND pending participants about the cancellation
+      for (const participant of allParticipants) {
         await createNotification({
           userId: participant.user_id,
           type: "session_cancelled",
@@ -289,7 +289,7 @@ const SessionDetails = () => {
   };
 
   const handleLeave = async () => {
-    if (!session?.myParticipation) return;
+    if (!session?.myParticipation || !user) return;
 
     setActionLoading("leave");
     const { error } = await supabase
@@ -303,6 +303,26 @@ const SessionDetails = () => {
       toast({ title: "Errore", description: "Impossibile annullare", variant: "destructive" });
     } else {
       toast({ title: "Partecipazione annullata", description: "Hai lasciato la sessione" });
+
+      // Notify creator that a participant left
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", user.id)
+        .single();
+
+      await createNotification({
+        userId: session.creator_id,
+        type: "session_cancelled",
+        title: "Partecipante ritirato",
+        message: `${userProfile?.name || "Un utente"} ha lasciato la sessione "${session.title}"`,
+        metadata: {
+          session_id: session.id,
+          session_title: session.title,
+          user_id: user.id,
+          user_name: userProfile?.name || undefined,
+        },
+      });
     }
   };
 

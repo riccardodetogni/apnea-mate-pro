@@ -261,6 +261,60 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     const { error } = await supabase
       .from("session_participants")
       .insert({ session_id: sessionId, user_id: user.id, status: "pending" });
+
+    if (!error) {
+      // Find session info for notification
+      const session = sessions.find(s => s.id === sessionId);
+      const rawSession = sessions.find(s => s.id === sessionId);
+      
+      // Get the creator_id from raw sessions data
+      const rawS = (await supabase
+        .from("sessions")
+        .select("creator_id, title")
+        .eq("id", sessionId)
+        .single()).data;
+
+      if (rawS) {
+        // Get user profile for notification message
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .single();
+
+        const userName = userProfile?.name || "Un utente";
+        const sessionTitle = rawS.title;
+
+        // Create in-app notification for session creator
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+          userId: rawS.creator_id,
+          type: "session_join_request",
+          title: "Nuova richiesta di partecipazione",
+          message: `${userName} vuole partecipare a "${sessionTitle}"`,
+          metadata: {
+            session_id: sessionId,
+            session_title: sessionTitle,
+            user_id: user.id,
+            user_name: userName,
+          },
+        });
+
+        // Send email notification
+        try {
+          await supabase.functions.invoke("send-session-notification", {
+            body: {
+              type: "join_request",
+              sessionId,
+              participantUserId: user.id,
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send session notification email:", e);
+        }
+      }
+    }
+
     return { error };
   };
 
