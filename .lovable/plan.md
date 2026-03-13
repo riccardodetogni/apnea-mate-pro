@@ -1,47 +1,97 @@
 
 
-## Training Improvements Plan
+# Fix Create Page Icons, Preset Selection Style & Save/Update Flow
 
-Four enhancements requested by users:
+## Issues
 
-### 1. Preparation Phase (countdown before training starts)
-Currently the timer auto-starts immediately on mount. Add a 5-second preparation countdown screen that shows before the first step begins, with a voice announcement ("Preparati" / "Get ready") and a visible 5-4-3-2-1 countdown.
+1. **Create page icon "bubbles" are all blue** -- The gradient classes use `primary` which is blue. The icons inside Training.tsx use `badge-blue-bg` (translucent white). Need distinct, vivid colors per category.
+2. **Preset selection highlight is too subtle** -- Should use the same teal-to-blue gradient background (like the "Unisciti"/"Start Training" buttons) to clearly show which preset is active.
+3. **No way to update an existing preset** -- When a preset is loaded and then modified, the user needs two clear options: "Save changes to this preset" or "Save as new preset".
 
-**Changes:**
-- `useTrainingTimer.ts`: Add a `preparation` state (5s countdown) before `isRunning`. New field `isPreparation: boolean` in `TimerState`. The `start()` method enters preparation mode; after 5s it transitions to the first real step.
-- `TrainingTimer.tsx`: Render a distinct preparation screen (phase label "Preparati", circular countdown from 5).
-- `useTrainingAudio.ts`: Add `speakPreparation()` that says "Preparati" / "Get ready".
-- `types/training.ts`: Add `isPreparation` to `TimerState`.
-- `i18n.ts`: Add keys `getReady` → "Preparati" / "Get ready".
+---
 
-### 2. Slower, calmer voice
-The Web Speech API `rate` is currently `1`. Lower it to `0.85` for a more relaxed pace. Also prefer voices with "female" or calmer quality when available by scoring voices and preferring ones that match better.
+## Changes
 
-**Changes:**
-- `useTrainingAudio.ts`: Set `utterance.rate = 0.85`, `utterance.pitch = 0.95`. Improve voice selection to prefer higher-quality voices (e.g., those with `localService: false` or names containing "Siri", "Google" which tend to sound smoother).
+### 1. Create.tsx -- Distinct icon bubble colors
 
-### 3. More countdown announcements during long holds
-Currently only announces at 10s and 3-2-1. Add announcements at 30s and 20s for phases longer than 30s, and at 5s always.
+Replace the current gradient classes with vivid, distinct backgrounds. The `primary` color is blue (HSL 228 80% 58%), so all three look the same. Fix:
+- Session: use teal/accent (`bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]`)
+- Group: use green/success (`bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]`)
+- Training: use amber/warning (`bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]`)
 
-**Changes:**
-- `useTrainingTimer.ts`: Expand countdown trigger logic: if phase duration > 60s, announce at 30, 20, 10, 5, 3, 2, 1. If > 30s, announce at 20, 10, 5, 3, 2, 1. Otherwise keep 10, 5, 3, 2, 1.
-- `useTrainingAudio.ts` → `speakCountdown`: Handle 30, 20, 5 in addition to 10 and 3-2-1.
-- `TrainingTimer.tsx`: Remove the CO2-only restriction on countdown — enable for all modes (the user wants time references during long holds regardless of mode).
+### 2. Training.tsx -- Also fix the icon bubbles on the training home screen
 
-### 4. Optional background music
-Add a toggle for royalty-free ambient/relaxation music. Bundle 1-2 short looping audio files (CC0/public domain) in `public/audio/` and loop them via an `<audio>` element.
+The CO2 and Quadratic cards both use `bg-[hsl(var(--badge-blue-bg))]` which is the same translucent white. Give them distinct icon colors:
+- CO2: teal accent background
+- Quadratic: green background
 
-**Changes:**
-- Add 2 royalty-free ambient loops as static assets in `public/audio/` (e.g., `ocean-ambient.mp3`, `calm-focus.mp3`). These will be short (~30-60s) CC0 tracks that loop seamlessly.
-- `useTrainingAudio.ts`: Add `backgroundMusic` state, `playMusic(track)`, `stopMusic()`, `toggleMusic()`. Uses an `HTMLAudioElement` with `loop = true` and lower volume (~0.15).
-- `TrainingTimer.tsx`: Add a music toggle button (🎵 icon) next to the mute button. Show a small popover or dropdown to pick between "Ocean" / "Focus" / "Off".
-- `i18n.ts`: Add keys `backgroundMusic`, `musicOcean`, `musicFocus`, `musicOff`.
+### 3. Preset chips -- Selected state uses gradient background
+
+When a preset is selected, instead of a subtle border ring, apply the `btn-primary-gradient` style (teal-to-blue gradient) to the chip so it visually matches "active" elements elsewhere. Unselected chips keep the default `card-session` dark navy look.
+
+Selected preset chip classes: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] border-white/30` (matching `btn-primary-gradient`).
+
+### 4. Save/Update preset flow
+
+Add an `updatePreset` mutation to `useTrainingPresets` that updates an existing preset by ID.
+
+When a preset is loaded and then modified (slider or table edit), track a `hasModified` boolean. When the user taps the bookmark button:
+- If `selectedPresetId` is set AND `hasModified` is true: show a dialog with two buttons -- "Aggiorna preset" (update existing) and "Salva come nuovo" (save as new with name input).
+- If no preset is selected: show the current "save new" dialog.
+
+### 5. i18n keys
+
+Add new keys:
+- `updatePreset`: "Aggiorna preset" / "Update preset"
+- `saveAsNew`: "Salva come nuovo" / "Save as new"
+- `presetModified`: "Hai modificato il preset" / "You modified the preset"
+- `presetUpdated`: "Preset aggiornato!" / "Preset updated!"
+
+---
+
+## Technical Details
+
+### useTrainingPresets.ts changes
+
+Add `updatePreset` mutation:
+```typescript
+const updatePreset = useMutation({
+  mutationFn: async ({ id, config, customRows }: {
+    id: string;
+    config: Co2TableConfig | QuadraticConfig;
+    customRows?: { breathe: number; hold: number }[] | null;
+  }) => {
+    const { error } = await supabase
+      .from("training_presets")
+      .update({ config, custom_rows: customRows ?? null })
+      .eq("id", id);
+    if (error) throw error;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["training-presets", mode] });
+    toast.success(t("presetUpdated"));
+  },
+});
+```
+
+### Co2TableConfig.tsx and QuadraticConfig.tsx changes
+
+State additions:
+- `hasModified: boolean` -- set to `true` when sliders/cells change while a preset is selected, reset to `false` when loading a preset.
+
+Bookmark button logic:
+- If `selectedPresetId && hasModified`: open a choice dialog with "Update preset" and "Save as new" buttons.
+- If no preset selected: open the existing name-input save dialog.
+
+Selected preset chip styling:
+- Selected: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] !border-white/30` (removes `card-session` dark bg, applies gradient)
+- Unselected: default `card-session` styling
 
 ### Files to modify
-1. `src/types/training.ts` — add `isPreparation` to `TimerState`
-2. `src/hooks/useTrainingTimer.ts` — preparation phase, expanded countdowns
-3. `src/hooks/useTrainingAudio.ts` — slower voice, preparation speech, background music
-4. `src/components/training/TrainingTimer.tsx` — preparation UI, music toggle, enable countdown for all modes
-5. `src/lib/i18n.ts` — new translation keys
-6. `public/audio/` — add 2 ambient loop files
+- `src/pages/Create.tsx` -- icon colors
+- `src/pages/Training.tsx` -- icon colors
+- `src/hooks/useTrainingPresets.ts` -- add `updatePreset` mutation
+- `src/components/training/Co2TableConfig.tsx` -- preset selection style, save/update flow
+- `src/components/training/QuadraticConfig.tsx` -- preset selection style, save/update flow
+- `src/lib/i18n.ts` -- new keys
 
