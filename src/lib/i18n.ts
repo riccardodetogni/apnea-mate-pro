@@ -328,6 +328,13 @@ const translations = {
     reviewDeleted: "Recensione eliminata",
     averageRating: "Valutazione media",
     reviewCommentPlaceholder: "Commento (opzionale)",
+    // Insurance
+    insurance: "Assicurazione",
+    insured: "Assicurato",
+    insuranceProvider: "Ente assicurativo",
+    hasInsurance: "Hai un'assicurazione subacquea?",
+    addInsurance: "Aggiungi assicurazione",
+    insuranceExample: "es. DAN, FIAS, ecc.",
   },
   en: {
     // App
