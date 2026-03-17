@@ -27,6 +27,7 @@ import {
   Plus,
   Eye,
   Pencil,
+  Star,
 } from "lucide-react";
 import {
   Dialog,
