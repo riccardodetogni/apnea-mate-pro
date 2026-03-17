@@ -46,6 +46,8 @@ const UserProfile = () => {
   const { profile, sessions, sharedGroups, role, loading, error, isCertified, isInstructor } = useUserProfile(id);
   const { isFollowing, loading: followLoading, followersCount, toggleFollow, isOwnProfile } = useFollow(id);
   const { personalBests } = usePersonalBests(id);
+  const { reviews, stats, myReview, canReview, submitReview, deleteReview } = useReviews(id);
+  const [reviewSheetOpen, setReviewSheetOpen] = useState(false);
 
   const roleLabels: Record<string, string> = {
     regular: language === "it" ? "Utente" : "User",
