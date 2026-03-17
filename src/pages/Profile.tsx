@@ -53,7 +53,7 @@ const Profile = () => {
   const [certDialogOpen, setCertDialogOpen] = useState(false);
 
   // Inline edit state
-  const [editField, setEditField] = useState<"name" | "bio" | "location" | null>(null);
+  const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | null>(null);
   
 
 
