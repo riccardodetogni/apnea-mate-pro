@@ -72,6 +72,7 @@ const Profile = () => {
     if (editField === "name") update.name = value;
     else if (editField === "bio") update.bio = value || null;
     else if (editField === "location") update.location = value || null;
+    else if (editField === "insurance_provider") update.insurance_provider = value || null;
     await updateProfile(update);
   };
 
