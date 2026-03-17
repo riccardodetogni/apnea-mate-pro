@@ -14,6 +14,8 @@ export interface Profile {
   location: string | null;
   bio: string | null;
   search_visibility: boolean;
+  has_insurance: boolean;
+  insurance_provider: string | null;
   created_at: string;
   updated_at: string;
 }
