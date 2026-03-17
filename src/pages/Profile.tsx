@@ -251,6 +251,31 @@ const Profile = () => {
             </button>
           )}
 
+          {/* Insurance Toggle */}
+          <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
+            <Shield className="w-5 h-5 text-[hsl(var(--card-muted))]" />
+            <div className="flex-1">
+              <span className="text-card-foreground">{t("hasInsurance")}</span>
+              {profile.has_insurance && (
+                <button
+                  onClick={() => setEditField("insurance_provider" as any)}
+                  className="block text-xs text-primary mt-0.5 group"
+                >
+                  {profile.insurance_provider || (language === "it" ? "Aggiungi ente" : "Add provider")}
+                </button>
+              )}
+            </div>
+            <Switch
+              checked={profile.has_insurance}
+              onCheckedChange={async (checked) => {
+                await updateProfile({ 
+                  has_insurance: checked,
+                  insurance_provider: checked ? profile.insurance_provider : null,
+                });
+              }}
+            />
+          </div>
+
           {/* Search Visibility Toggle */}
           <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
             <Eye className="w-5 h-5 text-[hsl(var(--card-muted))]" />
