@@ -285,7 +285,76 @@ const UserProfile = () => {
             </div>
           )}
         </div>
+
+        {/* Reviews Section */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              {t("reviews")}
+            </h3>
+            {stats.count > 0 && (
+              <ReviewSummary average={stats.average} count={stats.count} />
+            )}
+          </div>
+
+          {/* Leave / Edit review button */}
+          {user && !isOwnProfile && canReview && (
+            <Button
+              variant="outline"
+              className="w-full mb-3 gap-2"
+              onClick={() => setReviewSheetOpen(true)}
+            >
+              <Star className="w-4 h-4" />
+              {myReview ? t("editReview") : t("leaveReview")}
+            </Button>
+          )}
+
+          {reviews.length === 0 ? (
+            <div className="card-session !rounded-xl !p-0 text-center">
+              <div className="relative z-[1] p-4">
+                <p className="text-sm text-[hsl(var(--card-muted))]">{t("noReviews")}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  rating={review.rating}
+                  comment={review.comment}
+                  createdAt={review.created_at}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Review Sheet */}
+      <Sheet open={reviewSheetOpen} onOpenChange={setReviewSheetOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader>
+            <SheetTitle>{myReview ? t("editReview") : t("leaveReview")}</SheetTitle>
+          </SheetHeader>
+          <div className="py-4">
+            <ReviewForm
+              initialRating={myReview?.rating || 0}
+              initialComment={myReview?.comment || ""}
+              isEditing={!!myReview}
+              onSubmit={async (rating, comment) => {
+                await submitReview.mutateAsync({ rating, comment });
+                setReviewSheetOpen(false);
+              }}
+              onDelete={myReview ? async () => {
+                await deleteReview.mutateAsync();
+                setReviewSheetOpen(false);
+              } : undefined}
+              onCancel={() => setReviewSheetOpen(false)}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
