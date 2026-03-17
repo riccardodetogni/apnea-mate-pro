@@ -325,7 +325,8 @@ const Profile = () => {
         currentValue={
           editField === "name" ? profile.name :
           editField === "bio" ? (profile.bio || "") :
-          editField === "location" ? (profile.location || "") : ""
+          editField === "location" ? (profile.location || "") :
+          editField === "insurance_provider" ? (profile.insurance_provider || "") : ""
         }
         onSave={handleFieldSave}
       />

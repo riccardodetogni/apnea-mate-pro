@@ -152,8 +152,14 @@ const UserProfile = () => {
             <p className="text-sm text-[hsl(var(--card-muted))] mt-3 leading-relaxed">{profile.bio}</p>
           )}
 
-          <div className="flex items-center justify-center gap-2 mt-3">
+          <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
             {isCertified && <CertificationBadge certified={true} />}
+            {profile.has_insurance && (
+              <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
+                <Shield className="w-3 h-3" />
+                {profile.insurance_provider ? `${profile.insurance_provider} ${t("insured")}` : t("insured")}
+              </span>
+            )}
             <span className="text-xs text-[hsl(var(--card-muted))] bg-[hsl(var(--badge-blue-bg))] px-2 py-1 rounded-full">
               {roleLabels[role] || roleLabels.regular}
             </span>
