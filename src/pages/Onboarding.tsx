@@ -195,6 +195,8 @@ const Onboarding = () => {
           name,
           location: location || null,
           bio: bio.trim() || null,
+          has_insurance: hasInsurance,
+          insurance_provider: hasInsurance ? (insuranceProvider.trim() || null) : null,
         })
         .eq("user_id", user.id);
 

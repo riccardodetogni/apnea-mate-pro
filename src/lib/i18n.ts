@@ -660,6 +660,13 @@ const translations = {
     reviewDeleted: "Review deleted",
     averageRating: "Average rating",
     reviewCommentPlaceholder: "Comment (optional)",
+    // Insurance
+    insurance: "Insurance",
+    insured: "Insured",
+    insuranceProvider: "Insurance provider",
+    hasInsurance: "Do you have diving insurance?",
+    addInsurance: "Add insurance",
+    insuranceExample: "e.g. DAN, FIAS, etc.",
   },
 };
 

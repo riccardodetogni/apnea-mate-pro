@@ -47,6 +47,14 @@ const fieldConfig = {
     maxLength: 150,
     required: false,
   },
+  insurance_provider: {
+    labelIt: "Ente assicurativo",
+    labelEn: "Insurance provider",
+    placeholderIt: "es. DAN, FIAS, ecc.",
+    placeholderEn: "e.g. DAN, FIAS, etc.",
+    maxLength: 100,
+    required: false,
+  },
 };
 
 export const ProfileEditDialog = ({
