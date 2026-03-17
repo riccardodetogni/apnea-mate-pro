@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useFollow } from "@/hooks/useFollow";
 import { usePersonalBests, hasAnyPB } from "@/hooks/usePersonalBests";
+import { useReviews } from "@/hooks/useReviews";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { CertificationBadge } from "@/components/certification/CertificationStatus";
 import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
+import { ReviewSummary } from "@/components/reviews/ReviewSummary";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { 
   ChevronLeft,
   MapPin, 
@@ -18,10 +23,18 @@ import {
   UserMinus,
   AlertCircle,
   MessageCircle,
+  Star,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it, enUS } from "date-fns/locale";
 import { getOrCreateDMConversation } from "@/hooks/useConversations";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const UserProfile = () => {
   const { id } = useParams<{ id: string }>();
