@@ -5,12 +5,15 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { usePersonalBests } from "@/hooks/usePersonalBests";
+import { useReviews } from "@/hooks/useReviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
 import { CertificationStatusBadge, CertificationBadge } from "@/components/certification/CertificationStatus";
 import { CertificationForm } from "@/components/certification/CertificationForm";
 import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
+import { ReviewSummary } from "@/components/reviews/ReviewSummary";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
 
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { 
