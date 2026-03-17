@@ -212,6 +212,33 @@ const Profile = () => {
           />
         </div>
 
+        {/* My Reviews */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              {t("reviews")}
+            </h3>
+            {stats.count > 0 && (
+              <ReviewSummary average={stats.average} count={stats.count} />
+            )}
+          </div>
+          {reviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("noReviews")}</p>
+          ) : (
+            <div className="space-y-2">
+              {reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  rating={review.rating}
+                  comment={review.comment}
+                  createdAt={review.created_at}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Settings */}
         <div className="card-session !rounded-2xl !p-0 overflow-hidden">
           {isAdmin && (
