@@ -49,6 +49,8 @@ const Onboarding = () => {
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [hasInsurance, setHasInsurance] = useState(false);
+  const [insuranceProvider, setInsuranceProvider] = useState("");
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
