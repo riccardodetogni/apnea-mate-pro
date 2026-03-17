@@ -47,6 +47,7 @@ const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, role, certification, loading, isCertified, isAdmin, updateProfile } = useProfile();
   const { personalBests, upsertPersonalBests, toggleVisibility } = usePersonalBests();
+  const { reviews, stats } = useReviews(user?.id);
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
