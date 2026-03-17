@@ -66,7 +66,7 @@ export const useUserProfile = (userId: string | undefined) => {
         return;
       }
 
-      setProfile(profileData);
+      setProfile(profileData as unknown as UserProfileData);
 
       // Fetch user role
       const { data: roleData } = await supabase
