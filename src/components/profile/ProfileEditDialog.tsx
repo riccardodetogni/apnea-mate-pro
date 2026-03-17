@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type FieldType = "name" | "bio" | "location";
+type FieldType = "name" | "bio" | "location" | "insurance_provider";
 
 interface ProfileEditDialogProps {
   open: boolean;
