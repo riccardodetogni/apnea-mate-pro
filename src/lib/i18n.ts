@@ -328,6 +328,13 @@ const translations = {
     reviewDeleted: "Recensione eliminata",
     averageRating: "Valutazione media",
     reviewCommentPlaceholder: "Commento (opzionale)",
+    // Insurance
+    insurance: "Assicurazione",
+    insured: "Assicurato",
+    insuranceProvider: "Ente assicurativo",
+    hasInsurance: "Hai un'assicurazione subacquea?",
+    addInsurance: "Aggiungi assicurazione",
+    insuranceExample: "es. DAN, FIAS, ecc.",
   },
   en: {
     // App
@@ -653,6 +660,13 @@ const translations = {
     reviewDeleted: "Review deleted",
     averageRating: "Average rating",
     reviewCommentPlaceholder: "Comment (optional)",
+    // Insurance
+    insurance: "Insurance",
+    insured: "Insured",
+    insuranceProvider: "Insurance provider",
+    hasInsurance: "Do you have diving insurance?",
+    addInsurance: "Add insurance",
+    insuranceExample: "e.g. DAN, FIAS, etc.",
   },
 };
 

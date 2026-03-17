@@ -10,6 +10,8 @@ export interface UserProfileData {
   location: string | null;
   bio: string | null;
   search_visibility: boolean;
+  has_insurance: boolean;
+  insurance_provider: string | null;
 }
 
 export interface UserSession {
@@ -64,7 +66,7 @@ export const useUserProfile = (userId: string | undefined) => {
         return;
       }
 
-      setProfile(profileData);
+      setProfile(profileData as unknown as UserProfileData);
 
       // Fetch user role
       const { data: roleData } = await supabase

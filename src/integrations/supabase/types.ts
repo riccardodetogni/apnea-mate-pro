@@ -463,7 +463,9 @@ export type Database = {
           bio: string | null
           created_at: string
           email: string
+          has_insurance: boolean
           id: string
+          insurance_provider: string | null
           location: string | null
           name: string
           search_visibility: boolean
@@ -475,7 +477,9 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email: string
+          has_insurance?: boolean
           id?: string
+          insurance_provider?: string | null
           location?: string | null
           name: string
           search_visibility?: boolean
@@ -487,7 +491,9 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email?: string
+          has_insurance?: boolean
           id?: string
+          insurance_provider?: string | null
           location?: string | null
           name?: string
           search_visibility?: boolean

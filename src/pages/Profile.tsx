@@ -53,7 +53,7 @@ const Profile = () => {
   const [certDialogOpen, setCertDialogOpen] = useState(false);
 
   // Inline edit state
-  const [editField, setEditField] = useState<"name" | "bio" | "location" | null>(null);
+  const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | null>(null);
   
 
 
@@ -72,6 +72,7 @@ const Profile = () => {
     if (editField === "name") update.name = value;
     else if (editField === "bio") update.bio = value || null;
     else if (editField === "location") update.location = value || null;
+    else if (editField === "insurance_provider") update.insurance_provider = value || null;
     await updateProfile(update);
   };
 
@@ -251,6 +252,31 @@ const Profile = () => {
             </button>
           )}
 
+          {/* Insurance Toggle */}
+          <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
+            <Shield className="w-5 h-5 text-[hsl(var(--card-muted))]" />
+            <div className="flex-1">
+              <span className="text-card-foreground">{t("hasInsurance")}</span>
+              {profile.has_insurance && (
+                <button
+                  onClick={() => setEditField("insurance_provider" as any)}
+                  className="block text-xs text-primary mt-0.5 group"
+                >
+                  {profile.insurance_provider || (language === "it" ? "Aggiungi ente" : "Add provider")}
+                </button>
+              )}
+            </div>
+            <Switch
+              checked={profile.has_insurance}
+              onCheckedChange={async (checked) => {
+                await updateProfile({ 
+                  has_insurance: checked,
+                  insurance_provider: checked ? profile.insurance_provider : null,
+                });
+              }}
+            />
+          </div>
+
           {/* Search Visibility Toggle */}
           <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
             <Eye className="w-5 h-5 text-[hsl(var(--card-muted))]" />
@@ -299,7 +325,8 @@ const Profile = () => {
         currentValue={
           editField === "name" ? profile.name :
           editField === "bio" ? (profile.bio || "") :
-          editField === "location" ? (profile.location || "") : ""
+          editField === "location" ? (profile.location || "") :
+          editField === "insurance_provider" ? (profile.insurance_provider || "") : ""
         }
         onSave={handleFieldSave}
       />

@@ -49,6 +49,8 @@ const Onboarding = () => {
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [hasInsurance, setHasInsurance] = useState(false);
+  const [insuranceProvider, setInsuranceProvider] = useState("");
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
@@ -193,6 +195,8 @@ const Onboarding = () => {
           name,
           location: location || null,
           bio: bio.trim() || null,
+          has_insurance: hasInsurance,
+          insurance_provider: hasInsurance ? (insuranceProvider.trim() || null) : null,
         })
         .eq("user_id", user.id);
 
@@ -404,6 +408,37 @@ const Onboarding = () => {
                     {t("no")}
                   </span>
                 </button>
+              </div>
+
+              {/* Insurance section */}
+              <div className="mt-6 p-4 rounded-2xl border border-border space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <span className="text-sm font-medium text-foreground">{t("hasInsurance")}</span>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={hasInsurance}
+                    onClick={() => {
+                      setHasInsurance(!hasInsurance);
+                      if (hasInsurance) setInsuranceProvider("");
+                    }}
+                    className={`peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors ${hasInsurance ? "bg-primary" : "bg-input"}`}
+                  >
+                    <span className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${hasInsurance ? "translate-x-5" : "translate-x-0"}`} />
+                  </button>
+                </div>
+                {hasInsurance && (
+                  <Input
+                    value={insuranceProvider}
+                    onChange={(e) => setInsuranceProvider(e.target.value)}
+                    placeholder={t("insuranceExample")}
+                    className="rounded-xl h-12"
+                    maxLength={100}
+                  />
+                )}
               </div>
             </div>
           )}

@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type FieldType = "name" | "bio" | "location";
+type FieldType = "name" | "bio" | "location" | "insurance_provider";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -45,6 +45,14 @@ const fieldConfig = {
     placeholderIt: "Es. Roma, Italia",
     placeholderEn: "E.g. Rome, Italy",
     maxLength: 150,
+    required: false,
+  },
+  insurance_provider: {
+    labelIt: "Ente assicurativo",
+    labelEn: "Insurance provider",
+    placeholderIt: "es. DAN, FIAS, ecc.",
+    placeholderEn: "e.g. DAN, FIAS, etc.",
+    maxLength: 100,
     required: false,
   },
 };
