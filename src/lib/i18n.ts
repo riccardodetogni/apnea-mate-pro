@@ -642,6 +642,17 @@ const translations = {
     chatSession: "Session chat",
     chatGroup: "Group chat",
     sendMessage: "Message",
+    // Reviews
+    reviews: "Reviews",
+    leaveReview: "Leave a review",
+    editReview: "Edit review",
+    deleteReview: "Delete review",
+    noReviews: "No reviews yet",
+    reviewSubmitted: "Review submitted!",
+    reviewUpdated: "Review updated!",
+    reviewDeleted: "Review deleted",
+    averageRating: "Average rating",
+    reviewCommentPlaceholder: "Comment (optional)",
   },
 };
 
