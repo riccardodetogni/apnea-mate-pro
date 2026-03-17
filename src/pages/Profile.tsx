@@ -5,12 +5,15 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { usePersonalBests } from "@/hooks/usePersonalBests";
+import { useReviews } from "@/hooks/useReviews";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
 import { CertificationStatusBadge, CertificationBadge } from "@/components/certification/CertificationStatus";
 import { CertificationForm } from "@/components/certification/CertificationForm";
 import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
+import { ReviewSummary } from "@/components/reviews/ReviewSummary";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
 
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { 
@@ -24,6 +27,7 @@ import {
   Plus,
   Eye,
   Pencil,
+  Star,
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +47,7 @@ const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, role, certification, loading, isCertified, isAdmin, updateProfile } = useProfile();
   const { personalBests, upsertPersonalBests, toggleVisibility } = usePersonalBests();
+  const { reviews, stats } = useReviews(user?.id);
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
@@ -205,6 +210,33 @@ const Profile = () => {
               await upsertPersonalBests({ [key]: value });
             }}
           />
+        </div>
+
+        {/* My Reviews */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              {t("reviews")}
+            </h3>
+            {stats.count > 0 && (
+              <ReviewSummary average={stats.average} count={stats.count} />
+            )}
+          </div>
+          {reviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("noReviews")}</p>
+          ) : (
+            <div className="space-y-2">
+              {reviews.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  rating={review.rating}
+                  comment={review.comment}
+                  createdAt={review.created_at}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Settings */}

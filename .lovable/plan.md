@@ -1,109 +1,97 @@
 
 
-# User Reviews Feature
+# Fix Create Page Icons, Preset Selection Style & Save/Update Flow
 
-## Summary
+## Issues
 
-Reviews are **user-to-user only** (not on sessions or groups). A user who shared a past session with another user can leave a review on them. Reviews appear on the reviewed user's profile, are **anonymised** (reviewer identity hidden from public), **editable**, and comments are **optional**.
+1. **Create page icon "bubbles" are all blue** -- The gradient classes use `primary` which is blue. The icons inside Training.tsx use `badge-blue-bg` (translucent white). Need distinct, vivid colors per category.
+2. **Preset selection highlight is too subtle** -- Should use the same teal-to-blue gradient background (like the "Unisciti"/"Start Training" buttons) to clearly show which preset is active.
+3. **No way to update an existing preset** -- When a preset is loaded and then modified, the user needs two clear options: "Save changes to this preset" or "Save as new preset".
 
-## Database
+---
 
-### New table: `reviews`
+## Changes
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | default gen_random_uuid() |
-| reviewer_id | uuid NOT NULL | FK-style, the person writing |
-| reviewed_user_id | uuid NOT NULL | the person being reviewed |
-| rating | integer NOT NULL | 1-5, enforced via trigger |
-| comment | text | nullable, optional |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
+### 1. Create.tsx -- Distinct icon bubble colors
 
-**Unique constraint**: `(reviewer_id, reviewed_user_id)` -- one review per pair.
+Replace the current gradient classes with vivid, distinct backgrounds. The `primary` color is blue (HSL 228 80% 58%), so all three look the same. Fix:
+- Session: use teal/accent (`bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]`)
+- Group: use green/success (`bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]`)
+- Training: use amber/warning (`bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]`)
 
-### RLS Policies
+### 2. Training.tsx -- Also fix the icon bubbles on the training home screen
 
-- **SELECT**: Authenticated users can read all reviews (public social proof, but reviewer_id is never exposed to the client -- see hook design below).
-- **INSERT**: `auth.uid() = reviewer_id`
-- **UPDATE**: `auth.uid() = reviewer_id`
-- **DELETE**: `auth.uid() = reviewer_id`
+The CO2 and Quadratic cards both use `bg-[hsl(var(--badge-blue-bg))]` which is the same translucent white. Give them distinct icon colors:
+- CO2: teal accent background
+- Quadratic: green background
 
-### Eligibility check (security definer function)
+### 3. Preset chips -- Selected state uses gradient background
 
-`can_review_user(reviewer_id uuid, target_id uuid) RETURNS boolean` -- returns true if there exists at least one past session (date_time + interval duration_minutes < now()) where both users are confirmed participants, OR one is the creator and the other is a confirmed participant.
+When a preset is selected, instead of a subtle border ring, apply the `btn-primary-gradient` style (teal-to-blue gradient) to the chip so it visually matches "active" elements elsewhere. Unselected chips keep the default `card-session` dark navy look.
 
-### Validation trigger
+Selected preset chip classes: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] border-white/30` (matching `btn-primary-gradient`).
 
-Before INSERT/UPDATE on `reviews`: call `can_review_user` and check rating is 1-5.
+### 4. Save/Update preset flow
 
-## Hook: `useReviews.ts`
+Add an `updatePreset` mutation to `useTrainingPresets` that updates an existing preset by ID.
 
-- `fetchReviewsForUser(userId)` -- returns reviews with **anonymised** data: rating, comment, created_at, updated_at. Does NOT return reviewer_id or reviewer profile info to the client. We'll use a DB view or an RPC function that strips reviewer identity.
-- `fetchMyReviewForUser(targetUserId)` -- returns the current user's own review (if any) so they can edit it.
-- `fetchAverageRating(userId)` -- returns avg rating + count.
-- `submitReview(targetUserId, rating, comment?)` -- upsert (insert or update).
-- `deleteReview(targetUserId)` -- remove own review.
+When a preset is loaded and then modified (slider or table edit), track a `hasModified` boolean. When the user taps the bookmark button:
+- If `selectedPresetId` is set AND `hasModified` is true: show a dialog with two buttons -- "Aggiorna preset" (update existing) and "Salva come nuovo" (save as new with name input).
+- If no preset is selected: show the current "save new" dialog.
 
-### Anonymisation approach
+### 5. i18n keys
 
-Create a **database view** `anonymous_reviews` that selects `id, reviewed_user_id, rating, comment, created_at, updated_at` (excludes `reviewer_id`). RLS on the base table still applies; the view is used for public-facing queries. The user's own review is fetched separately filtered by `reviewer_id = auth.uid()`.
+Add new keys:
+- `updatePreset`: "Aggiorna preset" / "Update preset"
+- `saveAsNew`: "Salva come nuovo" / "Save as new"
+- `presetModified`: "Hai modificato il preset" / "You modified the preset"
+- `presetUpdated`: "Preset aggiornato!" / "Preset updated!"
 
-## UI Components
+---
 
-### `src/components/reviews/StarRating.tsx`
-Reusable star display (read-only) and input (interactive) component. 1-5 stars with half-star display for averages.
+## Technical Details
 
-### `src/components/reviews/ReviewSummary.tsx`
-Shows average rating (stars) + review count. Compact, placed on profile cards.
+### useTrainingPresets.ts changes
 
-### `src/components/reviews/ReviewCard.tsx`
-Single anonymous review: stars, optional comment text, relative date. No reviewer name/avatar shown.
+Add `updatePreset` mutation:
+```typescript
+const updatePreset = useMutation({
+  mutationFn: async ({ id, config, customRows }: {
+    id: string;
+    config: Co2TableConfig | QuadraticConfig;
+    customRows?: { breathe: number; hold: number }[] | null;
+  }) => {
+    const { error } = await supabase
+      .from("training_presets")
+      .update({ config, custom_rows: customRows ?? null })
+      .eq("id", id);
+    if (error) throw error;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["training-presets", mode] });
+    toast.success(t("presetUpdated"));
+  },
+});
+```
 
-### `src/components/reviews/ReviewForm.tsx`
-Star picker + optional textarea. Submit button. Pre-fills if editing an existing review.
+### Co2TableConfig.tsx and QuadraticConfig.tsx changes
 
-## Page Integration
+State additions:
+- `hasModified: boolean` -- set to `true` when sliders/cells change while a preset is selected, reset to `false` when loading a preset.
 
-### `UserProfile.tsx`
-- Below the profile card, show `ReviewSummary` (avg stars + count).
-- Below that, show list of `ReviewCard` components.
-- If the current user is eligible (shared a past session) and hasn't reviewed yet, show "Leave a review" button that opens `ReviewForm` in a sheet/dialog.
-- If the current user already reviewed, show their review with an "Edit" button.
+Bookmark button logic:
+- If `selectedPresetId && hasModified`: open a choice dialog with "Update preset" and "Save as new" buttons.
+- If no preset selected: open the existing name-input save dialog.
 
-### `Profile.tsx` (own profile)
-- Show `ReviewSummary` so the user can see their own average rating.
-- Show the list of anonymous reviews others left.
+Selected preset chip styling:
+- Selected: `!bg-gradient-to-br !from-[#3fbdc8] !to-[#3f66e8] !border-white/30` (removes `card-session` dark bg, applies gradient)
+- Unselected: default `card-session` styling
 
-## i18n Keys
-
-- `reviews` / "Recensioni" / "Reviews"
-- `leaveReview` / "Lascia una recensione" / "Leave a review"
-- `editReview` / "Modifica recensione" / "Edit review"
-- `deleteReview` / "Elimina recensione" / "Delete review"
-- `noReviews` / "Nessuna recensione ancora" / "No reviews yet"
-- `reviewSubmitted` / "Recensione inviata!" / "Review submitted!"
-- `reviewUpdated` / "Recensione aggiornata!" / "Review updated!"
-- `reviewDeleted` / "Recensione eliminata" / "Review deleted"
-- `averageRating` / "Valutazione media" / "Average rating"
-- `anonymous` / "Anonimo" / "Anonymous"
-
-## Files to create
-- `src/hooks/useReviews.ts`
-- `src/components/reviews/StarRating.tsx`
-- `src/components/reviews/ReviewSummary.tsx`
-- `src/components/reviews/ReviewCard.tsx`
-- `src/components/reviews/ReviewForm.tsx`
-
-## Files to modify
-- `src/pages/UserProfile.tsx` -- add review summary + list + leave/edit review
-- `src/pages/Profile.tsx` -- add review summary + anonymous review list
+### Files to modify
+- `src/pages/Create.tsx` -- icon colors
+- `src/pages/Training.tsx` -- icon colors
+- `src/hooks/useTrainingPresets.ts` -- add `updatePreset` mutation
+- `src/components/training/Co2TableConfig.tsx` -- preset selection style, save/update flow
+- `src/components/training/QuadraticConfig.tsx` -- preset selection style, save/update flow
 - `src/lib/i18n.ts` -- new keys
-
-## Implementation order
-1. DB migration (table, view, function, trigger, RLS)
-2. `useReviews` hook
-3. Star rating + review card + form + summary components
-4. Integrate into UserProfile and Profile pages
-5. i18n keys
 

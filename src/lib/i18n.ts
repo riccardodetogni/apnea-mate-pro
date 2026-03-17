@@ -317,6 +317,17 @@ const translations = {
     chatSession: "Chat sessione",
     chatGroup: "Chat gruppo",
     sendMessage: "Messaggio",
+    // Reviews
+    reviews: "Recensioni",
+    leaveReview: "Lascia una recensione",
+    editReview: "Modifica recensione",
+    deleteReview: "Elimina recensione",
+    noReviews: "Nessuna recensione ancora",
+    reviewSubmitted: "Recensione inviata!",
+    reviewUpdated: "Recensione aggiornata!",
+    reviewDeleted: "Recensione eliminata",
+    averageRating: "Valutazione media",
+    reviewCommentPlaceholder: "Commento (opzionale)",
   },
   en: {
     // App
@@ -631,6 +642,17 @@ const translations = {
     chatSession: "Session chat",
     chatGroup: "Group chat",
     sendMessage: "Message",
+    // Reviews
+    reviews: "Reviews",
+    leaveReview: "Leave a review",
+    editReview: "Edit review",
+    deleteReview: "Delete review",
+    noReviews: "No reviews yet",
+    reviewSubmitted: "Review submitted!",
+    reviewUpdated: "Review updated!",
+    reviewDeleted: "Review deleted",
+    averageRating: "Average rating",
+    reviewCommentPlaceholder: "Comment (optional)",
   },
 };
 
