@@ -25,6 +25,7 @@ import {
   MessageCircle,
   Star,
   Pencil,
+  Shield,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it, enUS } from "date-fns/locale";
