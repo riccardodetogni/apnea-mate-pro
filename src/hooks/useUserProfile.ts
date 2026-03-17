@@ -10,6 +10,8 @@ export interface UserProfileData {
   location: string | null;
   bio: string | null;
   search_visibility: boolean;
+  has_insurance: boolean;
+  insurance_provider: string | null;
 }
 
 export interface UserSession {
