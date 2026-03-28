@@ -52,6 +52,7 @@ const Onboarding = () => {
   const [locationLoading, setLocationLoading] = useState(false);
   const [hasInsurance, setHasInsurance] = useState(false);
   const [insuranceProvider, setInsuranceProvider] = useState("");
+  const [certDisclaimerAccepted, setCertDisclaimerAccepted] = useState(false);
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
