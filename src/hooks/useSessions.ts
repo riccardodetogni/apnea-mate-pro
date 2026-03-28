@@ -53,6 +53,7 @@ export interface SessionWithDetails {
   isJoined: boolean;
   isPending: boolean;
   isFull: boolean;
+  isPaid: boolean;
   distanceKm: number | null;
   rawLevel: string;
 }
