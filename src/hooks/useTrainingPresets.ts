@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { TrainingMode, TrainingPreset, Co2TableConfig, QuadraticConfig } from "@/types/training";
+import { TrainingMode, TrainingPreset, Co2TableConfig, QuadraticConfig, O2TableConfig } from "@/types/training";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n";
 
