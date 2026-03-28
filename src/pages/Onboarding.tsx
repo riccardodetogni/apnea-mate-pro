@@ -397,7 +397,7 @@ const Onboarding = () => {
                 </button>
 
                 <button
-                  onClick={() => setIsCertified(false)}
+                  onClick={() => { setIsCertified(false); setIsInstructor(false); }}
                   className={`p-6 rounded-2xl border-2 transition-all ${
                     isCertified === false
                       ? "border-primary bg-primary/10"
