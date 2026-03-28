@@ -108,8 +108,8 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
       }
 
       toast({
-        title: "Certificazione inviata",
-        description: "La tua richiesta è in attesa di approvazione",
+        title: "Certificazione aggiunta",
+        description: "Sei ora un apneista certificato",
       });
 
       await refreshProfile();
