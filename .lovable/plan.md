@@ -1,19 +1,36 @@
 
 
-# Fix: Confirmation Screen Colors
+# Add Location Autocomplete to Onboarding
 
-## Problem
+## Summary
 
-The confirmation info box on line 221-226 uses `bg-card` (dark navy) with `text-muted` text, making the content barely readable against the dark background. The card needs to use proper contrast colors for dark card backgrounds.
+Replace the plain text input for "Città o regione" in Onboarding Step 1 with an autocomplete that queries the Nominatim API as the user types, showing a dropdown of matching city/region suggestions.
 
-## Fix
+## Approach
 
-In `src/pages/Auth.tsx` (lines 221-226):
-- Change `text-muted` inside the dark card to `text-card-foreground/70` so text is legible on the navy background
-- Alternatively, use a lighter background like `bg-muted/10` with `text-muted-foreground` to keep a subtle info box that's readable
+Create a reusable `LocationAutocomplete` component that:
+- Debounces user input (300ms)
+- Queries `https://nominatim.openstreetmap.org/search?format=json&q={query}&accept-language=it&addressdetails=1&limit=5`
+- Shows a dropdown list of results (city + region format)
+- On selection, sets the location string
+- Dismisses on blur or selection
 
-**Recommended approach**: Change the info box to use `bg-card` with `text-card-foreground/70` for the paragraph text, ensuring proper contrast on the dark navy card.
+## Files
 
-### File: `src/pages/Auth.tsx`
-- Line 222: Change `text-muted` → `text-card-foreground/70`
+### New: `src/components/ui/LocationAutocomplete.tsx`
+- Input with MapPin icon (same styling as current)
+- Dropdown list below input with suggestions
+- Debounced Nominatim search (min 3 characters)
+- Loading spinner in input while fetching
+- Formats results as "City, Region" from Nominatim address details
+
+### Modified: `src/pages/Onboarding.tsx`
+- Replace the plain `<Input>` for location (lines 341-349) with `<LocationAutocomplete value={location} onChange={setLocation} />`
+- Keep the GPS button alongside it
+
+## Technical Details
+- Uses `useState` + `useEffect` with a debounce timer for the search
+- Nominatim is already used in the project (reverse geocode in same file), so no new dependency
+- Dropdown positioned absolutely below input, styled with `bg-card border rounded-xl shadow-lg`
+- Click outside or selection closes dropdown
 
