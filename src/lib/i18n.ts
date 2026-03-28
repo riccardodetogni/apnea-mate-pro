@@ -669,6 +669,8 @@ const translations = {
     hasInsurance: "Do you have diving insurance?",
     addInsurance: "Add insurance",
     insuranceExample: "e.g. DAN, FIAS, etc.",
+    certDisclaimer: "By entering your certifications, you declare under your sole responsibility that the information provided is truthful and up to date. Apnea Mate S.r.l. does not verify declared certifications and is not liable for their authenticity. False declarations may result in account suspension.",
+    certDisclaimerRequired: "You must accept the declaration to continue",
   },
 };
 
