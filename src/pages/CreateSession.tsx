@@ -84,6 +84,7 @@ const CreateSession = () => {
     time: "",
     duration_minutes: 60,
     max_participants: 6,
+    is_paid: false,
   });
 
   const canCreate = isCertified || isInstructor;
