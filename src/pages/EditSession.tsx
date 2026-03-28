@@ -180,6 +180,7 @@ const EditSession = () => {
           date_time: dateTime.toISOString(),
           duration_minutes: form.duration_minutes,
           max_participants: form.max_participants,
+          is_paid: form.is_paid,
         })
         .eq("id", id);
 
