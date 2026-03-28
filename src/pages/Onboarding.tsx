@@ -338,16 +338,10 @@ const Onboarding = () => {
               <div className="space-y-2">
                 <Label htmlFor="location">{t("location")}</Label>
                 <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-                    <Input
-                      id="location"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Milano, Lombardia"
-                      className="rounded-xl h-12 pl-10"
-                    />
-                  </div>
+                  <LocationAutocomplete
+                    value={location}
+                    onChange={setLocation}
+                  />
                   <Button
                     type="button"
                     variant="outline"
