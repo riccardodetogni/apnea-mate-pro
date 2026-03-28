@@ -122,6 +122,7 @@ export const useProfile = () => {
     level: string;
     certification_id?: string;
     document_url?: string;
+    isInstructor?: boolean;
   }) => {
     if (!user) return { error: new Error("No user") };
 
