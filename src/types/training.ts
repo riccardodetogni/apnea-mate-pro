@@ -1,4 +1,4 @@
-export type TrainingMode = "co2" | "quadratic";
+export type TrainingMode = "co2" | "o2" | "quadratic";
 
 export interface Co2TableConfig {
   rounds: number;
