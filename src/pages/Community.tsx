@@ -428,7 +428,7 @@ const Community = () => {
               <GroupCard
                 key={group.id}
                 {...group}
-                onJoin={() => handleJoinGroup(group)}
+                onJoin={!group.isMember && !group.isPending ? () => handleJoinGroup(group) : undefined}
                 onViewProfile={() => handleGroupClick(group.id)}
               />
             ))
