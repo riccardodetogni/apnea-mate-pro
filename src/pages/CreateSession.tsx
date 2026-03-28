@@ -27,8 +27,14 @@ import {
   Loader2,
   AlertTriangle,
   UsersRound,
+  Info,
 } from "lucide-react";
 import SpotSelector from "@/components/spots/SpotSelector";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
