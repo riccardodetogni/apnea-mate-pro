@@ -232,7 +232,25 @@ export const getOrCreateGroupConversation = async (groupId: string, userId: stri
     .from("conversations")
     .insert({ id: convId, type: "group", group_id: groupId });
 
-  if (error) throw new Error("Failed to create group conversation");
+  if (error) {
+    // Unique constraint violation — re-fetch
+    const { data: retry } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("group_id", groupId)
+      .eq("type", "group")
+      .limit(1)
+      .maybeSingle();
+
+    if (retry) {
+      await supabase.from("conversation_participants").upsert({
+        conversation_id: retry.id,
+        user_id: userId,
+      }, { onConflict: "conversation_id,user_id" });
+      return retry.id;
+    }
+    throw new Error("Failed to create group conversation");
+  }
 
   await supabase.from("conversation_participants").insert({
     conversation_id: convId,
