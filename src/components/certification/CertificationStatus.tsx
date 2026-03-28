@@ -1,13 +1,12 @@
 import { CertificationStatus as Status } from "@/hooks/useProfile";
-import { Clock, CheckCircle, XCircle, FileX } from "lucide-react";
+import { CheckCircle, FileX } from "lucide-react";
 
 interface CertificationStatusProps {
   status: Status | null;
-  rejectionReason?: string | null;
 }
 
-const statusConfig: Record<Status, {
-  icon: typeof Clock;
+const statusConfig: Record<"not_submitted" | "approved", {
+  icon: typeof CheckCircle;
   label: string;
   description: string;
   color: string;
@@ -20,13 +19,6 @@ const statusConfig: Record<Status, {
     color: "text-muted",
     bgColor: "bg-muted/10",
   },
-  pending: {
-    icon: Clock,
-    label: "In attesa",
-    description: "La tua certificazione è in fase di revisione",
-    color: "text-warning",
-    bgColor: "bg-warning/10",
-  },
   approved: {
     icon: CheckCircle,
     label: "Approvata",
@@ -34,17 +26,10 @@ const statusConfig: Record<Status, {
     color: "text-success",
     bgColor: "bg-success/10",
   },
-  rejected: {
-    icon: XCircle,
-    label: "Rifiutata",
-    description: "La tua certificazione non è stata approvata",
-    color: "text-destructive",
-    bgColor: "bg-destructive/10",
-  },
 };
 
-export const CertificationStatusBadge = ({ status, rejectionReason }: CertificationStatusProps) => {
-  const effectiveStatus = status || "not_submitted";
+export const CertificationStatusBadge = ({ status }: CertificationStatusProps) => {
+  const effectiveStatus = status === "approved" ? "approved" : "not_submitted";
   const config = statusConfig[effectiveStatus];
   const Icon = config.icon;
 
@@ -55,11 +40,6 @@ export const CertificationStatusBadge = ({ status, rejectionReason }: Certificat
         <div className="flex-1">
           <p className={`font-medium ${config.color}`}>{config.label}</p>
           <p className="text-sm text-muted">{config.description}</p>
-          {status === "rejected" && rejectionReason && (
-            <p className="text-sm text-destructive mt-1">
-              Motivo: {rejectionReason}
-            </p>
-          )}
         </div>
       </div>
     </div>

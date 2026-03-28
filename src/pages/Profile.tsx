@@ -184,12 +184,9 @@ const Profile = () => {
         {/* Certification Status */}
         <div className="mb-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("certification")}</h3>
-          <CertificationStatusBadge 
-            status={certification?.status || null} 
-            rejectionReason={certification?.rejection_reason}
-          />
+          <CertificationStatusBadge status={certification?.status || null} />
           
-          {(!certification || certification.status === "rejected") && (
+          {(!certification || certification.status !== "approved") && (
             <Button
               variant="outline"
               className="w-full mt-3"

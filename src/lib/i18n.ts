@@ -472,9 +472,7 @@ const translations = {
     
     // Certification status
     certStatusNotSubmitted: "Not submitted",
-    certStatusPending: "Pending",
-    certStatusApproved: "Approved",
-    certStatusRejected: "Rejected",
+    certStatusApproved: "Certification active",
     
     // Spots
     discoverSpots: "Discover spots",

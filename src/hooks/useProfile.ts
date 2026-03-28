@@ -133,14 +133,24 @@ export const useProfile = () => {
         level: certData.level,
         certification_id: certData.certification_id || null,
         document_url: certData.document_url || null,
-        status: "pending",
+        status: "approved",
       })
       .select()
       .single();
 
     if (!error && newCert) {
+      // Auto-assign "certified" role
+      await supabase
+        .from("user_roles")
+        .upsert({
+          user_id: user.id,
+          role: "certified" as const,
+        }, {
+          onConflict: "user_id,role",
+        });
+
       queryClient.setQueryData(["profile", user.id], (old: ProfileData | undefined) =>
-        old ? { ...old, certification: newCert } : old
+        old ? { ...old, certification: newCert, role: old.role === "regular" ? "certified" as AppRole : old.role } : old
       );
     }
 
