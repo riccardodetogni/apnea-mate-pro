@@ -1,37 +1,32 @@
 
 
-# Add "Sessione a Pagamento" Checkbox to Create Session
+# Add "I am an Instructor" Checkbox to Onboarding
 
 ## Summary
 
-Add a "Paid session" checkbox with an info tooltip to the session creation form. This requires a new `is_paid` boolean column on the `sessions` table and UI changes to CreateSession, EditSession, and SessionDetails pages.
+Add an "I am an instructor" checkbox on Step 2 of onboarding (the certification step), visible only when the user selects "Yes" to being certified. When checked, the user gets the `instructor` role instead of `certified` upon completion.
+
+## Best placement
+
+Step 2 is where the user declares their certification status. The instructor checkbox fits naturally here — it appears right after selecting "Yes, I'm certified", before the insurance section. This keeps all role-related declarations together.
 
 ## Changes
 
-### 1. Database migration
-- Add `is_paid boolean not null default false` to `sessions` table
+### 1. `src/pages/Onboarding.tsx`
+- Add `isInstructor` state (`false` by default)
+- Show a checkbox with label "Sono un Istruttore" / "I am an Instructor" when `isCertified === true`, placed between the Yes/No buttons and the insurance section
+- Reset `isInstructor` to `false` when user switches to `isCertified === false`
+- Pass `isInstructor` flag to `submitCertification` or handle role assignment after certification submit
 
-### 2. `src/pages/CreateSession.tsx`
-- Add `is_paid: false` to form state
-- Add a checkbox row after the "Creator joins" checkbox with:
-  - Checkbox labeled "Sessione a pagamento"
-  - An "ⓘ" icon wrapped in a Tooltip showing the disclaimer text
-- Pass `is_paid: form.is_paid` in the insert call
+### 2. `src/hooks/useProfile.ts`
+- Add optional `isInstructor?: boolean` param to `submitCertification`
+- When `isInstructor` is true, upsert role as `"instructor"` instead of `"certified"`
+- Update the optimistic cache accordingly
 
-### 3. `src/pages/EditSession.tsx`
-- Add `is_paid` to form state, prefill from session data
-- Add same checkbox + tooltip UI
-- Include `is_paid` in the update call
+### 3. `src/lib/i18n.ts`
+- Add `iAmInstructor`: IT "Sono un Istruttore" / EN "I am an Instructor"
 
-### 4. `src/pages/SessionDetails.tsx`
-- Show a "Sessione a pagamento" badge/indicator when `session.is_paid` is true
-
-### 5. `src/lib/i18n.ts`
-- Add keys:
-  - `paidSession`: IT "Sessione a pagamento" / EN "Paid session"
-  - `paidSessionDisclaimer`: IT (the full disclaimer text) / EN (translated version)
-
-### Technical details
-- Tooltip uses existing `Tooltip`/`TooltipTrigger`/`TooltipContent` from `@/components/ui/tooltip`
-- Info icon: `Info` from lucide-react, sized `w-4 h-4`, styled `text-muted-foreground cursor-help`
+### Technical notes
+- The `user_roles` INSERT RLS policy allows `auth.uid() = user_id`, so self-assigning `instructor` role works (same as self-assigning `certified`)
+- The instructor checkbox only shows when `isCertified === true` since instructors must be certified
 
