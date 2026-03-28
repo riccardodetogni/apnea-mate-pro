@@ -67,6 +67,7 @@ const EditSession = () => {
     time: "",
     duration_minutes: 60,
     max_participants: 6,
+    is_paid: false,
   });
 
   // Pre-populate form when session loads
