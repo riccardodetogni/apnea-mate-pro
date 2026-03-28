@@ -1,56 +1,37 @@
 
 
-# Self-Certification: Remove Admin Review, Auto-Approve on Submit
+# Add "Sessione a Pagamento" Checkbox to Create Session
 
 ## Summary
 
-Switch from admin-approval to self-certification. When a user submits certification details and accepts the disclaimer, they are immediately marked as "certified" — no pending state, no admin review needed.
+Add a "Paid session" checkbox with an info tooltip to the session creation form. This requires a new `is_paid` boolean column on the `sessions` table and UI changes to CreateSession, EditSession, and SessionDetails pages.
 
 ## Changes
 
-### 1. `src/hooks/useProfile.ts` — Auto-approve + assign role
-- In `submitCertification`, change `status: "pending"` → `status: "approved"` 
-- After inserting the certification, upsert `user_roles` with `role: "certified"` for the user
-- This makes the user immediately certified upon submission
+### 1. Database migration
+- Add `is_paid boolean not null default false` to `sessions` table
 
-### 2. `src/components/certification/CertificationForm.tsx` — Same auto-approve
-- The form used on the Profile page calls `submitCertification` from the hook, so it inherits the change above
-- Update the success toast from "in attesa di approvazione" → "Certificazione aggiunta" (certification added)
+### 2. `src/pages/CreateSession.tsx`
+- Add `is_paid: false` to form state
+- Add a checkbox row after the "Creator joins" checkbox with:
+  - Checkbox labeled "Sessione a pagamento"
+  - An "ⓘ" icon wrapped in a Tooltip showing the disclaimer text
+- Pass `is_paid: form.is_paid` in the insert call
 
-### 3. `src/components/certification/CertificationStatus.tsx` — Simplify
-- Remove `pending` and `rejected` status configs (no longer reachable)
-- Keep `not_submitted` and `approved` only
-- Remove `rejectionReason` prop
+### 3. `src/pages/EditSession.tsx`
+- Add `is_paid` to form state, prefill from session data
+- Add same checkbox + tooltip UI
+- Include `is_paid` in the update call
 
-### 4. `src/pages/Profile.tsx` — Simplify certification section
-- Remove the `CertificationStatusBadge` pending/rejected display
-- Show either "Certificato" badge (if certified) or the "Submit certification" button
-- Remove rejected re-submit logic (no rejections anymore)
+### 4. `src/pages/SessionDetails.tsx`
+- Show a "Sessione a pagamento" badge/indicator when `session.is_paid` is true
 
-### 5. `src/pages/Admin.tsx` — Remove "Pending Certifications" tab
-- Remove the entire `pending` tab content (approve/reject dialogs, document preview)
-- Keep Users and Groups tabs
-- Remove the approve/reject certification dialogs and handlers
+### 5. `src/lib/i18n.ts`
+- Add keys:
+  - `paidSession`: IT "Sessione a pagamento" / EN "Paid session"
+  - `paidSessionDisclaimer`: IT (the full disclaimer text) / EN (translated version)
 
-### 6. `src/hooks/useAdmin.ts` — Remove certification approval logic
-- Remove `fetchPendingCertifications`, `approveCertification`, `rejectCertification` functions
-- Remove `pendingCertifications` state
-- Keep `fetchAllUsers`, `fetchAllGroups`, `updateUserRole`, `toggleGroupVerification`
-
-### 7. `src/pages/Onboarding.tsx` — No code change needed
-- Already calls `submitCertification` which will now auto-approve
-
-### 8. `src/lib/i18n.ts` — Update strings
-- Remove/update `certStatusPending`, `certStatusRejected` keys
-- Update `submitCertification` text to reflect immediate activation
-
-### 9. Edge function `send-certification-notification` — Can be kept but won't be called
-- No changes strictly needed; it simply won't be invoked anymore since there's no approve/reject flow
-
-## What stays unchanged
-- `CertificationBadge` component (still shows "Certificato" badge)
-- `useUserProfile.ts` role logic (reads from `user_roles`, still works)
-- Session join/host permissions (still based on `isCertified` from role)
-- The disclaimer checkbox in onboarding Step 3 (still required)
-- Admin can still manually change user roles via Users tab
+### Technical details
+- Tooltip uses existing `Tooltip`/`TooltipTrigger`/`TooltipContent` from `@/components/ui/tooltip`
+- Info icon: `Info` from lucide-react, sized `w-4 h-4`, styled `text-muted-foreground cursor-help`
 
