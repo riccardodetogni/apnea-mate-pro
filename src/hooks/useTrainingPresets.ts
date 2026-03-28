@@ -32,7 +32,7 @@ export const useTrainingPresets = (mode: TrainingMode) => {
       customRows,
     }: {
       name: string;
-      config: Co2TableConfig | QuadraticConfig;
+      config: Co2TableConfig | QuadraticConfig | O2TableConfig;
       customRows?: { breathe: number; hold: number }[] | null;
     }) => {
       if (!user) throw new Error("Not authenticated");
