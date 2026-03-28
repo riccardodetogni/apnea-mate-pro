@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { Check, Clock } from "lucide-react";
+import { Check, Clock, DollarSign } from "lucide-react";
 
 interface SessionCardProps {
   spotName: string;
@@ -15,6 +15,7 @@ interface SessionCardProps {
   creatorInitial: string;
   creatorRole: "instructor" | "instructorF" | "user";
   isJoined?: boolean;
+  isPaid?: boolean;
   isPending?: boolean;
   isFull?: boolean;
   showJoinButton?: boolean;
@@ -43,6 +44,7 @@ export const SessionCard = ({
   creatorInitial,
   creatorRole,
   isJoined = false,
+  isPaid = false,
   isPending = false,
   isFull = false,
   showJoinButton = true,
@@ -120,6 +122,12 @@ export const SessionCard = ({
       <div className="flex gap-1.5 flex-wrap mt-0.5">
         <span className="badge-level">{t(levelLabels[level])}</span>
         <span className="badge-spots">{spotsAvailable}/{spotsTotal} {t("spots")}</span>
+        {isPaid && (
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400">
+            <DollarSign className="w-3 h-3" />
+            {t("paidSession")}
+          </span>
+        )}
       </div>
 
       {/* Bottom - creator and action */}

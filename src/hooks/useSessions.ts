@@ -53,6 +53,7 @@ export interface SessionWithDetails {
   isJoined: boolean;
   isPending: boolean;
   isFull: boolean;
+  isPaid: boolean;
   distanceKm: number | null;
   rawLevel: string;
 }
@@ -345,6 +346,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     isJoined: session.is_joined || false,
     isPending: (session as any).is_pending || false,
     isFull: (session.participants_count || 0) >= session.max_participants,
+    isPaid: (session as any).is_paid || false,
     distanceKm: session.distance_km || null,
     rawLevel: session.level,
   }));
