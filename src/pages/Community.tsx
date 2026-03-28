@@ -125,17 +125,8 @@ const Community = () => {
   };
 
   const handleJoinGroup = async (group: GroupWithDetails) => {
-    if (group.requiresApproval) {
-      toast({
-        title: "Richiesta inviata",
-        description: "L'amministratore del gruppo valuterà la tua richiesta",
-      });
-      // TODO: Implement request-based join
-      return;
-    }
-
     setJoiningGroup(group.id);
-    const { error } = await joinGroup(group.id);
+    const { error, isPending } = await joinGroup(group.id);
     setJoiningGroup(null);
     
     if (error) {
@@ -152,6 +143,11 @@ const Community = () => {
           variant: "destructive",
         });
       }
+    } else if (isPending) {
+      toast({
+        title: "Richiesta inviata",
+        description: "L'amministratore del gruppo valuterà la tua richiesta",
+      });
     } else {
       toast({
         title: "Iscritto!",
@@ -224,7 +220,7 @@ const Community = () => {
   const availableSessions = getFilteredSortedSessions(sessions, rawSessions);
   const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
   const myGroups = groups.filter(g => g.isMember);
-  const availableGroups = groups.filter(g => !g.isMember);
+  const availableGroups = groups.filter(g => !g.isMember && !g.isPending);
 
   const SessionSkeleton = () => (
     <div className="min-w-[280px] max-w-[280px] rounded-2xl border border-border p-4 space-y-3">
@@ -432,7 +428,7 @@ const Community = () => {
               <GroupCard
                 key={group.id}
                 {...group}
-                onJoin={() => handleJoinGroup(group)}
+                onJoin={!group.isMember && !group.isPending ? () => handleJoinGroup(group) : undefined}
                 onViewProfile={() => handleGroupClick(group.id)}
               />
             ))
