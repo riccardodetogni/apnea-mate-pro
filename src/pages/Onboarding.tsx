@@ -241,6 +241,7 @@ const Onboarding = () => {
           level,
           certification_id: certId || undefined,
           document_url: documentUrl,
+          isInstructor,
         });
       }
 
