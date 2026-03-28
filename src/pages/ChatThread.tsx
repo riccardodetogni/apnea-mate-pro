@@ -37,7 +37,13 @@ const ChatThread = () => {
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-3 py-3 flex items-center gap-3 z-10 safe-area-top">
         <button
-          onClick={() => navigate("/messages")}
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate("/messages");
+            }
+          }}
           className="w-9 h-9 rounded-full bg-muted/20 flex items-center justify-center"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />

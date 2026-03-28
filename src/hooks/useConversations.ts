@@ -156,6 +156,7 @@ export const useConversations = () => {
 
 // Helper: get or create a conversation for a session
 export const getOrCreateSessionConversation = async (sessionId: string, creatorId: string): Promise<string> => {
+  // Check if conversation already exists
   const { data: existing } = await supabase
     .from("conversations")
     .select("id")
@@ -164,18 +165,41 @@ export const getOrCreateSessionConversation = async (sessionId: string, creatorI
     .limit(1)
     .maybeSingle();
 
-  if (existing) return existing.id;
+  if (existing) {
+    // Ensure user is a participant
+    await supabase.from("conversation_participants").upsert({
+      conversation_id: existing.id,
+      user_id: creatorId,
+    }, { onConflict: "conversation_id,user_id" });
+    return existing.id;
+  }
 
   const convId = crypto.randomUUID();
 
-  // Insert conversation without .select() to avoid RLS SELECT check
   const { error } = await supabase
     .from("conversations")
     .insert({ id: convId, type: "session", session_id: sessionId });
 
-  if (error) throw new Error("Failed to create session conversation");
+  if (error) {
+    // Unique constraint violation — another call created it first, re-fetch
+    const { data: retry } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("session_id", sessionId)
+      .eq("type", "session")
+      .limit(1)
+      .maybeSingle();
 
-  // Now add creator as participant
+    if (retry) {
+      await supabase.from("conversation_participants").upsert({
+        conversation_id: retry.id,
+        user_id: creatorId,
+      }, { onConflict: "conversation_id,user_id" });
+      return retry.id;
+    }
+    throw new Error("Failed to create session conversation");
+  }
+
   await supabase.from("conversation_participants").insert({
     conversation_id: convId,
     user_id: creatorId,
@@ -208,7 +232,25 @@ export const getOrCreateGroupConversation = async (groupId: string, userId: stri
     .from("conversations")
     .insert({ id: convId, type: "group", group_id: groupId });
 
-  if (error) throw new Error("Failed to create group conversation");
+  if (error) {
+    // Unique constraint violation — re-fetch
+    const { data: retry } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("group_id", groupId)
+      .eq("type", "group")
+      .limit(1)
+      .maybeSingle();
+
+    if (retry) {
+      await supabase.from("conversation_participants").upsert({
+        conversation_id: retry.id,
+        user_id: userId,
+      }, { onConflict: "conversation_id,user_id" });
+      return retry.id;
+    }
+    throw new Error("Failed to create group conversation");
+  }
 
   await supabase.from("conversation_participants").insert({
     conversation_id: convId,
