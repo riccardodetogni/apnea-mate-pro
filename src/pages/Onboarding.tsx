@@ -415,6 +415,22 @@ const Onboarding = () => {
                 </button>
               </div>
 
+              {/* Instructor checkbox - visible only when certified */}
+              {isCertified === true && (
+                <div className="mt-4 flex items-center gap-3 p-4 rounded-2xl border border-border">
+                  <input
+                    type="checkbox"
+                    id="isInstructor"
+                    checked={isInstructor}
+                    onChange={(e) => setIsInstructor(e.target.checked)}
+                    className="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                  />
+                  <Label htmlFor="isInstructor" className="cursor-pointer text-sm font-medium">
+                    {t("iAmInstructor")}
+                  </Label>
+                </div>
+              )}
+
               {/* Insurance section */}
               <div className="mt-6 p-4 rounded-2xl border border-border space-y-3">
                 <div className="flex items-center justify-between">
