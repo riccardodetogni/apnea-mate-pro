@@ -122,6 +122,7 @@ export const useProfile = () => {
     level: string;
     certification_id?: string;
     document_url?: string;
+    isInstructor?: boolean;
   }) => {
     if (!user) return { error: new Error("No user") };
 
@@ -139,18 +140,19 @@ export const useProfile = () => {
       .single();
 
     if (!error && newCert) {
-      // Auto-assign "certified" role
+      // Auto-assign role based on instructor flag
+      const assignedRole: AppRole = certData.isInstructor ? "instructor" : "certified";
       await supabase
         .from("user_roles")
         .upsert({
           user_id: user.id,
-          role: "certified" as const,
+          role: assignedRole,
         }, {
           onConflict: "user_id,role",
         });
 
       queryClient.setQueryData(["profile", user.id], (old: ProfileData | undefined) =>
-        old ? { ...old, certification: newCert, role: old.role === "regular" ? "certified" as AppRole : old.role } : old
+        old ? { ...old, certification: newCert, role: old.role === "regular" ? assignedRole : old.role } : old
       );
     }
 
