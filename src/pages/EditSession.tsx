@@ -86,6 +86,7 @@ const EditSession = () => {
         time: timeStr,
         duration_minutes: session.duration_minutes,
         max_participants: session.max_participants,
+        is_paid: (session as any).is_paid ?? false,
       });
       setDurationInput(String(session.duration_minutes));
       setParticipantsInput(String(session.max_participants));
