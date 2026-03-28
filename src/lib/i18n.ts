@@ -669,6 +669,8 @@ const translations = {
     insuranceExample: "e.g. DAN, FIAS, etc.",
     certDisclaimer: "By entering your certifications, you declare under your sole responsibility that the information provided is truthful and up to date. Apnea Mate S.r.l. does not verify declared certifications and is not liable for their authenticity. False declarations may result in account suspension.",
     certDisclaimerRequired: "You must accept the declaration to continue",
+    paidSession: "Paid session",
+    paidSessionDisclaimer: "Apnea Mate does not manage, process, or collect payments for sessions organized between users. Any financial agreement is made exclusively between the parties involved, under their full responsibility. Apnea Mate S.r.l. is not a party to the transaction and is not liable in any way for disputes, non-payments, or breaches.",
   },
 };
 
