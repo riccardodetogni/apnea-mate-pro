@@ -116,6 +116,25 @@ export const useAdmin = () => {
       .eq("id", groupId);
 
     if (!error) {
+      // Notify the group owner
+      const { data: group } = await supabase
+        .from("groups")
+        .select("created_by, name")
+        .eq("id", groupId)
+        .maybeSingle();
+
+      if (group?.created_by) {
+        await supabase.from("notifications").insert({
+          user_id: group.created_by,
+          type: "group_request_approved" as const,
+          title: verified ? "Gruppo verificato" : "Verifica rimossa",
+          message: verified
+            ? `Il tuo gruppo "${group.name}" è stato verificato come partner ufficiale.`
+            : `La verifica del tuo gruppo "${group.name}" è stata rimossa.`,
+          metadata: { group_id: groupId },
+        });
+      }
+
       await fetchAllGroups();
     }
 
