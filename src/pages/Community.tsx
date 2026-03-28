@@ -220,7 +220,7 @@ const Community = () => {
   const availableSessions = getFilteredSortedSessions(sessions, rawSessions);
   const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
   const myGroups = groups.filter(g => g.isMember);
-  const availableGroups = groups.filter(g => !g.isMember);
+  const availableGroups = groups.filter(g => !g.isMember && !g.isPending);
 
   const SessionSkeleton = () => (
     <div className="min-w-[280px] max-w-[280px] rounded-2xl border border-border p-4 space-y-3">
