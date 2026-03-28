@@ -75,7 +75,7 @@ export interface TrainingPreset {
   user_id: string;
   name: string;
   mode: TrainingMode;
-  config: Co2TableConfig | QuadraticConfig;
+  config: Co2TableConfig | QuadraticConfig | O2TableConfig;
   custom_rows: { breathe: number; hold: number }[] | null;
   created_at: string;
 }
