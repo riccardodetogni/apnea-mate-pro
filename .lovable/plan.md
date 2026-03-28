@@ -1,36 +1,52 @@
 
 
-# Fix Chat System: Duplicates, Missing Messages, Back Button
+# Add O2 Table Training Mode + Calmer Voice
 
-## Problems Identified
+## Summary
 
-1. **Duplicate session conversations**: `getOrCreateSessionConversation` has a race condition — no unique constraint on `(session_id, type)`, so multiple calls create duplicate conversations for the same session. DB shows 4 conversations for the same session ID. This causes multiple identical entries in the Messages list.
+Add an "O2 Table" training mode — the inverse of CO2: constant recovery/breathe time with incrementally increasing hold times. Also tune the voice to be calmer.
 
-2. **Messages not visible**: RLS policy on messages requires `is_conversation_participant(auth.uid(), conversation_id)`. When a new conversation is created but the user clicks into a *different* duplicate conversation (one where they're not a participant), messages return empty.
+## O2 Table Logic
 
-3. **Back button from chat always goes to `/messages`**: Line 40 in `ChatThread.tsx` hardcodes `navigate("/messages")`. Should use `navigate(-1)` or smart back logic to return to the previous page (e.g. session details).
+CO2 Table: constant hold, decreasing breathe time
+O2 Table: constant breathe time, increasing hold time
+
+```text
+Example O2 Table (8 rounds, start hold 60s, breathe 120s, increase 15s):
+Round 1: Breathe 2:00 → Hold 1:00
+Round 2: Breathe 2:00 → Hold 1:15
+Round 3: Breathe 2:00 → Hold 1:30
+...
+```
 
 ## Changes
 
-### 1. Database migration — add unique constraint + clean up duplicates
-- Add a unique partial index: `CREATE UNIQUE INDEX ON conversations (session_id) WHERE session_id IS NOT NULL AND type = 'session'`
-- Add a unique partial index: `CREATE UNIQUE INDEX ON conversations (group_id) WHERE group_id IS NOT NULL AND type = 'group'`
-- Before adding constraints, merge duplicate conversations: migrate participants and messages to the oldest conversation per session/group, then delete duplicates
+### 1. `src/types/training.ts`
+- Add `"o2"` to `TrainingMode` union
+- Add `O2TableConfig` interface: `{ rounds, startHoldSeconds, breathSeconds, increaseStep }`
+- Add `generateO2Steps(config)`: constant breathe time, hold increases each round
 
-### 2. `src/hooks/useConversations.ts` — fix `getOrCreateSessionConversation`
-- Use `INSERT ... ON CONFLICT DO NOTHING` pattern via upsert or handle the duplicate gracefully
-- After inserting, re-query to get the existing row if conflict occurred
-- Same fix for `getOrCreateGroupConversation`
+### 2. `src/components/training/O2TableConfig.tsx` (new)
+- Clone of `Co2TableConfig` adapted for O2:
+  - Sliders: rounds, start hold time, breathe time, increase step
+  - Editable preview table (same click-to-edit pattern)
+  - Presets via `useTrainingPresets("o2")`
+  - Same bookmark/save/update dialogs
 
-### 3. `src/pages/ChatThread.tsx` — smart back button
-- Change back button from `navigate("/messages")` to `navigate(-1)`
-- Add fallback: if no history, fall back to `/messages`
+### 3. `src/pages/Training.tsx`
+- Add `"o2-config"` to `Screen` type
+- Add O2 card on home (between CO2 and Quadratic, with a distinct color — orange/amber)
+- Add `handleStartO2` handler
+- Render `O2TableConfig` when `screen === "o2-config"`
 
-### 4. `src/pages/SessionDetails.tsx` — ensure participant added on conversation open
-- Already does upsert for current user as participant (line 453) — verify this works correctly with deduplicated conversations
+### 4. `src/components/training/TrainingTimer.tsx`
+- Show `TrainingStepTable` for both `mode === "co2"` and `mode === "o2"` (same breathe+hold format)
 
-## Technical details
-- The unique partial indexes prevent future duplicates at the DB level
-- Migration script: for each `session_id` with multiple conversations, keep the one with the most messages, move participants/messages from others, delete the rest
-- The `getOrCreate` functions will use the upsert-with-returning pattern to handle concurrent calls safely
+### 5. `src/lib/i18n.ts`
+- Add keys: `o2Table` (IT: "Tabella O2" / EN: "O2 Table"), `o2TableDesc` (IT: "Recupero costante, apnea crescente" / EN: "Constant recovery, increasing hold"), `increaseStep` (IT: "Incremento" / EN: "Increase step"), `startHoldTime` (IT: "Apnea iniziale" / EN: "Starting hold")
+
+### 6. `src/hooks/useTrainingAudio.ts` — calmer voice
+- Lower `utterance.rate` from `0.85` to `0.75`
+- Lower `utterance.pitch` from `0.95` to `0.85`
+- Lower `utterance.volume` from `1` to `0.9`
 
