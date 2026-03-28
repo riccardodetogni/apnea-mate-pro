@@ -25,7 +25,13 @@ import {
   Loader2,
   AlertTriangle,
   MapPin,
+  Info,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
