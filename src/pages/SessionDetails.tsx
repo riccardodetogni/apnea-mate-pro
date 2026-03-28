@@ -26,6 +26,7 @@ import {
   Pencil,
   Share2,
   MessageCircle,
+  DollarSign,
 } from "lucide-react";
 import {
   AlertDialog,
