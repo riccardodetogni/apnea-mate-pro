@@ -335,6 +335,8 @@ const translations = {
     insuranceExample: "es. DAN, FIAS, ecc.",
     certDisclaimer: "Inserendo i brevetti, dichiari sotto la tua esclusiva responsabilità che i dati forniti sono veritieri e aggiornati. Apnea Mate S.r.l. non verifica le certificazioni dichiarate e non risponde della loro autenticità. Dichiarazioni false possono comportare la sospensione dell'account.",
     certDisclaimerRequired: "Devi accettare la dichiarazione per continuare",
+    paidSession: "Sessione a pagamento",
+    paidSessionDisclaimer: "Apnea Mate non gestisce, elabora né incassa pagamenti per le sessioni organizzate tra utenti. Ogni accordo economico avviene esclusivamente tra le parti coinvolte, sotto la loro piena responsabilità. Apnea Mate S.r.l. non è parte della transazione e non risponde in alcun modo di eventuali controversie, mancati pagamenti o inadempimenti.",
   },
   en: {
     // App
@@ -667,6 +669,8 @@ const translations = {
     insuranceExample: "e.g. DAN, FIAS, etc.",
     certDisclaimer: "By entering your certifications, you declare under your sole responsibility that the information provided is truthful and up to date. Apnea Mate S.r.l. does not verify declared certifications and is not liable for their authenticity. False declarations may result in account suspension.",
     certDisclaimerRequired: "You must accept the declaration to continue",
+    paidSession: "Paid session",
+    paidSessionDisclaimer: "Apnea Mate does not manage, process, or collect payments for sessions organized between users. Any financial agreement is made exclusively between the parties involved, under their full responsibility. Apnea Mate S.r.l. is not a party to the transaction and is not liable in any way for disputes, non-payments, or breaches.",
   },
 };
 

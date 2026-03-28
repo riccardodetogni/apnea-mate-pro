@@ -26,6 +26,7 @@ import {
   Pencil,
   Share2,
   MessageCircle,
+  DollarSign,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -403,9 +404,17 @@ const SessionDetails = () => {
                 </p>
               )}
             </div>
-            <Badge variant={session.level === "advanced" ? "destructive" : "secondary"}>
-              {mapLevel(session.level)}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant={session.level === "advanced" ? "destructive" : "secondary"}>
+                {mapLevel(session.level)}
+              </Badge>
+              {(session as any).is_paid && (
+                <Badge variant="outline" className="gap-1 border-amber-500/50 text-amber-400">
+                  <DollarSign className="w-3 h-3" />
+                  {t("paidSession")}
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">

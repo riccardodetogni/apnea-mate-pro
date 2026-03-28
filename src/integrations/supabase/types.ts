@@ -573,6 +573,7 @@ export type Database = {
           duration_minutes: number
           group_id: string | null
           id: string
+          is_paid: boolean
           is_public: boolean
           level: string
           max_participants: number
@@ -590,6 +591,7 @@ export type Database = {
           duration_minutes?: number
           group_id?: string | null
           id?: string
+          is_paid?: boolean
           is_public?: boolean
           level: string
           max_participants?: number
@@ -607,6 +609,7 @@ export type Database = {
           duration_minutes?: number
           group_id?: string | null
           id?: string
+          is_paid?: boolean
           is_public?: boolean
           level?: string
           max_participants?: number

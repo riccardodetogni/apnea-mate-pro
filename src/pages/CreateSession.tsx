@@ -27,8 +27,14 @@ import {
   Loader2,
   AlertTriangle,
   UsersRound,
+  Info,
 } from "lucide-react";
 import SpotSelector from "@/components/spots/SpotSelector";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
@@ -78,6 +84,7 @@ const CreateSession = () => {
     time: "",
     duration_minutes: 60,
     max_participants: 6,
+    is_paid: false,
   });
 
   const canCreate = isCertified || isInstructor;
@@ -179,6 +186,7 @@ const CreateSession = () => {
           max_participants: form.max_participants,
           creator_id: user.id,
           is_public: isPublic,
+          is_paid: form.is_paid,
           status: "active",
         })
         .select("id")
@@ -457,6 +465,29 @@ const CreateSession = () => {
               >
                 Partecipo anch'io alla sessione
               </label>
+            </div>
+
+            {/* Paid session */}
+            <div className="flex items-center space-x-3 py-2">
+              <Checkbox
+                id="isPaid"
+                checked={form.is_paid}
+                onCheckedChange={(checked) => setForm({ ...form, is_paid: checked === true })}
+              />
+              <label
+                htmlFor="isPaid"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {t("paidSession")}
+              </label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[300px] text-xs">
+                  {t("paidSessionDisclaimer")}
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Submit */}

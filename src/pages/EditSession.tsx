@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { t } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
@@ -23,7 +25,13 @@ import {
   Loader2,
   AlertTriangle,
   MapPin,
+  Info,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
@@ -59,6 +67,7 @@ const EditSession = () => {
     time: "",
     duration_minutes: 60,
     max_participants: 6,
+    is_paid: false,
   });
 
   // Pre-populate form when session loads
@@ -77,6 +86,7 @@ const EditSession = () => {
         time: timeStr,
         duration_minutes: session.duration_minutes,
         max_participants: session.max_participants,
+        is_paid: (session as any).is_paid ?? false,
       });
       setDurationInput(String(session.duration_minutes));
       setParticipantsInput(String(session.max_participants));
@@ -170,6 +180,7 @@ const EditSession = () => {
           date_time: dateTime.toISOString(),
           duration_minutes: form.duration_minutes,
           max_participants: form.max_participants,
+          is_paid: form.is_paid,
         })
         .eq("id", id);
 
@@ -378,6 +389,29 @@ const EditSession = () => {
               Nota: ci sono {session.confirmedCount} partecipanti confermati. Il numero massimo non può essere inferiore.
             </p>
           )}
+
+          {/* Paid session */}
+          <div className="flex items-center space-x-3 py-2">
+            <Checkbox
+              id="isPaid"
+              checked={form.is_paid}
+              onCheckedChange={(checked) => setForm({ ...form, is_paid: checked === true })}
+            />
+            <label
+              htmlFor="isPaid"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              {t("paidSession")}
+            </label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[300px] text-xs">
+                {t("paidSessionDisclaimer")}
+              </TooltipContent>
+            </Tooltip>
+          </div>
 
           {/* Submit */}
           <Button type="submit" variant="primaryGradient" className="w-full" disabled={submitting}>
