@@ -125,17 +125,8 @@ const Community = () => {
   };
 
   const handleJoinGroup = async (group: GroupWithDetails) => {
-    if (group.requiresApproval) {
-      toast({
-        title: "Richiesta inviata",
-        description: "L'amministratore del gruppo valuterà la tua richiesta",
-      });
-      // TODO: Implement request-based join
-      return;
-    }
-
     setJoiningGroup(group.id);
-    const { error } = await joinGroup(group.id);
+    const { error, isPending } = await joinGroup(group.id);
     setJoiningGroup(null);
     
     if (error) {
@@ -152,6 +143,11 @@ const Community = () => {
           variant: "destructive",
         });
       }
+    } else if (isPending) {
+      toast({
+        title: "Richiesta inviata",
+        description: "L'amministratore del gruppo valuterà la tua richiesta",
+      });
     } else {
       toast({
         title: "Iscritto!",
