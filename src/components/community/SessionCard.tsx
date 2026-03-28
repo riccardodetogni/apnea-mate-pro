@@ -44,6 +44,7 @@ export const SessionCard = ({
   creatorInitial,
   creatorRole,
   isJoined = false,
+  isPaid = false,
   isPending = false,
   isFull = false,
   showJoinButton = true,
