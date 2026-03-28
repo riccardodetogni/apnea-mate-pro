@@ -68,7 +68,7 @@ export const useTrainingPresets = (mode: TrainingMode) => {
   const updatePreset = useMutation({
     mutationFn: async ({ id, config, customRows }: {
       id: string;
-      config: Co2TableConfig | QuadraticConfig;
+      config: Co2TableConfig | QuadraticConfig | O2TableConfig;
       customRows?: { breathe: number; hold: number }[] | null;
     }) => {
       const { error } = await supabase
