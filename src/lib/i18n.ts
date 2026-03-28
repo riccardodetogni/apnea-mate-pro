@@ -335,6 +335,8 @@ const translations = {
     hasInsurance: "Hai un'assicurazione subacquea?",
     addInsurance: "Aggiungi assicurazione",
     insuranceExample: "es. DAN, FIAS, ecc.",
+    certDisclaimer: "Inserendo i brevetti, dichiari sotto la tua esclusiva responsabilità che i dati forniti sono veritieri e aggiornati. Apnea Mate S.r.l. non verifica le certificazioni dichiarate e non risponde della loro autenticità. Dichiarazioni false possono comportare la sospensione dell'account.",
+    certDisclaimerRequired: "Devi accettare la dichiarazione per continuare",
   },
   en: {
     // App
@@ -667,6 +669,8 @@ const translations = {
     hasInsurance: "Do you have diving insurance?",
     addInsurance: "Add insurance",
     insuranceExample: "e.g. DAN, FIAS, etc.",
+    certDisclaimer: "By entering your certifications, you declare under your sole responsibility that the information provided is truthful and up to date. Apnea Mate S.r.l. does not verify declared certifications and is not liable for their authenticity. False declarations may result in account suspension.",
+    certDisclaimerRequired: "You must accept the declaration to continue",
   },
 };
 

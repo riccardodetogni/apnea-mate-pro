@@ -52,6 +52,7 @@ const Onboarding = () => {
   const [locationLoading, setLocationLoading] = useState(false);
   const [hasInsurance, setHasInsurance] = useState(false);
   const [insuranceProvider, setInsuranceProvider] = useState("");
+  const [certDisclaimerAccepted, setCertDisclaimerAccepted] = useState(false);
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
@@ -156,6 +157,13 @@ const Onboarding = () => {
         toast({
           title: "Livello richiesto",
           description: "Inserisci il livello di certificazione",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!certDisclaimerAccepted) {
+        toast({
+          title: t("certDisclaimerRequired"),
           variant: "destructive",
         });
         return;
@@ -492,6 +500,20 @@ const Onboarding = () => {
                     onChange={handleFileChange}
                     className="hidden"
                   />
+                </label>
+              </div>
+
+              {/* Certification disclaimer checkbox */}
+              <div className="flex items-start gap-3 mt-4 p-4 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="certDisclaimer"
+                  checked={certDisclaimerAccepted}
+                  onChange={(e) => setCertDisclaimerAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="certDisclaimer" className="text-xs text-muted leading-relaxed cursor-pointer">
+                  {t("certDisclaimer")}
                 </label>
               </div>
             </div>
