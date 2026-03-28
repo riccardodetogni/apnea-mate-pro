@@ -58,9 +58,9 @@ export const useTrainingAudio = () => {
       const utterance = new SpeechSynthesisUtterance(text);
       const lang = getLanguage() === "it" ? "it-IT" : "en-US";
       utterance.lang = lang;
-      utterance.rate = 0.85;
-      utterance.pitch = 0.95;
-      utterance.volume = 1;
+      utterance.rate = 0.75;
+      utterance.pitch = 0.85;
+      utterance.volume = 0.9;
       const voice = selectBestVoice(lang);
       if (voice) utterance.voice = voice;
       window.speechSynthesis.speak(utterance);
