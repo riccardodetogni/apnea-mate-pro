@@ -15,6 +15,7 @@ interface SessionCardProps {
   creatorInitial: string;
   creatorRole: "instructor" | "instructorF" | "user";
   isJoined?: boolean;
+  isPaid?: boolean;
   isPending?: boolean;
   isFull?: boolean;
   showJoinButton?: boolean;
