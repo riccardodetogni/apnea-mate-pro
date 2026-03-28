@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { Check, Clock } from "lucide-react";
+import { Check, Clock, DollarSign } from "lucide-react";
 
 interface SessionCardProps {
   spotName: string;
