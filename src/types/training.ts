@@ -1,4 +1,4 @@
-export type TrainingMode = "co2" | "quadratic";
+export type TrainingMode = "co2" | "o2" | "quadratic";
 
 export interface Co2TableConfig {
   rounds: number;
@@ -42,6 +42,23 @@ export const generateCo2Steps = (config: Co2TableConfig): TrainingStep[] => {
   return steps;
 };
 
+export interface O2TableConfig {
+  rounds: number;
+  startHoldSeconds: number;
+  breathSeconds: number;
+  increaseStep: number;
+}
+
+export const generateO2Steps = (config: O2TableConfig): TrainingStep[] => {
+  const steps: TrainingStep[] = [];
+  for (let i = 0; i < config.rounds; i++) {
+    const holdTime = config.startHoldSeconds + i * config.increaseStep;
+    steps.push({ phase: "breathe", durationSeconds: config.breathSeconds, round: i + 1 });
+    steps.push({ phase: "hold", durationSeconds: holdTime, round: i + 1 });
+  }
+  return steps;
+};
+
 export const generateQuadraticSteps = (config: QuadraticConfig): TrainingStep[] => {
   const steps: TrainingStep[] = [];
   for (let i = 0; i < config.rounds; i++) {
@@ -58,7 +75,7 @@ export interface TrainingPreset {
   user_id: string;
   name: string;
   mode: TrainingMode;
-  config: Co2TableConfig | QuadraticConfig;
+  config: Co2TableConfig | QuadraticConfig | O2TableConfig;
   custom_rows: { breathe: number; hold: number }[] | null;
   created_at: string;
 }

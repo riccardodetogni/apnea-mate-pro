@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { t } from "@/lib/i18n";
-import { Lock, Wind, TableProperties } from "lucide-react";
-import { TrainingMode, Co2TableConfig as Co2Config, QuadraticConfig as QConfig, TrainingStep, generateCo2Steps, generateQuadraticSteps } from "@/types/training";
+import { Lock, Wind, TableProperties, TrendingUp } from "lucide-react";
+import { TrainingMode, Co2TableConfig as Co2Config, QuadraticConfig as QConfig, O2TableConfig as O2Config, TrainingStep, generateCo2Steps, generateQuadraticSteps, generateO2Steps } from "@/types/training";
 import { Co2TableConfig } from "@/components/training/Co2TableConfig";
 import { QuadraticConfig } from "@/components/training/QuadraticConfig";
+import { O2TableConfig } from "@/components/training/O2TableConfig";
 import { TrainingTimer } from "@/components/training/TrainingTimer";
 
-type Screen = "home" | "co2-config" | "quadratic-config" | "timer";
+type Screen = "home" | "co2-config" | "o2-config" | "quadratic-config" | "timer";
 
 const Training = () => {
   const [screen, setScreen] = useState<Screen>("home");
@@ -17,6 +18,12 @@ const Training = () => {
   const handleStartCo2 = (config: Co2Config, customSteps?: TrainingStep[]) => {
     setTrainingSteps(customSteps ?? generateCo2Steps(config));
     setTrainingMode("co2");
+    setScreen("timer");
+  };
+
+  const handleStartO2 = (config: O2Config, customSteps?: TrainingStep[]) => {
+    setTrainingSteps(customSteps ?? generateO2Steps(config));
+    setTrainingMode("o2");
     setScreen("timer");
   };
 
@@ -62,6 +69,22 @@ const Training = () => {
               </div>
             </button>
 
+            {/* O2 Table card */}
+            <button
+              onClick={() => setScreen("o2-config")}
+              className="card-session !rounded-2xl !p-5 text-left"
+            >
+              <div className="flex items-start gap-4">
+                 <div className="w-12 h-12 rounded-xl bg-[hsl(30,90%,55%)]/20 flex items-center justify-center shrink-0">
+                   <TrendingUp className="w-6 h-6 text-[hsl(30,90%,55%)]" />
+                 </div>
+                <div>
+                  <h3 className="font-semibold text-card-foreground text-base">{t("o2Table")}</h3>
+                  <p className="text-sm text-[hsl(var(--card-muted))] mt-0.5">{t("o2TableDesc")}</p>
+                </div>
+              </div>
+            </button>
+
             {/* Quadratic Breathing card */}
             <button
               onClick={() => setScreen("quadratic-config")}
@@ -83,6 +106,10 @@ const Training = () => {
 
       {screen === "co2-config" && (
         <Co2TableConfig onStart={handleStartCo2} onBack={() => setScreen("home")} />
+      )}
+
+      {screen === "o2-config" && (
+        <O2TableConfig onStart={handleStartO2} onBack={() => setScreen("home")} />
       )}
 
       {screen === "quadratic-config" && (

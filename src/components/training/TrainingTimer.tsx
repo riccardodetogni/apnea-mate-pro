@@ -240,7 +240,7 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
       </div>
 
       {/* Step table for CO2 mode */}
-      {mode === "co2" && (
+      {(mode === "co2" || mode === "o2") && (
         <div className="w-full mt-2">
           <TrainingStepTable
             steps={steps}
