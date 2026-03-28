@@ -219,7 +219,7 @@ const Auth = () => {
             Email inviata a <strong className="text-foreground">{email}</strong>
           </p>
           <div className="bg-card border rounded-xl p-4 mb-6 text-left">
-            <p className="text-sm text-muted">
+            <p className="text-sm text-card-foreground/70">
               📧 Controlla anche la cartella spam<br/>
               ⏱️ Il link scade tra 24 ore<br/>
               ✅ Dopo la conferma, potrai accedere
