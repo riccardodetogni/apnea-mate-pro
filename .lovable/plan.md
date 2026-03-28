@@ -1,36 +1,28 @@
 
 
-# Add Location Autocomplete to Onboarding
+# Fix: Group Card Button State After Join
 
-## Summary
+## Problems Found
 
-Replace the plain text input for "Città o regione" in Onboarding Step 1 with an autocomplete that queries the Nominatim API as the user types, showing a dropdown of matching city/region suggestions.
+### 1. Community page: `handleJoinGroup` never calls `joinGroup()` for approval-required groups
+Lines 127-134 in `Community.tsx` have a `TODO` early return — it shows a toast but never inserts the membership row.
 
-## Approach
+### 2. Community page: `onJoin` always passed regardless of membership status
+Line 435 passes `onJoin` to every group in "Groups near you", even if the user already joined or has a pending request. Compare with `Groups.tsx` line 127 which correctly checks `!group.isMember && !group.isPending`.
 
-Create a reusable `LocationAutocomplete` component that:
-- Debounces user input (300ms)
-- Queries `https://nominatim.openstreetmap.org/search?format=json&q={query}&accept-language=it&addressdetails=1&limit=5`
-- Shows a dropdown list of results (city + region format)
-- On selection, sets the location string
-- Dismisses on blur or selection
+### 3. Community page: groups filtering doesn't account for pending state
+Line 289 (`availableGroups = groups.filter(g => !g.isMember)`) excludes members but not pending users, so a pending group still shows in "Groups near you" with a join button.
 
-## Files
+## Fix
 
-### New: `src/components/ui/LocationAutocomplete.tsx`
-- Input with MapPin icon (same styling as current)
-- Dropdown list below input with suggestions
-- Debounced Nominatim search (min 3 characters)
-- Loading spinner in input while fetching
-- Formats results as "City, Region" from Nominatim address details
+### `src/pages/Community.tsx`
 
-### Modified: `src/pages/Onboarding.tsx`
-- Replace the plain `<Input>` for location (lines 341-349) with `<LocationAutocomplete value={location} onChange={setLocation} />`
-- Keep the GPS button alongside it
+1. **Fix `handleJoinGroup`** (lines 127-161): Remove the `requiresApproval` early return. Always call `joinGroup(group.id)`, then branch toast on `isPending` result — same pattern as `Groups.tsx`.
 
-## Technical Details
-- Uses `useState` + `useEffect` with a debounce timer for the search
-- Nominatim is already used in the project (reverse geocode in same file), so no new dependency
-- Dropdown positioned absolutely below input, styled with `bg-card border rounded-xl shadow-lg`
-- Click outside or selection closes dropdown
+2. **Fix `onJoin` prop** (line 435): Only pass `onJoin` when `!group.isMember && !group.isPending`, matching the Groups page behavior.
+
+3. **Fix `availableGroups` filter** (line 289): Change from `groups.filter(g => !g.isMember)` to `groups.filter(g => !g.isMember && !g.isPending)` so pending groups move to "Your groups" or at least don't show a join button.
+
+### `src/components/community/GroupCard.tsx`
+No changes needed — the card already correctly renders "Membro" / "In attesa" / join button based on the `isMember`, `isPending`, and `onJoin` props. The bug is in the parent pages not passing the right props.
 
