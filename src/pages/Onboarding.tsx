@@ -161,6 +161,13 @@ const Onboarding = () => {
         });
         return;
       }
+      if (!certDisclaimerAccepted) {
+        toast({
+          title: t("certDisclaimerRequired"),
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (step < 5) {
