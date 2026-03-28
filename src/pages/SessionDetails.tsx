@@ -409,7 +409,7 @@ const SessionDetails = () => {
                 {mapLevel(session.level)}
               </Badge>
               {(session as any).is_paid && (
-                <Badge variant="outline" className="gap-1 border-amber-500/50 text-amber-400">
+                <Badge className="gap-1 bg-amber-500/15 text-amber-400 border-none text-xs">
                   <DollarSign className="w-3 h-3" />
                   {t("paidSession")}
                 </Badge>
