@@ -186,6 +186,7 @@ const CreateSession = () => {
           max_participants: form.max_participants,
           creator_id: user.id,
           is_public: isPublic,
+          is_paid: form.is_paid,
           status: "active",
         })
         .select("id")
