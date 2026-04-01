@@ -1,51 +1,35 @@
 
 
-# Session Calendar View — MySessions + GroupDetails
+# Multiple Sessions Per Day + Repeat Template Pattern
 
-## Summary
+## Two changes to BatchDatePicker
 
-Add a month-view calendar with colored dots on days that have sessions. Tapping a day shows the session list below. Two placements: MySessions (personal + available sessions) and GroupDetails (group sessions only).
+### 1. Multiple sessions per day (Pick dates mode)
+- Change `SelectedDate` to include an `index` field: `{ date: string; time: string; index: number }` — allowing up to 3 entries with the same `date` but different `index` values
+- In the selected dates list, add a **"+"** button on each date row to add another session on the same day (max 3 per day)
+- Each same-day entry gets its own time input and remove button
+- The `key` becomes `${sd.date}-${sd.index}` instead of just `sd.date`
+- Calendar multi-select still toggles dates on/off; when a date is removed from calendar, all entries for that date are removed
+- Count label shows total entries (e.g., "5 sessioni" even if only 3 unique dates)
 
-## Changes
+### 2. Repeat mode: template pattern instead of full list
+- Instead of showing all generated dates in the list, show only the **template rows** — one per selected weekday (e.g., "Lunedì" and "Martedì")
+- Each template row can have a "+" to add additional time slots (up to 3), same as pick mode
+- The generated dates are computed internally but not shown individually — the user customizes only the template
+- All Mondays get Monday's time(s), all Tuesdays get Tuesday's time(s), etc.
+- Below the template, show a summary: "6 sessioni verranno create (3 settimane × 2 giorni)"
 
-### 1. New: `src/components/sessions/SessionCalendar.tsx`
-- Accepts `sessions` array: `{ id, title, date_time, status: "confirmed" | "pending" | "created" | "available", spotName?: string, sessionType?: string }`
-- Uses the existing `Calendar` component in `mode="single"` for day selection
-- Groups sessions by date string, renders colored dots under days via custom `modifiers` + CSS classes:
-  - Blue = confirmed, Orange = pending, Purple = created by you, Gray = available
-- Below calendar: list of sessions for selected day as clickable cards navigating to `/sessions/:id`
-- `disabled` past dates, default selected day = today
-- Props: `sessions`, `onSessionClick`, optional `singleColor` (for GroupDetails)
+### 3. CreateSession.tsx submission
+- Update `datesToCreate` to handle multiple entries per date — flatten all `selectedDates` entries into individual `Date` objects for insertion
+- Each entry = one independent session
 
-### 2. `src/pages/MySessions.tsx`
-- Add `viewMode` state: `"list" | "calendar"`, default `"list"`
-- Add toggle icons in header (`List`, `CalendarDays` from lucide)
-- When `"calendar"`:
-  - Map `useMyParticipations()` data into calendar session format (confirmed/pending/created statuses)
-  - Also fetch available sessions via `useSessions({ excludeJoined: true })` and merge as `"available"` status
-  - Render `<SessionCalendar>` instead of the list sections
+### 4. i18n keys
+- `addTimeSlot`: "Aggiungi orario" / "Add time slot"
+- `maxTimeSlotsReached`: "Massimo 3 sessioni per giorno" / "Max 3 sessions per day"
+- `sessionsWillBeCreated`: "sessioni verranno create" / "sessions will be created"
 
-### 3. `src/pages/GroupDetails.tsx`
-- Add `sessionsView` state: `"list" | "calendar"`
-- Add toggle icons above sessions section header
-- When `"calendar"`: map group `sessions` into calendar format, render `<SessionCalendar singleColor>`
-
-### 4. `src/index.css`
-- Add CSS for calendar dot indicators using `::after` pseudo-elements on modifier classes:
-  ```css
-  .rdp-day--session-confirmed::after { /* blue dot */ }
-  .rdp-day--session-pending::after { /* orange dot */ }
-  .rdp-day--session-created::after { /* purple dot */ }
-  .rdp-day--session-available::after { /* gray dot */ }
-  ```
-- Multiple dots side-by-side when a day has multiple status types
-
-### 5. `src/lib/i18n.ts`
-- Add keys: `calendarView`, `listView`, `noSessionsOnDate`, `availableSessions`
-
-### Technical notes
-- No database changes — all data from existing hooks
-- DayPicker `modifiers` maps `Date[]` to named modifiers; `modifiersClassNames` maps to CSS classes
-- `pointer-events-auto` added per shadcn guidance
-- Past dates grayed out but still selectable to see past sessions
+### Files to edit
+- `src/components/sessions/BatchDatePicker.tsx` — main changes
+- `src/pages/CreateSession.tsx` — adapt submission to new data shape
+- `src/lib/i18n.ts` — new keys
 
