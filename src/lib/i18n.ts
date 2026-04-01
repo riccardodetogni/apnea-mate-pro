@@ -351,6 +351,11 @@ const translations = {
     forWeeks: "Per settimane",
     sessionsCreated: "sessioni create!",
     removeDate: "Rimuovi data",
+    // Session calendar
+    calendarView: "Calendario",
+    listView: "Lista",
+    noSessionsOnDate: "Nessuna sessione in questo giorno",
+    availableSessions: "Sessioni disponibili",
   },
   en: {
     // App
