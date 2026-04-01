@@ -95,7 +95,17 @@ export const SessionCalendar = ({ sessions, onSessionClick, navigateFrom }: Sess
         locale={it}
         modifiers={modifiers}
         modifiersClassNames={modifiersClassNames}
-        className="pointer-events-auto rounded-xl border border-border bg-card p-3 mx-auto"
+        className="pointer-events-auto rounded-xl border-0 bg-card p-3 mx-auto"
+        classNames={{
+          caption_label: "text-sm font-medium text-card-foreground",
+          nav_button: "h-7 w-7 bg-transparent p-0 opacity-60 hover:opacity-100 text-card-foreground border border-[hsl(var(--card-border))]",
+          head_cell: "text-[hsl(var(--card-muted))] rounded-md w-9 font-normal text-[0.8rem]",
+          day: "h-9 w-9 p-0 font-normal text-card-foreground hover:bg-[hsl(var(--card-border))] rounded-full transition-colors aria-selected:opacity-100",
+          day_selected: "bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent))] hover:text-accent-foreground focus:bg-[hsl(var(--accent))] focus:text-accent-foreground rounded-full",
+          day_today: "bg-[hsl(var(--primary))] text-primary-foreground rounded-full",
+          day_outside: "text-[hsl(var(--card-muted))] opacity-40 aria-selected:opacity-50",
+          day_disabled: "text-[hsl(var(--card-muted))] opacity-30",
+        }}
       />
 
       {/* Legend */}
