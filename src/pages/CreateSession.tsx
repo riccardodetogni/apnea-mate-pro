@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   UsersRound,
   Info,
+  CalendarDays,
 } from "lucide-react";
 import SpotSelector from "@/components/spots/SpotSelector";
 import {
@@ -35,6 +36,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import BatchDatePicker, { type SelectedDate } from "@/components/sessions/BatchDatePicker";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
@@ -70,6 +72,8 @@ const CreateSession = () => {
   const [submitting, setSubmitting] = useState(false);
   const [creatorJoins, setCreatorJoins] = useState(true);
   const [groupOnly, setGroupOnly] = useState(false);
+  const [multiMode, setMultiMode] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([]);
   // Store raw string values for number inputs to handle editing gracefully
   const [durationInput, setDurationInput] = useState("60");
   const [participantsInput, setParticipantsInput] = useState("6");
@@ -88,6 +92,7 @@ const CreateSession = () => {
   });
 
   const canCreate = isCertified || isInstructor;
+  const canBatch = isInstructor || myGroups.length > 0;
 
 
   // Auto-fill session_type based on selected spot's environment_type
@@ -155,61 +160,95 @@ const CreateSession = () => {
       return;
     }
 
-    if (!form.date || !form.time) {
-      toast({ title: "Errore", description: "Inserisci data e ora", variant: "destructive" });
-      return;
-    }
-
-    const dateTime = new Date(`${form.date}T${form.time}`);
-    if (dateTime <= new Date()) {
-      toast({ title: "Errore", description: "La data deve essere nel futuro", variant: "destructive" });
-      return;
+    // Validate dates
+    if (multiMode) {
+      if (selectedDates.length === 0) {
+        toast({ title: "Errore", description: "Seleziona almeno una data", variant: "destructive" });
+        return;
+      }
+      // Check all dates have times and are in the future
+      for (const sd of selectedDates) {
+        if (!sd.time) {
+          toast({ title: "Errore", description: "Inserisci l'ora per tutte le date", variant: "destructive" });
+          return;
+        }
+        const dt = new Date(`${sd.date}T${sd.time}`);
+        if (dt <= new Date()) {
+          toast({ title: "Errore", description: "Tutte le date devono essere nel futuro", variant: "destructive" });
+          return;
+        }
+      }
+    } else {
+      if (!form.date || !form.time) {
+        toast({ title: "Errore", description: "Inserisci data e ora", variant: "destructive" });
+        return;
+      }
+      const dateTime = new Date(`${form.date}T${form.time}`);
+      if (dateTime <= new Date()) {
+        toast({ title: "Errore", description: "La data deve essere nel futuro", variant: "destructive" });
+        return;
+      }
     }
 
     setSubmitting(true);
 
     try {
-      // Determine visibility: group-only if checkbox is checked AND a group is selected
       const isPublic = !(groupOnly && form.group_id);
-      
-      const { data, error } = await supabase
-        .from("sessions")
-        .insert({
-          title: form.title.trim(),
-          description: form.description.trim() || null,
-          spot_id: form.spot_id,
-          group_id: form.group_id || null,
-          session_type: form.session_type,
-          level: form.level,
-          date_time: dateTime.toISOString(),
-          duration_minutes: form.duration_minutes,
-          max_participants: form.max_participants,
-          creator_id: user.id,
-          is_public: isPublic,
-          is_paid: form.is_paid,
-          status: "active",
+      const datesToCreate = multiMode
+        ? selectedDates.map((sd) => new Date(`${sd.date}T${sd.time}`))
+        : [new Date(`${form.date}T${form.time}`)];
+
+      const results = await Promise.all(
+        datesToCreate.map(async (dateTime) => {
+          const { data, error } = await supabase
+            .from("sessions")
+            .insert({
+              title: form.title.trim(),
+              description: form.description.trim() || null,
+              spot_id: form.spot_id,
+              group_id: form.group_id || null,
+              session_type: form.session_type,
+              level: form.level,
+              date_time: dateTime.toISOString(),
+              duration_minutes: form.duration_minutes,
+              max_participants: form.max_participants,
+              creator_id: user.id,
+              is_public: isPublic,
+              is_paid: form.is_paid,
+              status: "active",
+            })
+            .select("id")
+            .single();
+
+          if (error) throw error;
+
+          if (creatorJoins && data) {
+            await supabase
+              .from("session_participants")
+              .insert({
+                session_id: data.id,
+                user_id: user.id,
+                status: "confirmed",
+              });
+          }
+
+          return data;
         })
-        .select("id")
-        .single();
+      );
 
-      if (error) throw error;
-
-      // If creator wants to join, add as confirmed participant
-      if (creatorJoins && data) {
-        await supabase
-          .from("session_participants")
-          .insert({
-            session_id: data.id,
-            user_id: user.id,
-            status: "confirmed", // Creator is auto-confirmed
-          });
+      if (multiMode) {
+        toast({
+          title: `${results.length} ${t("sessionsCreated")}`,
+          description: "Le sessioni sono state pubblicate",
+        });
+        navigate("/my-sessions");
+      } else {
+        toast({
+          title: "Sessione creata!",
+          description: "La tua sessione è stata pubblicata",
+        });
+        navigate(`/sessions/${results[0].id}`);
       }
-
-      toast({
-        title: "Sessione creata!",
-        description: "La tua sessione è stata pubblicata",
-      });
-      navigate(`/sessions/${data.id}`);
     } catch (error: any) {
       console.error("Error creating session:", error);
       if (error.message?.includes("row-level security")) {
@@ -388,36 +427,70 @@ const CreateSession = () => {
               </div>
             </div>
 
+            {/* Multi-mode toggle */}
+            {canBatch && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant={!multiMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMultiMode(false)}
+                  className="flex-1 gap-1.5"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  {t("singleSession")}
+                </Button>
+                <Button
+                  type="button"
+                  variant={multiMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMultiMode(true)}
+                  className="flex-1 gap-1.5"
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  {t("multipleDates")}
+                </Button>
+              </div>
+            )}
+
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="date">Data *</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-                  <Input
-                    id="date"
-                    type="date"
-                    className="pl-10"
-                    value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    min={new Date().toISOString().split("T")[0]}
-                  />
+            {multiMode ? (
+              <BatchDatePicker
+                selectedDates={selectedDates}
+                onDatesChange={setSelectedDates}
+                defaultTime={form.time || "09:00"}
+              />
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Data *</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                    <Input
+                      id="date"
+                      type="date"
+                      className="pl-10"
+                      value={form.date}
+                      onChange={(e) => setForm({ ...form, date: e.target.value })}
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="time">Ora *</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                    <Input
+                      id="time"
+                      type="time"
+                      className="pl-10"
+                      value={form.time}
+                      onChange={(e) => setForm({ ...form, time: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="time">Ora *</Label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-                  <Input
-                    id="time"
-                    type="time"
-                    className="pl-10"
-                    value={form.time}
-                    onChange={(e) => setForm({ ...form, time: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Duration & Max Participants */}
             <div className="grid grid-cols-2 gap-3">
@@ -495,13 +568,15 @@ const CreateSession = () => {
               type="submit"
               variant="primaryGradient"
               className="w-full"
-              disabled={submitting}
+              disabled={submitting || (multiMode && selectedDates.length === 0)}
             >
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Creazione...
                 </>
+              ) : multiMode ? (
+                `Pubblica ${selectedDates.length} session${selectedDates.length === 1 ? "e" : "i"}`
               ) : (
                 "Pubblica sessione"
               )}
