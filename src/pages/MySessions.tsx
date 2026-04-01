@@ -246,6 +246,8 @@ const MySessions = () => {
               Esplora sessioni
             </Button>
           </div>
+        ) : viewMode === "calendar" ? (
+          <SessionCalendar sessions={calendarSessions} navigateFrom="/my-sessions" />
         ) : (
           <div className="space-y-6">
             {/* Created sessions with pending requests (priority) */}
