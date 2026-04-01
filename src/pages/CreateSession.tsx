@@ -427,36 +427,70 @@ const CreateSession = () => {
               </div>
             </div>
 
+            {/* Multi-mode toggle */}
+            {canBatch && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant={!multiMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMultiMode(false)}
+                  className="flex-1 gap-1.5"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  {t("singleSession")}
+                </Button>
+                <Button
+                  type="button"
+                  variant={multiMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMultiMode(true)}
+                  className="flex-1 gap-1.5"
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  {t("multipleDates")}
+                </Button>
+              </div>
+            )}
+
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="date">Data *</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-                  <Input
-                    id="date"
-                    type="date"
-                    className="pl-10"
-                    value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    min={new Date().toISOString().split("T")[0]}
-                  />
+            {multiMode ? (
+              <BatchDatePicker
+                selectedDates={selectedDates}
+                onDatesChange={setSelectedDates}
+                defaultTime={form.time || "09:00"}
+              />
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Data *</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                    <Input
+                      id="date"
+                      type="date"
+                      className="pl-10"
+                      value={form.date}
+                      onChange={(e) => setForm({ ...form, date: e.target.value })}
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="time">Ora *</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                    <Input
+                      id="time"
+                      type="time"
+                      className="pl-10"
+                      value={form.time}
+                      onChange={(e) => setForm({ ...form, time: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="time">Ora *</Label>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
-                  <Input
-                    id="time"
-                    type="time"
-                    className="pl-10"
-                    value={form.time}
-                    onChange={(e) => setForm({ ...form, time: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Duration & Max Participants */}
             <div className="grid grid-cols-2 gap-3">
