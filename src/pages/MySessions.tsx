@@ -76,10 +76,10 @@ const MySessions = () => {
       status: "created" as const, spotName: s.spot?.name,
       sessionType: s.session_type, durationMinutes: s.duration_minutes,
     })),
-    ...(availableSessions || []).map(s => ({
+    ...(availableRawSessions || []).map(s => ({
       id: s.id, title: s.title, date_time: s.date_time,
-      status: "available" as const, spotName: s.spotName,
-      sessionType: s.sessionType, durationMinutes: s.duration_minutes,
+      status: "available" as const, spotName: s.spot?.name,
+      sessionType: s.session_type, durationMinutes: s.duration_minutes,
     })),
   ];
 
