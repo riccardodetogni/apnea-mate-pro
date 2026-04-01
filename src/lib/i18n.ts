@@ -706,6 +706,9 @@ const translations = {
     forWeeks: "For weeks",
     sessionsCreated: "sessions created!",
     removeDate: "Remove date",
+    addTimeSlot: "Time slots per day",
+    maxTimeSlotsReached: "Max 3 sessions per day",
+    sessionsWillBeCreated: "sessions will be created",
     // Session calendar
     calendarView: "Calendar",
     listView: "List",
