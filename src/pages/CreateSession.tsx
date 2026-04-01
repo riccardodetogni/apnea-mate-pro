@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   UsersRound,
   Info,
+  CalendarDays,
 } from "lucide-react";
 import SpotSelector from "@/components/spots/SpotSelector";
 import {
@@ -35,6 +36,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import BatchDatePicker, { type SelectedDate } from "@/components/sessions/BatchDatePicker";
 
 const sessionTypes = [
   { value: "sea_trip", label: "Uscita mare" },
