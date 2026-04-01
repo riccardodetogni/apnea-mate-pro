@@ -351,6 +351,9 @@ const translations = {
     forWeeks: "Per settimane",
     sessionsCreated: "sessioni create!",
     removeDate: "Rimuovi data",
+    addTimeSlot: "Orari per giorno",
+    maxTimeSlotsReached: "Massimo 3 sessioni per giorno",
+    sessionsWillBeCreated: "sessioni verranno create",
     // Session calendar
     calendarView: "Calendario",
     listView: "Lista",
@@ -703,6 +706,9 @@ const translations = {
     forWeeks: "For weeks",
     sessionsCreated: "sessions created!",
     removeDate: "Remove date",
+    addTimeSlot: "Time slots per day",
+    maxTimeSlotsReached: "Max 3 sessions per day",
+    sessionsWillBeCreated: "sessions will be created",
     // Session calendar
     calendarView: "Calendar",
     listView: "List",
