@@ -220,7 +220,28 @@ const GroupDetails = () => {
 
       {/* Sessions */}
       <div className="mt-6">
-        <GroupSessionsList sessions={sessions} groupId={id} />
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-foreground">{t("upcomingSessions")}</h3>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setSessionsView("list")}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${sessionsView === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setSessionsView("calendar")}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${sessionsView === "calendar" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <CalendarDays className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        {sessionsView === "calendar" ? (
+          <SessionCalendar sessions={calendarSessions} navigateFrom={`/groups/${id}`} />
+        ) : (
+          <GroupSessionsList sessions={sessions} groupId={id} />
+        )}
       </div>
 
       {/* Courses placeholder */}
