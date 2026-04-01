@@ -215,7 +215,21 @@ const MySessions = () => {
           <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="font-semibold text-lg">Le mie sessioni</h1>
+        <h1 className="font-semibold text-lg flex-1">Le mie sessioni</h1>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <List className="w-4.5 h-4.5" />
+          </button>
+          <button
+            onClick={() => setViewMode("calendar")}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${viewMode === "calendar" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <CalendarDays className="w-4.5 h-4.5" />
+          </button>
+        </div>
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
