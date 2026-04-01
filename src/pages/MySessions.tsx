@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyParticipations, MyCreatedSession } from "@/hooks/useMyParticipations";
+import { useSessions } from "@/hooks/useSessions";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SessionCalendar, CalendarSession } from "@/components/sessions/SessionCalendar";
 import {
   ChevronLeft,
   Calendar,
+  CalendarDays,
+  List,
   Clock,
   MapPin,
   Check,
