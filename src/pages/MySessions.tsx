@@ -1,13 +1,18 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyParticipations, MyCreatedSession } from "@/hooks/useMyParticipations";
+import { useSessions } from "@/hooks/useSessions";
 import { t } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SessionCalendar, CalendarSession } from "@/components/sessions/SessionCalendar";
 import {
   ChevronLeft,
   Calendar,
+  CalendarDays,
+  List,
   Clock,
   MapPin,
   Check,
@@ -43,6 +48,7 @@ const mapSessionType = (type: string): string => {
 const MySessions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const { 
     pendingParticipations, 
     confirmedParticipations, 
@@ -51,6 +57,31 @@ const MySessions = () => {
     loading, 
     cancelParticipation 
   } = useMyParticipations();
+  const { rawSessions: availableRawSessions } = useSessions({ excludeJoined: true });
+
+  // Build calendar sessions from all sources
+  const calendarSessions: CalendarSession[] = [
+    ...confirmedParticipations.map(p => ({
+      id: p.session.id, title: p.session.title, date_time: p.session.date_time,
+      status: "confirmed" as const, spotName: p.session.spot?.name,
+      sessionType: p.session.session_type, durationMinutes: p.session.duration_minutes,
+    })),
+    ...pendingParticipations.map(p => ({
+      id: p.session.id, title: p.session.title, date_time: p.session.date_time,
+      status: "pending" as const, spotName: p.session.spot?.name,
+      sessionType: p.session.session_type, durationMinutes: p.session.duration_minutes,
+    })),
+    ...[...createdWithPendingRequests, ...createdWithoutPendingRequests].map(s => ({
+      id: s.id, title: s.title, date_time: s.date_time,
+      status: "created" as const, spotName: s.spot?.name,
+      sessionType: s.session_type, durationMinutes: s.duration_minutes,
+    })),
+    ...(availableRawSessions || []).map(s => ({
+      id: s.id, title: s.title, date_time: s.date_time,
+      status: "available" as const, spotName: s.spot?.name,
+      sessionType: s.session_type, durationMinutes: s.duration_minutes,
+    })),
+  ];
 
 
   const SessionCard = ({ participation, isPending }: { participation: any; isPending: boolean }) => {
@@ -184,7 +215,21 @@ const MySessions = () => {
           <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="font-semibold text-lg">Le mie sessioni</h1>
+        <h1 className="font-semibold text-lg flex-1">Le mie sessioni</h1>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <List className="w-4.5 h-4.5" />
+          </button>
+          <button
+            onClick={() => setViewMode("calendar")}
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${viewMode === "calendar" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <CalendarDays className="w-4.5 h-4.5" />
+          </button>
+        </div>
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
@@ -201,6 +246,8 @@ const MySessions = () => {
               Esplora sessioni
             </Button>
           </div>
+        ) : viewMode === "calendar" ? (
+          <SessionCalendar sessions={calendarSessions} navigateFrom="/my-sessions" />
         ) : (
           <div className="space-y-6">
             {/* Created sessions with pending requests (priority) */}

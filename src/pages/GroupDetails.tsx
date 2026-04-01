@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useGroupDetails } from "@/hooks/useGroupDetails";
@@ -8,7 +8,8 @@ import { GroupMembersSheet } from "@/components/groups/GroupMembersSheet";
 import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle } from "lucide-react";
+import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle, List, CalendarDays } from "lucide-react";
+import { SessionCalendar, CalendarSession } from "@/components/sessions/SessionCalendar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,16 @@ const GroupDetails = () => {
   const { user } = useAuth();
   const { group, members, sessions, loading, error, joinGroup, leaveGroup, approveMember, rejectMember } = useGroupDetails(id);
   const [showMembersSheet, setShowMembersSheet] = useState(false);
+  const [sessionsView, setSessionsView] = useState<"list" | "calendar">("list");
+
+  const calendarSessions: CalendarSession[] = useMemo(() =>
+    sessions.map(s => ({
+      id: s.id, title: s.title, date_time: s.date_time,
+      status: "available" as const, spotName: s.spot_name,
+      sessionType: s.session_type,
+    })),
+    [sessions]
+  );
 
   // Filter approved members for display
   const approvedMembers = members.filter(m => m.status === 'approved');
@@ -209,7 +220,28 @@ const GroupDetails = () => {
 
       {/* Sessions */}
       <div className="mt-6">
-        <GroupSessionsList sessions={sessions} groupId={id} />
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-foreground">{t("upcomingSessions")}</h3>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setSessionsView("list")}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${sessionsView === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setSessionsView("calendar")}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${sessionsView === "calendar" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <CalendarDays className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        {sessionsView === "calendar" ? (
+          <SessionCalendar sessions={calendarSessions} navigateFrom={`/groups/${id}`} />
+        ) : (
+          <GroupSessionsList sessions={sessions} groupId={id} />
+        )}
       </div>
 
       {/* Courses placeholder */}
