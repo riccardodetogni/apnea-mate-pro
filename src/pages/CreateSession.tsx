@@ -568,13 +568,15 @@ const CreateSession = () => {
               type="submit"
               variant="primaryGradient"
               className="w-full"
-              disabled={submitting}
+              disabled={submitting || (multiMode && selectedDates.length === 0)}
             >
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Creazione...
                 </>
+              ) : multiMode ? (
+                `Pubblica ${selectedDates.length} session${selectedDates.length === 1 ? "e" : "i"}`
               ) : (
                 "Pubblica sessione"
               )}
