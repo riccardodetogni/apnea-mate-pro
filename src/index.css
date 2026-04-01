@@ -359,6 +359,16 @@
 
 @layer utilities {
   /* Safe area padding for mobile */
+
+/* Session calendar gradient wrapper */
+.session-calendar-wrapper {
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(63, 189, 200, 0.12), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 70%, rgba(63, 102, 232, 0.10), transparent 55%),
+    hsl(var(--card));
+  border: 1px solid hsl(var(--card-border));
+}
+
 /* Session calendar dot indicators */
 .session-dot-confirmed,
 .session-dot-pending,
