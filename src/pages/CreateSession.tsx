@@ -72,6 +72,8 @@ const CreateSession = () => {
   const [submitting, setSubmitting] = useState(false);
   const [creatorJoins, setCreatorJoins] = useState(true);
   const [groupOnly, setGroupOnly] = useState(false);
+  const [multiMode, setMultiMode] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([]);
   // Store raw string values for number inputs to handle editing gracefully
   const [durationInput, setDurationInput] = useState("60");
   const [participantsInput, setParticipantsInput] = useState("6");
@@ -90,6 +92,7 @@ const CreateSession = () => {
   });
 
   const canCreate = isCertified || isInstructor;
+  const canBatch = isInstructor || myGroups.length > 0;
 
 
   // Auto-fill session_type based on selected spot's environment_type
