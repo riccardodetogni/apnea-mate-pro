@@ -1,73 +1,51 @@
 
 
-# Batch Session Creation (Multiple Dates)
+# Session Calendar View — MySessions + GroupDetails
 
 ## Summary
 
-Add the ability for instructors and group owners to create multiple independent sessions at once by selecting multiple dates (via calendar or recurrence pattern), with per-date time editing. All other fields (title, spot, type, level, etc.) are shared.
-
-## UX Flow
-
-```text
-CreateSession page:
-┌──────────────────────────────────┐
-│  [Single session] [Multiple ▼]  │  ← toggle (only for instructors/group owners)
-│                                  │
-│  Tab: [Pick dates] [Repeat]     │
-│                                  │
-│  ┌─ Calendar (multi-select) ──┐ │  OR  Recurrence config
-│  │  April 2026                │ │       Day checkboxes: [Mon][Wed]
-│  │  [5] [8] [12] selected     │ │       For: [4] weeks
-│  └────────────────────────────┘ │       Starting: [2026-04-07]
-│                                  │
-│  Selected dates:                 │
-│  📅 5 Apr  ⏰ [09:00]          │  ← editable time per date
-│  📅 8 Apr  ⏰ [09:00]     [✕]  │
-│  📅 12 Apr ⏰ [14:00]     [✕]  │
-│                                  │
-│  ... rest of form (shared) ...   │
-│  [Create 3 sessions]             │
-└──────────────────────────────────┘
-```
+Add a month-view calendar with colored dots on days that have sessions. Tapping a day shows the session list below. Two placements: MySessions (personal + available sessions) and GroupDetails (group sessions only).
 
 ## Changes
 
-### 1. `src/pages/CreateSession.tsx`
-- Add state: `multiMode` (boolean), `selectedDates` (array of `{date: string, time: string}`), `datePickerTab` ("pick" | "repeat")
-- Add recurrence state: `repeatDays` (weekday booleans), `repeatWeeks` (number), `repeatStartDate`
-- Show "Multiple dates" toggle only when user `isInstructor` OR is owner/admin of any group (check via `useMyGroups` + `useProfile`)
-- When `multiMode`:
-  - Replace single date/time inputs with tabbed UI (calendar multi-select or recurrence)
-  - Show date list with per-row time editor and remove button
-  - Default time for new dates = the single `form.time` value
-- On submit: loop through `selectedDates`, insert one session per date (same title/spot/type/level/duration/participants/paid/group), add creator as participant if `creatorJoins`
-- Toast: "X sessioni create!" with count
-- Navigate to `/my-sessions` after batch creation
+### 1. New: `src/components/sessions/SessionCalendar.tsx`
+- Accepts `sessions` array: `{ id, title, date_time, status: "confirmed" | "pending" | "created" | "available", spotName?: string, sessionType?: string }`
+- Uses the existing `Calendar` component in `mode="single"` for day selection
+- Groups sessions by date string, renders colored dots under days via custom `modifiers` + CSS classes:
+  - Blue = confirmed, Orange = pending, Purple = created by you, Gray = available
+- Below calendar: list of sessions for selected day as clickable cards navigating to `/sessions/:id`
+- `disabled` past dates, default selected day = today
+- Props: `sessions`, `onSessionClick`, optional `singleColor` (for GroupDetails)
 
-### 2. New: `src/components/sessions/BatchDatePicker.tsx`
-- Props: `selectedDates`, `onDatesChange`, `defaultTime`
-- Two tabs: "Pick dates" and "Repeat pattern"
-- **Pick dates tab**: `Calendar` from shadcn with `mode="multiple"`, `disabled={(d) => d < today}`
-- **Repeat tab**: weekday checkboxes, weeks count (1-12), start date picker → generates date list on change
-- Below both tabs: summary list of selected dates with inline time `<Input type="time">` and remove button per row
-- Sorted chronologically
+### 2. `src/pages/MySessions.tsx`
+- Add `viewMode` state: `"list" | "calendar"`, default `"list"`
+- Add toggle icons in header (`List`, `CalendarDays` from lucide)
+- When `"calendar"`:
+  - Map `useMyParticipations()` data into calendar session format (confirmed/pending/created statuses)
+  - Also fetch available sessions via `useSessions({ excludeJoined: true })` and merge as `"available"` status
+  - Render `<SessionCalendar>` instead of the list sections
 
-### 3. `src/lib/i18n.ts`
-- Add keys:
-  - `singleSession` / `multipleDates`
-  - `pickDates` / `repeatPattern`
-  - `repeatEvery` / `forWeeks` / `sessionsCreated`
-  - `removeDate`
+### 3. `src/pages/GroupDetails.tsx`
+- Add `sessionsView` state: `"list" | "calendar"`
+- Add toggle icons above sessions section header
+- When `"calendar"`: map group `sessions` into calendar format, render `<SessionCalendar singleColor>`
 
-### 4. Access control for toggle visibility
-- `useProfile` already provides `isInstructor`
-- For group owner check: use existing `useMyGroups` — if user has any groups, they qualify (group creators are always owners)
-- The toggle simply shows/hides the multi-date UI; no DB or RLS changes needed since sessions are inserted individually with same existing RLS
+### 4. `src/index.css`
+- Add CSS for calendar dot indicators using `::after` pseudo-elements on modifier classes:
+  ```css
+  .rdp-day--session-confirmed::after { /* blue dot */ }
+  .rdp-day--session-pending::after { /* orange dot */ }
+  .rdp-day--session-created::after { /* purple dot */ }
+  .rdp-day--session-available::after { /* gray dot */ }
+  ```
+- Multiple dots side-by-side when a day has multiple status types
 
-### Technical details
-- No database changes — each session is an independent row, inserted in a loop
-- `react-day-picker` already supports `mode="multiple"` for multi-date selection
-- Recurrence pattern generates dates client-side using simple date arithmetic
-- Batch insert uses `Promise.all` with individual inserts (not bulk) to properly handle per-session creator participant inserts
-- Calendar needs `pointer-events-auto` class per shadcn guidance
+### 5. `src/lib/i18n.ts`
+- Add keys: `calendarView`, `listView`, `noSessionsOnDate`, `availableSessions`
+
+### Technical notes
+- No database changes — all data from existing hooks
+- DayPicker `modifiers` maps `Date[]` to named modifiers; `modifiersClassNames` maps to CSS classes
+- `pointer-events-auto` added per shadcn guidance
+- Past dates grayed out but still selectable to see past sessions
 
