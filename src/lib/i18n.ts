@@ -355,7 +355,6 @@ const translations = {
     calendarView: "Calendario",
     listView: "Lista",
     noSessionsOnDate: "Nessuna sessione in questo giorno",
-    availableSessions: "Sessioni disponibili",
   },
   en: {
     // App
