@@ -88,14 +88,35 @@ export const SessionCalendar = ({ sessions, onSessionClick, navigateFrom }: Sess
 
   return (
     <div className="space-y-4">
-      <Calendar
+       <Calendar
         mode="single"
         selected={selectedDay}
         onSelect={(d) => d && setSelectedDay(d)}
         locale={it}
         modifiers={modifiers}
         modifiersClassNames={modifiersClassNames}
-        className="pointer-events-auto rounded-xl border border-border bg-card p-3 mx-auto"
+        className="pointer-events-auto rounded-xl p-4 w-full session-calendar-wrapper"
+        classNames={{
+          months: "w-full",
+          month: "w-full space-y-3",
+          caption: "flex justify-center pt-1 relative items-center",
+          caption_label: "text-sm font-semibold text-card-foreground",
+          nav: "space-x-1 flex items-center",
+          nav_button: "h-8 w-8 bg-transparent p-0 text-card-foreground/60 hover:text-card-foreground border border-[hsl(var(--card-border))] rounded-lg inline-flex items-center justify-center",
+          nav_button_previous: "absolute left-1",
+          nav_button_next: "absolute right-1",
+          table: "w-full border-collapse",
+          head_row: "flex w-full",
+          head_cell: "text-[hsl(var(--card-muted))] flex-1 font-normal text-xs text-center",
+          row: "flex w-full mt-1",
+          cell: "flex-1 text-center text-sm p-0.5 relative",
+          day: "h-10 w-10 mx-auto p-0 font-normal text-card-foreground/70 hover:bg-[hsl(var(--card-border))] rounded-full inline-flex items-center justify-center transition-colors",
+          day_selected: "!bg-primary !text-primary-foreground rounded-full font-semibold",
+          day_today: "ring-1 ring-primary/50 text-primary rounded-full font-semibold",
+          day_outside: "text-card-foreground/20",
+          day_disabled: "text-card-foreground/20",
+          day_hidden: "invisible",
+        }}
       />
 
       {/* Legend */}
