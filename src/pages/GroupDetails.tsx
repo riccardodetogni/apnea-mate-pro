@@ -23,6 +23,16 @@ const GroupDetails = () => {
   const { user } = useAuth();
   const { group, members, sessions, loading, error, joinGroup, leaveGroup, approveMember, rejectMember } = useGroupDetails(id);
   const [showMembersSheet, setShowMembersSheet] = useState(false);
+  const [sessionsView, setSessionsView] = useState<"list" | "calendar">("list");
+
+  const calendarSessions: CalendarSession[] = useMemo(() =>
+    sessions.map(s => ({
+      id: s.id, title: s.title, date_time: s.date_time,
+      status: "available" as const, spotName: s.spot_name,
+      sessionType: s.session_type,
+    })),
+    [sessions]
+  );
 
   // Filter approved members for display
   const approvedMembers = members.filter(m => m.status === 'approved');
