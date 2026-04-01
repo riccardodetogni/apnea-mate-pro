@@ -342,6 +342,15 @@ const translations = {
     iAmInstructor: "Sono un Istruttore",
     paidSession: "Sessione a pagamento",
     paidSessionDisclaimer: "Apnea Mate non gestisce, elabora né incassa pagamenti per le sessioni organizzate tra utenti. Ogni accordo economico avviene esclusivamente tra le parti coinvolte, sotto la loro piena responsabilità. Apnea Mate S.r.l. non è parte della transazione e non risponde in alcun modo di eventuali controversie, mancati pagamenti o inadempimenti.",
+    // Batch session creation
+    singleSession: "Singola",
+    multipleDates: "Date multiple",
+    pickDates: "Scegli date",
+    repeatPattern: "Ripeti",
+    repeatEvery: "Ripeti ogni",
+    forWeeks: "Per settimane",
+    sessionsCreated: "sessioni create!",
+    removeDate: "Rimuovi data",
   },
   en: {
     // App
