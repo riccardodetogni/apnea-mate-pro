@@ -57,7 +57,7 @@ const MySessions = () => {
     loading, 
     cancelParticipation 
   } = useMyParticipations();
-  const { sessions: availableSessions } = useSessions({ excludeJoined: true });
+  const { rawSessions: availableRawSessions } = useSessions({ excludeJoined: true });
 
   // Build calendar sessions from all sources
   const calendarSessions: CalendarSession[] = [
