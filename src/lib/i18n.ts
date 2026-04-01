@@ -707,7 +707,6 @@ const translations = {
     calendarView: "Calendar",
     listView: "List",
     noSessionsOnDate: "No sessions on this day",
-    availableSessions: "Available sessions",
   },
 };
 
