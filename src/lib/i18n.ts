@@ -704,6 +704,11 @@ const translations = {
     forWeeks: "For weeks",
     sessionsCreated: "sessions created!",
     removeDate: "Remove date",
+    // Session calendar
+    calendarView: "Calendar",
+    listView: "List",
+    noSessionsOnDate: "No sessions on this day",
+    availableSessions: "Available sessions",
   },
 };
 

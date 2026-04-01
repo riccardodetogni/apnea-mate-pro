@@ -359,6 +359,66 @@
 
 @layer utilities {
   /* Safe area padding for mobile */
+/* Session calendar dot indicators */
+.session-dot-confirmed .rdp-day_button::after,
+.session-dot-pending .rdp-day_button::after,
+.session-dot-created .rdp-day_button::after,
+.session-dot-available .rdp-day_button::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.session-dot-confirmed .rdp-day_button::after,
+.session-dot-confirmed::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: hsl(var(--success));
+}
+.session-dot-pending::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: hsl(var(--warning));
+}
+.session-dot-created::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: hsl(var(--primary));
+}
+.session-dot-available::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: hsl(var(--muted-foreground));
+}
+
   .safe-area-bottom {
     padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
