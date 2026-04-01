@@ -48,6 +48,7 @@ const mapSessionType = (type: string): string => {
 const MySessions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const { 
     pendingParticipations, 
     confirmedParticipations, 
@@ -56,6 +57,31 @@ const MySessions = () => {
     loading, 
     cancelParticipation 
   } = useMyParticipations();
+  const { sessions: availableSessions } = useSessions({ excludeJoined: true });
+
+  // Build calendar sessions from all sources
+  const calendarSessions: CalendarSession[] = [
+    ...confirmedParticipations.map(p => ({
+      id: p.session.id, title: p.session.title, date_time: p.session.date_time,
+      status: "confirmed" as const, spotName: p.session.spot?.name,
+      sessionType: p.session.session_type, durationMinutes: p.session.duration_minutes,
+    })),
+    ...pendingParticipations.map(p => ({
+      id: p.session.id, title: p.session.title, date_time: p.session.date_time,
+      status: "pending" as const, spotName: p.session.spot?.name,
+      sessionType: p.session.session_type, durationMinutes: p.session.duration_minutes,
+    })),
+    ...[...createdWithPendingRequests, ...createdWithoutPendingRequests].map(s => ({
+      id: s.id, title: s.title, date_time: s.date_time,
+      status: "created" as const, spotName: s.spot?.name,
+      sessionType: s.session_type, durationMinutes: s.duration_minutes,
+    })),
+    ...(availableSessions || []).map(s => ({
+      id: s.id, title: s.title, date_time: s.date_time,
+      status: "available" as const, spotName: s.spotName,
+      sessionType: s.sessionType, durationMinutes: s.duration_minutes,
+    })),
+  ];
 
 
   const SessionCard = ({ participation, isPending }: { participation: any; isPending: boolean }) => {
