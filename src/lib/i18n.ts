@@ -690,6 +690,15 @@ const translations = {
     iAmInstructor: "I am an Instructor",
     paidSession: "Paid session",
     paidSessionDisclaimer: "Apnea Mate does not manage, process, or collect payments for sessions organized between users. Any financial agreement is made exclusively between the parties involved, under their full responsibility. Apnea Mate S.r.l. is not a party to the transaction and is not liable in any way for disputes, non-payments, or breaches.",
+    // Batch session creation
+    singleSession: "Single",
+    multipleDates: "Multiple dates",
+    pickDates: "Pick dates",
+    repeatPattern: "Repeat",
+    repeatEvery: "Repeat every",
+    forWeeks: "For weeks",
+    sessionsCreated: "sessions created!",
+    removeDate: "Remove date",
   },
 };
 
