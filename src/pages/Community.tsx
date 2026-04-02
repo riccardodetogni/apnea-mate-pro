@@ -71,6 +71,7 @@ const Community = () => {
   // Local state
   const [joiningSession, setJoiningSession] = useState<string | null>(null);
   const [joiningGroup, setJoiningGroup] = useState<string | null>(null);
+  const [sessionFilters, setSessionFilters] = useState<SessionFilterState>(defaultSessionFilters);
   const [safetyModal, setSafetyModal] = useState<{
     open: boolean;
     session: SessionWithDetails | null;
