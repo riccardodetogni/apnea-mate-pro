@@ -224,8 +224,8 @@ const Community = () => {
   const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
 
   // Apply session filters
-  const filteredSessions = useMemo(() => {
-    let result = availableSessions;
+  const applySessionFilters = (list: typeof availableSessions) => {
+    let result = list;
 
     // Date filter
     if (sessionFilters.dateRange !== "all") {
@@ -281,7 +281,9 @@ const Community = () => {
     }
 
     return result;
-  }, [availableSessions, sessionFilters]);
+  };
+
+  const filteredSessions = applySessionFilters(availableSessions);
 
   const myGroups = groups.filter(g => g.isMember);
   const availableGroups = groups.filter(g => !g.isMember && !g.isPending);
