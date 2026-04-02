@@ -8,6 +8,7 @@ import { SessionCard } from "@/components/community/SessionCard";
 import { GroupCard } from "@/components/community/GroupCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
+import { SessionFilters, SessionFilterState, defaultSessionFilters } from "@/components/community/SessionFilters";
 import { useSessions, useSessionsFromFollowing, SessionWithDetails } from "@/hooks/useSessions";
 import { useGroups, GroupWithDetails } from "@/hooks/useGroups";
 import { useSearch } from "@/hooks/useSearch";
@@ -15,6 +16,7 @@ import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, addWeeks, isWithinInterval } from "date-fns";
 
 const Community = () => {
   const navigate = useNavigate();
@@ -69,6 +71,7 @@ const Community = () => {
   // Local state
   const [joiningSession, setJoiningSession] = useState<string | null>(null);
   const [joiningGroup, setJoiningGroup] = useState<string | null>(null);
+  const [sessionFilters, setSessionFilters] = useState<SessionFilterState>(defaultSessionFilters);
   const [safetyModal, setSafetyModal] = useState<{
     open: boolean;
     session: SessionWithDetails | null;
@@ -219,6 +222,69 @@ const Community = () => {
 
   const availableSessions = getFilteredSortedSessions(sessions, rawSessions);
   const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
+
+  // Apply session filters
+  const applySessionFilters = (list: typeof availableSessions) => {
+    let result = list;
+
+    // Date filter
+    if (sessionFilters.dateRange !== "all") {
+      const now = new Date();
+      const today = startOfDay(now);
+      let from: Date | undefined;
+      let to: Date | undefined;
+
+      switch (sessionFilters.dateRange) {
+        case "today":
+          from = today;
+          to = endOfDay(now);
+          break;
+        case "tomorrow":
+          from = startOfDay(addDays(now, 1));
+          to = endOfDay(addDays(now, 1));
+          break;
+        case "thisWeek":
+          from = startOfWeek(now, { weekStartsOn: 1 });
+          to = endOfWeek(now, { weekStartsOn: 1 });
+          break;
+        case "nextWeek":
+          from = startOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
+          to = endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
+          break;
+        case "custom":
+          from = sessionFilters.customFrom ? startOfDay(sessionFilters.customFrom) : undefined;
+          to = sessionFilters.customTo ? endOfDay(sessionFilters.customTo) : undefined;
+          break;
+      }
+
+      if (from || to) {
+        result = result.filter((s) => {
+          const sDate = new Date(s.dateTime);
+          if (from && to) return isWithinInterval(sDate, { start: from, end: to });
+          if (from) return sDate >= from;
+          if (to) return sDate <= to;
+          return true;
+        });
+      }
+    }
+
+    // Spot filter
+    if (sessionFilters.spotName) {
+      result = result.filter((s) => s.spotName === sessionFilters.spotName);
+    }
+
+    // Paid filter
+    if (sessionFilters.paidFilter === "free") {
+      result = result.filter((s) => !s.isPaid);
+    } else if (sessionFilters.paidFilter === "paid") {
+      result = result.filter((s) => s.isPaid);
+    }
+
+    return result;
+  };
+
+  const filteredSessions = applySessionFilters(availableSessions);
+
   const myGroups = groups.filter(g => g.isMember);
   const availableGroups = groups.filter(g => !g.isMember && !g.isPending);
 
@@ -324,14 +390,19 @@ const Community = () => {
         actionLabel={t("viewAll")}
         onAction={() => navigate("/spots")}
       />
+      <SessionFilters
+        sessions={availableSessions}
+        filters={sessionFilters}
+        onFiltersChange={setSessionFilters}
+      />
       <div className="scroll-row">
         {sessionsLoading ? (
           <>
             <SessionSkeleton />
             <SessionSkeleton />
           </>
-        ) : availableSessions.length > 0 ? (
-          availableSessions.map((session) => (
+        ) : filteredSessions.length > 0 ? (
+          filteredSessions.map((session) => (
             <SessionCard
               key={session.id}
               {...session}

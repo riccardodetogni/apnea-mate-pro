@@ -358,6 +358,17 @@ const translations = {
     calendarView: "Calendario",
     listView: "Lista",
     noSessionsOnDate: "Nessuna sessione in questo giorno",
+    // Session filters
+    filterAllDates: "Tutte",
+    filterToday: "Oggi",
+    filterTomorrow: "Domani",
+    filterThisWeek: "Questa settimana",
+    filterNextWeek: "Prossima settimana",
+    filterCustomDate: "Personalizza",
+    filterAllSpots: "Tutti gli spot",
+    filterAllSessions: "Tutte",
+    filterFree: "Gratuite",
+    filterPaid: "A pagamento",
   },
   en: {
     // App
@@ -713,6 +724,17 @@ const translations = {
     calendarView: "Calendar",
     listView: "List",
     noSessionsOnDate: "No sessions on this day",
+    // Session filters
+    filterAllDates: "All",
+    filterToday: "Today",
+    filterTomorrow: "Tomorrow",
+    filterThisWeek: "This week",
+    filterNextWeek: "Next week",
+    filterCustomDate: "Custom",
+    filterAllSpots: "All spots",
+    filterAllSessions: "All",
+    filterFree: "Free",
+    filterPaid: "Paid",
   },
 };
 
