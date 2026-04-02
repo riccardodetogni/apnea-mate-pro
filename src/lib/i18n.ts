@@ -724,6 +724,17 @@ const translations = {
     calendarView: "Calendar",
     listView: "List",
     noSessionsOnDate: "No sessions on this day",
+    // Session filters
+    filterAllDates: "All",
+    filterToday: "Today",
+    filterTomorrow: "Tomorrow",
+    filterThisWeek: "This week",
+    filterNextWeek: "Next week",
+    filterCustomDate: "Custom",
+    filterAllSpots: "All spots",
+    filterAllSessions: "All",
+    filterFree: "Free",
+    filterPaid: "Paid",
   },
 };
 
