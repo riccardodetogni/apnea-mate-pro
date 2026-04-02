@@ -367,9 +367,13 @@ const translations = {
     filterCustomDate: "Personalizza",
     filterAllSpots: "Tutti gli spot",
     filterAllSessions: "Tutte",
-    filterFree: "Gratuite",
-    filterPaid: "A pagamento",
-  },
+     filterFree: "Gratuite",
+     filterPaid: "A pagamento",
+     filterApply: "Applica",
+     filterReset: "Reset",
+     filterTitle: "Filtri",
+     filterType: "Tipo",
+   },
   en: {
     // App
     appName: "Apnea Mate",
@@ -733,9 +737,13 @@ const translations = {
     filterCustomDate: "Custom",
     filterAllSpots: "All spots",
     filterAllSessions: "All",
-    filterFree: "Free",
-    filterPaid: "Paid",
-  },
+     filterFree: "Free",
+     filterPaid: "Paid",
+     filterApply: "Apply",
+     filterReset: "Reset",
+     filterTitle: "Filters",
+     filterType: "Type",
+   },
 };
 
 export type Language = "it" | "en";
