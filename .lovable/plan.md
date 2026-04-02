@@ -1,52 +1,53 @@
 
 
-# Session Filters for Community Page
+# Session Filters — Single Row + Filter Sheet
 
 ## Summary
 
-Add a horizontal scrollable filter bar below the "Sessions for you" section header. Three filter dimensions: date (quick chips + custom range), spot name, and paid/free. All client-side filtering on existing data.
+Replace the current three-row chip layout with a single scrollable row of date chips plus a filter icon button. Tapping the filter icon opens a bottom sheet containing the spot and paid/free filters. An active-filter badge on the icon indicates when non-default filters are applied.
 
 ## UX
 
 ```text
-Sessions for you                          Vedi tutto →
-┌──────────────────────────────────────────────────┐
-│ [Tutti] [Oggi] [Domani] [Settimana] [Custom ▾]  │  ← date chips
-│ [Tutti gli spot] [Spot A] [Spot B] [Spot C]      │  ← spot chips (dynamic)
-│ [Tutte] [Gratuite] [A pagamento]                 │  ← paid/free chips
-└──────────────────────────────────────────────────┘
-  ← scrollable session cards →
-```
+Sessions for you                                 Vedi tutto →
+┌────────────────────────────────────────────────────────┐
+│ [Tutti] [Oggi] [Domani] [Settimana] [Custom▾]  [⚙ •] │
+└────────────────────────────────────────────────────────┘
+                                                   ↑ badge if filters active
 
-- **Date chips**: "Tutti", "Oggi", "Domani", "Questa settimana", "Prossima settimana", "Personalizza…" (opens a popover with date range picker)
-- **Spot chips**: dynamically built from the spots present in the current session list. "Tutti gli spot" + one chip per unique spot name
-- **Paid/Free chips**: "Tutte", "Gratuite", "A pagamento"
-- All chips follow same pill style as `GroupFilterChips`
-- Filters are AND-combined (date AND spot AND paid)
+Bottom sheet (on filter icon tap):
+┌──────────────────────────────┐
+│  Filtri                      │
+│                              │
+│  Spot                        │
+│  [Tutti] [Spot A] [Spot B]   │
+│                              │
+│  Tipo                        │
+│  [Tutte] [Gratuite] [A pag.] │
+│                              │
+│  [Applica]      [Reset]      │
+└──────────────────────────────┘
+```
 
 ## Changes
 
-### 1. New: `src/components/community/SessionFilters.tsx`
-- Props: `{ sessions: SessionWithDetails[], filters: SessionFilterState, onFiltersChange: (f: SessionFilterState) => void }`
-- `SessionFilterState = { dateRange: "all" | "today" | "tomorrow" | "thisWeek" | "nextWeek" | "custom"; customFrom?: Date; customTo?: Date; spotName: string | null; paidFilter: "all" | "free" | "paid" }`
-- Three rows of scrollable chips
-- "Personalizza" chip opens a `Popover` with two `Calendar` components (from/to) for custom range
-- Derives unique spot names from sessions prop
+### 1. `src/components/community/SessionFilters.tsx`
+- Keep the single date chips row (with custom date popover) as-is
+- Remove the spot and paid/free chip rows from the main render
+- Add a filter icon button (`SlidersHorizontal` from lucide) at the end of the date row
+- Show a small colored dot on the icon when `spotName !== null || paidFilter !== "all"`
+- On icon tap, open a `Drawer` (bottom sheet) containing:
+  - Spot chips (same logic, derived from sessions)
+  - Paid/free chips
+  - "Applica" button that closes the sheet
+  - "Reset" link that resets spot + paid filters to defaults
 
-### 2. `src/pages/Community.tsx`
-- Add `sessionFilters` state with `SessionFilterState`
-- Render `<SessionFilters>` between `SectionHeader` and the scroll-row
-- Apply filters to `availableSessions` after distance sorting:
-  - Date: filter by comparing `session.dateTime` against computed date boundaries
-  - Spot: filter by `session.spotName === filter.spotName`
-  - Paid: filter by `session.isPaid` / `!session.isPaid`
+### 2. `src/lib/i18n.ts`
+- Add keys: `filterApply` ("Applica"/"Apply"), `filterReset` ("Reset"/"Reset"), `filterTitle` ("Filtri"/"Filters"), `filterType` ("Tipo"/"Type")
 
-### 3. `src/lib/i18n.ts`
-- Add keys: `filterToday` ("Oggi"/"Today"), `filterTomorrow` ("Domani"/"Tomorrow"), `filterThisWeek` ("Questa settimana"/"This week"), `filterNextWeek` ("Prossima settimana"/"Next week"), `filterCustomDate` ("Personalizza"/"Custom"), `filterAllSpots` ("Tutti gli spot"/"All spots"), `filterAllSessions` ("Tutte"/"All"), `filterFree` ("Gratuite"/"Free"), `filterPaid` ("A pagamento"/"Paid"), `filterAllDates` ("Tutte le date"/"All dates")
+### Files
+- `src/components/community/SessionFilters.tsx` — refactor layout
+- `src/lib/i18n.ts` — add 4 keys
 
-### Technical notes
-- Pure client-side filtering — no DB changes
-- Spot chips are derived dynamically from the fetched sessions, so they update as data changes
-- Custom date range uses the existing shadcn `Calendar` + `Popover` components
-- Filter state resets when navigating away (local component state)
+No other files change. Same `SessionFilterState` type, same filtering logic in `Community.tsx`.
 
