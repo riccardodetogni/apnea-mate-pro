@@ -390,14 +390,19 @@ const Community = () => {
         actionLabel={t("viewAll")}
         onAction={() => navigate("/spots")}
       />
+      <SessionFilters
+        sessions={availableSessions}
+        filters={sessionFilters}
+        onFiltersChange={setSessionFilters}
+      />
       <div className="scroll-row">
         {sessionsLoading ? (
           <>
             <SessionSkeleton />
             <SessionSkeleton />
           </>
-        ) : availableSessions.length > 0 ? (
-          availableSessions.map((session) => (
+        ) : filteredSessions.length > 0 ? (
+          filteredSessions.map((session) => (
             <SessionCard
               key={session.id}
               {...session}
