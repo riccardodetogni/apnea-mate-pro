@@ -358,6 +358,17 @@ const translations = {
     calendarView: "Calendario",
     listView: "Lista",
     noSessionsOnDate: "Nessuna sessione in questo giorno",
+    // Session filters
+    filterAllDates: "Tutte",
+    filterToday: "Oggi",
+    filterTomorrow: "Domani",
+    filterThisWeek: "Questa settimana",
+    filterNextWeek: "Prossima settimana",
+    filterCustomDate: "Personalizza",
+    filterAllSpots: "Tutti gli spot",
+    filterAllSessions: "Tutte",
+    filterFree: "Gratuite",
+    filterPaid: "A pagamento",
   },
   en: {
     // App
