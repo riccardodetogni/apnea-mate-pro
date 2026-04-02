@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CommunityHeader } from "@/components/community/CommunityHeader";
@@ -8,6 +8,7 @@ import { SessionCard } from "@/components/community/SessionCard";
 import { GroupCard } from "@/components/community/GroupCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
+import { SessionFilters, SessionFilterState, defaultSessionFilters } from "@/components/community/SessionFilters";
 import { useSessions, useSessionsFromFollowing, SessionWithDetails } from "@/hooks/useSessions";
 import { useGroups, GroupWithDetails } from "@/hooks/useGroups";
 import { useSearch } from "@/hooks/useSearch";
@@ -15,6 +16,7 @@ import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, addWeeks, isWithinInterval } from "date-fns";
 
 const Community = () => {
   const navigate = useNavigate();
