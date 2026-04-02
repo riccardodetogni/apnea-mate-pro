@@ -737,9 +737,13 @@ const translations = {
     filterCustomDate: "Custom",
     filterAllSpots: "All spots",
     filterAllSessions: "All",
-    filterFree: "Free",
-    filterPaid: "Paid",
-  },
+     filterFree: "Free",
+     filterPaid: "Paid",
+     filterApply: "Apply",
+     filterReset: "Reset",
+     filterTitle: "Filters",
+     filterType: "Type",
+   },
 };
 
 export type Language = "it" | "en";

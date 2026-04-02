@@ -2,11 +2,19 @@ import { useState, useMemo } from "react";
 import { t } from "@/lib/i18n";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { SessionWithDetails } from "@/hooks/useSessions";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
 
 export type SessionFilterState = {
   dateRange: "all" | "today" | "tomorrow" | "thisWeek" | "nextWeek" | "custom";
@@ -55,6 +63,7 @@ const Chip = ({
 
 export const SessionFilters = ({ sessions, filters, onFiltersChange }: SessionFiltersProps) => {
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const spotNames = useMemo(() => {
     const names = new Set<string>();
@@ -63,6 +72,8 @@ export const SessionFilters = ({ sessions, filters, onFiltersChange }: SessionFi
     });
     return Array.from(names).sort();
   }, [sessions]);
+
+  const hasActiveFilters = filters.spotName !== null || filters.paidFilter !== "all";
 
   const dateChips: { id: SessionFilterState["dateRange"]; label: string }[] = [
     { id: "all", label: t("filterAllDates") },
@@ -85,9 +96,8 @@ export const SessionFilters = ({ sessions, filters, onFiltersChange }: SessionFi
     : t("filterCustomDate");
 
   return (
-    <div className="space-y-1.5 mb-3">
-      {/* Date chips */}
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4">
+    <>
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 mb-3 items-center">
         {dateChips.map((c) => (
           <Chip
             key={c.id}
@@ -137,38 +147,85 @@ export const SessionFilters = ({ sessions, filters, onFiltersChange }: SessionFi
             </div>
           </PopoverContent>
         </Popover>
+
+        {/* Filter icon button */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="relative ml-auto flex-shrink-0 p-1.5 rounded-full bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-colors"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          {hasActiveFilters && (
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background" />
+          )}
+        </button>
       </div>
 
-      {/* Spot chips */}
-      {spotNames.length > 1 && (
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4">
-          <Chip
-            label={t("filterAllSpots")}
-            active={filters.spotName === null}
-            onClick={() => onFiltersChange({ ...filters, spotName: null })}
-          />
-          {spotNames.map((name) => (
-            <Chip
-              key={name}
-              label={name}
-              active={filters.spotName === name}
-              onClick={() => onFiltersChange({ ...filters, spotName: name })}
-            />
-          ))}
-        </div>
-      )}
+      {/* Filter drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{t("filterTitle")}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-2 space-y-4">
+            {/* Spot chips */}
+            {spotNames.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Spot</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <Chip
+                    label={t("filterAllSpots")}
+                    active={filters.spotName === null}
+                    onClick={() => onFiltersChange({ ...filters, spotName: null })}
+                  />
+                  {spotNames.map((name) => (
+                    <Chip
+                      key={name}
+                      label={name}
+                      active={filters.spotName === name}
+                      onClick={() => onFiltersChange({ ...filters, spotName: name })}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
-      {/* Paid/Free chips */}
-      <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4">
-        {paidChips.map((c) => (
-          <Chip
-            key={c.id}
-            label={c.label}
-            active={filters.paidFilter === c.id}
-            onClick={() => onFiltersChange({ ...filters, paidFilter: c.id })}
-          />
-        ))}
-      </div>
-    </div>
+            {/* Paid/Free chips */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t("filterType")}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {paidChips.map((c) => (
+                  <Chip
+                    key={c.id}
+                    label={c.label}
+                    active={filters.paidFilter === c.id}
+                    onClick={() => onFiltersChange({ ...filters, paidFilter: c.id })}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <DrawerFooter>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  onFiltersChange({ ...filters, spotName: null, paidFilter: "all" });
+                  setDrawerOpen(false);
+                }}
+              >
+                {t("filterReset")}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => setDrawerOpen(false)}
+              >
+                {t("filterApply")}
+              </Button>
+            </div>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
