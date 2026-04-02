@@ -367,9 +367,13 @@ const translations = {
     filterCustomDate: "Personalizza",
     filterAllSpots: "Tutti gli spot",
     filterAllSessions: "Tutte",
-    filterFree: "Gratuite",
-    filterPaid: "A pagamento",
-  },
+     filterFree: "Gratuite",
+     filterPaid: "A pagamento",
+     filterApply: "Applica",
+     filterReset: "Reset",
+     filterTitle: "Filtri",
+     filterType: "Tipo",
+   },
   en: {
     // App
     appName: "Apnea Mate",
