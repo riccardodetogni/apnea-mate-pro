@@ -39,6 +39,7 @@ const sessionTypes = [
   { value: "deep_pool_session", label: "Piscina profonda" },
   { value: "lake_trip", label: "Uscita lago" },
   { value: "training", label: "Allenamento" },
+  { value: "spearfishing", label: "Pesca subacquea" },
 ];
 
 const levels = [
