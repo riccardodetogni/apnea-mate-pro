@@ -197,20 +197,15 @@ export const getOrCreateSessionConversation = async (sessionId: string, userId: 
 
 // Helper: get or create a conversation for a group
 export const getOrCreateGroupConversation = async (groupId: string, userId: string): Promise<string> => {
-  const { data: existing } = await supabase
-    .from("conversations")
-    .select("id")
-    .eq("group_id", groupId)
-    .eq("type", "group")
-    .limit(1)
-    .maybeSingle();
+  // Use RPC to bypass RLS and find existing conversation
+  const { data: existingId } = await supabase.rpc('find_conversation_by_group', { _group_id: groupId });
 
-  if (existing) {
+  if (existingId) {
     await supabase.from("conversation_participants").upsert({
-      conversation_id: existing.id,
+      conversation_id: existingId,
       user_id: userId,
     }, { onConflict: "conversation_id,user_id" });
-    return existing.id;
+    return existingId;
   }
 
   const convId = crypto.randomUUID();
@@ -220,21 +215,14 @@ export const getOrCreateGroupConversation = async (groupId: string, userId: stri
     .insert({ id: convId, type: "group", group_id: groupId });
 
   if (error) {
-    // Unique constraint violation — re-fetch
-    const { data: retry } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("group_id", groupId)
-      .eq("type", "group")
-      .limit(1)
-      .maybeSingle();
+    const { data: retryId } = await supabase.rpc('find_conversation_by_group', { _group_id: groupId });
 
-    if (retry) {
+    if (retryId) {
       await supabase.from("conversation_participants").upsert({
-        conversation_id: retry.id,
+        conversation_id: retryId,
         user_id: userId,
       }, { onConflict: "conversation_id,user_id" });
-      return retry.id;
+      return retryId;
     }
     throw new Error("Failed to create group conversation");
   }
