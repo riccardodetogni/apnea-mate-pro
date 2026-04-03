@@ -155,23 +155,16 @@ export const useConversations = () => {
 };
 
 // Helper: get or create a conversation for a session
-export const getOrCreateSessionConversation = async (sessionId: string, creatorId: string): Promise<string> => {
-  // Check if conversation already exists
-  const { data: existing } = await supabase
-    .from("conversations")
-    .select("id")
-    .eq("session_id", sessionId)
-    .eq("type", "session")
-    .limit(1)
-    .maybeSingle();
+export const getOrCreateSessionConversation = async (sessionId: string, userId: string): Promise<string> => {
+  // Use RPC to bypass RLS and find existing conversation
+  const { data: existingId } = await supabase.rpc('find_conversation_by_session', { _session_id: sessionId });
 
-  if (existing) {
-    // Ensure user is a participant
+  if (existingId) {
     await supabase.from("conversation_participants").upsert({
-      conversation_id: existing.id,
-      user_id: creatorId,
+      conversation_id: existingId,
+      user_id: userId,
     }, { onConflict: "conversation_id,user_id" });
-    return existing.id;
+    return existingId;
   }
 
   const convId = crypto.randomUUID();
@@ -181,28 +174,22 @@ export const getOrCreateSessionConversation = async (sessionId: string, creatorI
     .insert({ id: convId, type: "session", session_id: sessionId });
 
   if (error) {
-    // Unique constraint violation — another call created it first, re-fetch
-    const { data: retry } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("session_id", sessionId)
-      .eq("type", "session")
-      .limit(1)
-      .maybeSingle();
+    // Unique constraint violation — another call created it first, re-fetch via RPC
+    const { data: retryId } = await supabase.rpc('find_conversation_by_session', { _session_id: sessionId });
 
-    if (retry) {
+    if (retryId) {
       await supabase.from("conversation_participants").upsert({
-        conversation_id: retry.id,
-        user_id: creatorId,
+        conversation_id: retryId,
+        user_id: userId,
       }, { onConflict: "conversation_id,user_id" });
-      return retry.id;
+      return retryId;
     }
     throw new Error("Failed to create session conversation");
   }
 
   await supabase.from("conversation_participants").insert({
     conversation_id: convId,
-    user_id: creatorId,
+    user_id: userId,
   });
 
   return convId;
