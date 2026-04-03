@@ -105,7 +105,6 @@ const Community = () => {
     setSafetyModal({ open: false, session: null, fromFollowing: false });
     
     if (error) {
-      // Check for specific errors
       if (error.message?.includes('duplicate')) {
         toast({
           title: "Già iscritto",
@@ -120,9 +119,12 @@ const Community = () => {
         });
       }
     } else {
+      const isCreator = safetyModal.session?.creatorId === user?.id;
       toast({
-        title: "Iscritto!",
-        description: "Ti sei unito alla sessione. Buona immersione!",
+        title: isCreator ? "Ti sei iscritto!" : "Richiesta inviata!",
+        description: isCreator 
+          ? "Sei stato aggiunto alla tua sessione" 
+          : "L'organizzatore riceverà la tua richiesta di partecipazione",
       });
     }
   };

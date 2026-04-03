@@ -264,10 +264,6 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
       .insert({ session_id: sessionId, user_id: user.id, status: "pending" });
 
     if (!error) {
-      // Find session info for notification
-      const session = sessions.find(s => s.id === sessionId);
-      const rawSession = sessions.find(s => s.id === sessionId);
-      
       // Get the creator_id from raw sessions data
       const rawS = (await supabase
         .from("sessions")
@@ -276,47 +272,57 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
         .single()).data;
 
       if (rawS) {
-        // Get user profile for notification message
-        const { data: userProfile } = await supabase
-          .from("profiles")
-          .select("name")
-          .eq("user_id", user.id)
-          .single();
+        const isCreator = rawS.creator_id === user.id;
 
-        const userName = userProfile?.name || "Un utente";
-        const sessionTitle = rawS.title;
+        if (isCreator) {
+          // Auto-confirm: creator joining own session
+          await supabase
+            .from("session_participants")
+            .update({ status: "confirmed" })
+            .eq("session_id", sessionId)
+            .eq("user_id", user.id);
+          // Skip notifications — no need to notify yourself
+        } else {
+          // Normal flow: notify creator
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("user_id", user.id)
+            .single();
 
-        // Create in-app notification for session creator
-        const { createNotification } = await import("@/lib/notifications");
-        await createNotification({
-          userId: rawS.creator_id,
-          type: "session_join_request",
-          title: "Nuova richiesta di partecipazione",
-          message: `${userName} vuole partecipare a "${sessionTitle}"`,
-          metadata: {
-            session_id: sessionId,
-            session_title: sessionTitle,
-            user_id: user.id,
-            user_name: userName,
-          },
-        });
+          const userName = userProfile?.name || "Un utente";
+          const sessionTitle = rawS.title;
 
-        // Send email notification
-        try {
-          await supabase.functions.invoke("send-session-notification", {
-            body: {
-              type: "join_request",
-              sessionId,
-              participantUserId: user.id,
+          const { createNotification } = await import("@/lib/notifications");
+          await createNotification({
+            userId: rawS.creator_id,
+            type: "session_join_request",
+            title: "Nuova richiesta di partecipazione",
+            message: `${userName} vuole partecipare a "${sessionTitle}"`,
+            metadata: {
+              session_id: sessionId,
+              session_title: sessionTitle,
+              user_id: user.id,
+              user_name: userName,
             },
           });
-        } catch (e) {
-          console.error("Failed to send session notification email:", e);
+
+          try {
+            await supabase.functions.invoke("send-session-notification", {
+              body: {
+                type: "join_request",
+                sessionId,
+                participantUserId: user.id,
+              },
+            });
+          } catch (e) {
+            console.error("Failed to send session notification email:", e);
+          }
         }
       }
     }
 
-    return { error };
+    return { error, isCreator: !error && sessions.some(s => s.id === sessionId && s.creator_id === user.id) };
   };
 
   const leaveSession = async (sessionId: string) => {
