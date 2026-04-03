@@ -1,41 +1,40 @@
 
 
-# Add App Links to Email Notifications (corrected URL)
+# Auto-Approve Creator Joining Own Session
 
-## Summary
+## Problem
 
-Add CTA buttons with deep links to the app in all notification emails. Use the production domain `https://apnea-mate-pro.com`.
+When the session creator didn't check "I'm joining" at creation time, they later see a "Join" button. Clicking it inserts them as `pending`, requiring them to approve themselves — which makes no sense.
+
+## Solution
+
+When the creator joins their own session, insert as `pending` (required by RLS), then immediately update to `confirmed`. Skip all notifications (no need to notify yourself). Show a "joined" toast instead of "request sent".
 
 ## Changes
 
-### 1. `supabase/functions/send-session-notification/index.ts`
-- Add `const APP_URL = "https://apnea-mate-pro.com"`
-- Add styled CTA button in each email variant:
-  - **join_request**: "Gestisci richiesta" → `${APP_URL}/sessions/${sessionId}`
-  - **request_approved**: "Vedi sessione" → `${APP_URL}/sessions/${sessionId}`
-  - **request_rejected**: "Esplora sessioni" → `${APP_URL}/community`
+### 1. `src/hooks/useSessions.ts` — `joinSession`
+- After insert, check if `user.id === creator_id` (fetch session's `creator_id`)
+- If creator: immediately update the participant row to `status: 'confirmed'`
+- Skip notification creation and email sending
+- The RLS update policy allows this because creator can manage participants
 
-### 2. `supabase/functions/send-group-notification/index.ts`
-- Same `APP_URL` constant
-  - **request_approved**: "Vai al gruppo" → `${APP_URL}/groups/${groupId}`
-  - **request_rejected**: "Esplora gruppi" → `${APP_URL}/community`
+### 2. `src/pages/SessionDetails.tsx` — `confirmJoin`
+- Same logic: after inserting participant, check if `user.id === session.creator_id`
+- If yes: update status to `confirmed`, skip notifications, show "Ti sei iscritto!" toast
+- If no: existing pending flow
 
-### 3. `supabase/functions/send-certification-notification/index.ts`
-- Same `APP_URL` constant
-  - **approved**: "Vai al profilo" → `${APP_URL}/profile`
-  - **rejected**: "Riprova" → `${APP_URL}/settings`
+### 3. `src/pages/SpotDetails.tsx` — `confirmJoin`
+- Same pattern: check `session.creator_id === user?.id` after insert
+- Auto-confirm + skip notifications if creator
 
-### Button style (shared across all templates)
-```html
-<a href="..." style="display:inline-block; background:#3f66e8; color:#ffffff; font-size:15px; font-weight:bold; border-radius:18px; padding:14px 28px; text-decoration:none; margin:16px 0;">
-  CTA Text
-</a>
-```
+### 4. `src/pages/Community.tsx` — `confirmJoinSession`
+- Same pattern using `creatorId` from `SessionWithDetails`
 
-Consistent with the auth email template buttons already in the project.
+### Files
+- `src/hooks/useSessions.ts`
+- `src/pages/SessionDetails.tsx`
+- `src/pages/SpotDetails.tsx`
+- `src/pages/Community.tsx`
 
-### Technical notes
-- No database changes
-- All 3 edge functions will be redeployed after editing
-- URL is hardcoded as a constant (can move to env var later if needed)
+No database changes — the existing RLS update policy already allows session creators to update participant status.
 
