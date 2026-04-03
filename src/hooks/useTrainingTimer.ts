@@ -15,6 +15,7 @@ interface UseTrainingTimerProps {
 
 export const useTrainingTimer = ({
   steps,
+  mode,
   onPhaseChange,
   onCountdown,
   onComplete,
