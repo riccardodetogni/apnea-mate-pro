@@ -80,6 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="margin: 0; color: #64748b;">📍 ${group.location}</p>
           </div>
           <p>Ora puoi vedere le sessioni del gruppo e partecipare alle attività!</p>
+          ${ctaButton(`${APP_URL}/groups/${groupId}`, "Vai al gruppo")}
           <p style="color: #64748b; font-size: 14px;">Buone immersioni! 🌊<br/>— Il team Apnea Mate</p>
         </div>
       `;
