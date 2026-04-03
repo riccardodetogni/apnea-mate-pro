@@ -455,8 +455,8 @@ const SessionDetails = () => {
           </div>
         </div>
 
-        {/* Chat button for participants */}
-        {(session.isCreator || session.isParticipant) && (
+        {/* Chat button for confirmed participants only */}
+        {(session.isCreator || (session.myParticipation?.status === 'confirmed')) && (
           <Button
             variant="outline"
             className="w-full mb-4 gap-2"
