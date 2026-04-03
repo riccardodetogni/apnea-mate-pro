@@ -100,6 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
             <li>Verifica che il nome corrisponda al tuo profilo</li>
             <li>Includi un documento valido e non scaduto</li>
           </ul>
+          ${ctaButton(`${APP_URL}/settings`, "Riprova")}
           <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
         </div>
       `;

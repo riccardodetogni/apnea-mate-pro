@@ -176,6 +176,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="margin: 0; color: #64748b;">📅 ${sessionDate}</p>
           </div>
           <p>Non preoccuparti, ci sono tante altre sessioni disponibili nella community!</p>
+          ${ctaButton(`${APP_URL}/community`, "Esplora sessioni")}
           <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
         </div>
       `;
