@@ -3,6 +3,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@resend.dev";
+const APP_URL = "https://apnea-mate-pro.com";
+
+const ctaButton = (href: string, label: string) => `
+  <a href="${href}" style="display:inline-block; background:#3f66e8; color:#ffffff; font-size:15px; font-weight:bold; border-radius:18px; padding:14px 28px; text-decoration:none; margin:16px 0;">
+    ${label}
+  </a>
+`;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,6 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
             <li>Gestire partecipanti</li>
             ${newRole === "instructor" ? "<li>Creare gruppi e scuole</li>" : ""}
           </ul>
+          ${ctaButton(`${APP_URL}/profile`, "Vai al profilo")}
           <p style="color: #64748b; font-size: 14px;">Buone immersioni! 🌊<br/>— Il team Apnea Mate</p>
         </div>
       `;
@@ -92,6 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
             <li>Verifica che il nome corrisponda al tuo profilo</li>
             <li>Includi un documento valido e non scaduto</li>
           </ul>
+          ${ctaButton(`${APP_URL}/settings`, "Riprova")}
           <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
         </div>
       `;
