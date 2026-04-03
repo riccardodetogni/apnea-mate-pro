@@ -56,6 +56,7 @@ export interface SessionWithDetails {
   isPaid: boolean;
   distanceKm: number | null;
   rawLevel: string;
+  rawDateTime: string;
 }
 
 const formatSessionDateTime = (dateTime: string, durationMinutes: number): string => {
@@ -71,7 +72,9 @@ const formatSessionDateTime = (dateTime: string, durationMinutes: number): strin
     dayStr = "Domani";
   } else {
     const days = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
-    dayStr = days[date.getDay()];
+    const day = date.getDate();
+    const months = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+    dayStr = `${days[date.getDay()]} ${day} ${months[date.getMonth()]}`;
   }
   
   const hours = date.getHours().toString().padStart(2, "0");
@@ -356,6 +359,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     isPaid: (session as any).is_paid || false,
     distanceKm: session.distance_km || null,
     rawLevel: session.level,
+    rawDateTime: session.date_time,
   }));
 
   return {

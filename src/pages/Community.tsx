@@ -261,7 +261,7 @@ const Community = () => {
 
       if (from || to) {
         result = result.filter((s) => {
-          const sDate = new Date(s.dateTime);
+          const sDate = new Date(s.rawDateTime);
           if (from && to) return isWithinInterval(sDate, { start: from, end: to });
           if (from) return sDate >= from;
           if (to) return sDate <= to;
