@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { TrainingStep, TimerState } from "@/types/training";
+import { TrainingStep, TimerState, TrainingMode } from "@/types/training";
 
 const PREPARATION_SECONDS = 5;
 
 interface UseTrainingTimerProps {
   steps: TrainingStep[];
+  mode?: TrainingMode;
   onPhaseChange?: (step: TrainingStep) => void;
   onCountdown?: (seconds: number) => void;
   onComplete?: () => void;
