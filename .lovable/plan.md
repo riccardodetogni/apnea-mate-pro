@@ -1,53 +1,41 @@
 
 
-# Session Filters — Single Row + Filter Sheet
+# Add App Links to Email Notifications (corrected URL)
 
 ## Summary
 
-Replace the current three-row chip layout with a single scrollable row of date chips plus a filter icon button. Tapping the filter icon opens a bottom sheet containing the spot and paid/free filters. An active-filter badge on the icon indicates when non-default filters are applied.
-
-## UX
-
-```text
-Sessions for you                                 Vedi tutto →
-┌────────────────────────────────────────────────────────┐
-│ [Tutti] [Oggi] [Domani] [Settimana] [Custom▾]  [⚙ •] │
-└────────────────────────────────────────────────────────┘
-                                                   ↑ badge if filters active
-
-Bottom sheet (on filter icon tap):
-┌──────────────────────────────┐
-│  Filtri                      │
-│                              │
-│  Spot                        │
-│  [Tutti] [Spot A] [Spot B]   │
-│                              │
-│  Tipo                        │
-│  [Tutte] [Gratuite] [A pag.] │
-│                              │
-│  [Applica]      [Reset]      │
-└──────────────────────────────┘
-```
+Add CTA buttons with deep links to the app in all notification emails. Use the production domain `https://apnea-mate-pro.com`.
 
 ## Changes
 
-### 1. `src/components/community/SessionFilters.tsx`
-- Keep the single date chips row (with custom date popover) as-is
-- Remove the spot and paid/free chip rows from the main render
-- Add a filter icon button (`SlidersHorizontal` from lucide) at the end of the date row
-- Show a small colored dot on the icon when `spotName !== null || paidFilter !== "all"`
-- On icon tap, open a `Drawer` (bottom sheet) containing:
-  - Spot chips (same logic, derived from sessions)
-  - Paid/free chips
-  - "Applica" button that closes the sheet
-  - "Reset" link that resets spot + paid filters to defaults
+### 1. `supabase/functions/send-session-notification/index.ts`
+- Add `const APP_URL = "https://apnea-mate-pro.com"`
+- Add styled CTA button in each email variant:
+  - **join_request**: "Gestisci richiesta" → `${APP_URL}/sessions/${sessionId}`
+  - **request_approved**: "Vedi sessione" → `${APP_URL}/sessions/${sessionId}`
+  - **request_rejected**: "Esplora sessioni" → `${APP_URL}/community`
 
-### 2. `src/lib/i18n.ts`
-- Add keys: `filterApply` ("Applica"/"Apply"), `filterReset` ("Reset"/"Reset"), `filterTitle` ("Filtri"/"Filters"), `filterType` ("Tipo"/"Type")
+### 2. `supabase/functions/send-group-notification/index.ts`
+- Same `APP_URL` constant
+  - **request_approved**: "Vai al gruppo" → `${APP_URL}/groups/${groupId}`
+  - **request_rejected**: "Esplora gruppi" → `${APP_URL}/community`
 
-### Files
-- `src/components/community/SessionFilters.tsx` — refactor layout
-- `src/lib/i18n.ts` — add 4 keys
+### 3. `supabase/functions/send-certification-notification/index.ts`
+- Same `APP_URL` constant
+  - **approved**: "Vai al profilo" → `${APP_URL}/profile`
+  - **rejected**: "Riprova" → `${APP_URL}/settings`
 
-No other files change. Same `SessionFilterState` type, same filtering logic in `Community.tsx`.
+### Button style (shared across all templates)
+```html
+<a href="..." style="display:inline-block; background:#3f66e8; color:#ffffff; font-size:15px; font-weight:bold; border-radius:18px; padding:14px 28px; text-decoration:none; margin:16px 0;">
+  CTA Text
+</a>
+```
+
+Consistent with the auth email template buttons already in the project.
+
+### Technical notes
+- No database changes
+- All 3 edge functions will be redeployed after editing
+- URL is hardcoded as a constant (can move to env var later if needed)
 
