@@ -56,6 +56,7 @@ export interface SessionWithDetails {
   isPaid: boolean;
   distanceKm: number | null;
   rawLevel: string;
+  rawDateTime: string;
 }
 
 const formatSessionDateTime = (dateTime: string, durationMinutes: number): string => {
