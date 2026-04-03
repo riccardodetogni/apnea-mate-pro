@@ -462,12 +462,7 @@ const SessionDetails = () => {
             className="w-full mb-4 gap-2"
             onClick={async () => {
               try {
-                const convId = await getOrCreateSessionConversation(session.id, session.creator_id);
-                // Ensure current user is a participant in the conversation
-                await supabase.from("conversation_participants").upsert({
-                  conversation_id: convId,
-                  user_id: user!.id,
-                }, { onConflict: "conversation_id,user_id" });
+                const convId = await getOrCreateSessionConversation(session.id, user!.id);
                 navigate(`/messages/${convId}`);
               } catch { /* ignore */ }
             }}

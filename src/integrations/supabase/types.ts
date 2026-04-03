@@ -825,6 +825,14 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      find_conversation_by_group: {
+        Args: { _group_id: string }
+        Returns: string
+      }
+      find_conversation_by_session: {
+        Args: { _session_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
