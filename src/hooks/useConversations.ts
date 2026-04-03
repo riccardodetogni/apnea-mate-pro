@@ -196,14 +196,13 @@ export const getOrCreateSessionConversation = async (sessionId: string, userId: 
 
 // Helper: get or create a conversation for a group
 export const getOrCreateGroupConversation = async (groupId: string, userId: string): Promise<string> => {
-  // Use RPC to bypass RLS and find existing conversation
   const { data: existingId } = await supabase.rpc('find_conversation_by_group', { _group_id: groupId });
 
   if (existingId) {
-    await supabase.from("conversation_participants").upsert({
+    await supabase.from("conversation_participants").insert({
       conversation_id: existingId,
       user_id: userId,
-    }, { onConflict: "conversation_id,user_id" });
+    });
     return existingId;
   }
 
@@ -217,10 +216,10 @@ export const getOrCreateGroupConversation = async (groupId: string, userId: stri
     const { data: retryId } = await supabase.rpc('find_conversation_by_group', { _group_id: groupId });
 
     if (retryId) {
-      await supabase.from("conversation_participants").upsert({
+      await supabase.from("conversation_participants").insert({
         conversation_id: retryId,
         user_id: userId,
-      }, { onConflict: "conversation_id,user_id" });
+      });
       return retryId;
     }
     throw new Error("Failed to create group conversation");
