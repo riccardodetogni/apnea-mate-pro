@@ -1,40 +1,34 @@
 
 
-# Auto-Approve Creator Joining Own Session
+# Aggiungere "Pesca subacquea" come tipo di sessione
 
-## Problem
+## Riepilogo
 
-When the session creator didn't check "I'm joining" at creation time, they later see a "Join" button. Clicking it inserts them as `pending`, requiring them to approve themselves — which makes no sense.
+Aggiungere `spearfishing` come nuovo tipo di sessione selezionabile. Serve intervenire in **5 file** dove i tipi sessione sono definiti o mappati.
 
-## Solution
+## File da modificare
 
-When the creator joins their own session, insert as `pending` (required by RLS), then immediately update to `confirmed`. Skip all notifications (no need to notify yourself). Show a "joined" toast instead of "request sent".
+### 1. `src/pages/CreateSession.tsx` (riga 47)
+- Aggiungere `{ value: "spearfishing", label: "Pesca subacquea" }` all'array `sessionTypes`
 
-## Changes
+### 2. `src/pages/EditSession.tsx` (riga 42)
+- Stessa aggiunta all'array `sessionTypes`
 
-### 1. `src/hooks/useSessions.ts` — `joinSession`
-- After insert, check if `user.id === creator_id` (fetch session's `creator_id`)
-- If creator: immediately update the participant row to `status: 'confirmed'`
-- Skip notification creation and email sending
-- The RLS update policy allows this because creator can manage participants
+### 3. `src/hooks/useSessions.ts` (riga 104)
+- Aggiungere `case "spearfishing": return "Pesca subacquea";` nel `mapSessionType`
 
-### 2. `src/pages/SessionDetails.tsx` — `confirmJoin`
-- Same logic: after inserting participant, check if `user.id === session.creator_id`
-- If yes: update status to `confirmed`, skip notifications, show "Ti sei iscritto!" toast
-- If no: existing pending flow
+### 4. `src/pages/SessionDetails.tsx` (riga 71)
+- Aggiungere `case "spearfishing": return "Pesca subacquea";` nel `mapSessionType`
 
-### 3. `src/pages/SpotDetails.tsx` — `confirmJoin`
-- Same pattern: check `session.creator_id === user?.id` after insert
-- Auto-confirm + skip notifications if creator
+### 5. `src/pages/MySessions.tsx` (riga 44)
+- Aggiungere `case "spearfishing": return "Pesca sub";` nel `mapSessionType`
 
-### 4. `src/pages/Community.tsx` — `confirmJoinSession`
-- Same pattern using `creatorId` from `SessionWithDetails`
+### 6. `src/lib/i18n.ts`
+- Aggiungere chiave `spearfishing`: IT "Pesca subacquea" / EN "Spearfishing"
 
-### Files
-- `src/hooks/useSessions.ts`
-- `src/pages/SessionDetails.tsx`
-- `src/pages/SpotDetails.tsx`
-- `src/pages/Community.tsx`
-
-No database changes — the existing RLS update policy already allows session creators to update participant status.
+## Note tecniche
+- Nessuna modifica al database: `session_type` è un campo `text` libero
+- Non serve mapping automatico spot→tipo (l'utente seleziona manualmente)
+- Le `SessionCard` nella Community e Search usano già il `mapSessionType` di `useSessions.ts`, quindi sono coperte
+- I filtri sessione (`SessionFilters`) lavorano su spot/data/pagamento, non sul tipo — nessun impatto
 
