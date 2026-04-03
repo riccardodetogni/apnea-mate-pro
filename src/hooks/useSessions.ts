@@ -359,6 +359,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     isPaid: (session as any).is_paid || false,
     distanceKm: session.distance_km || null,
     rawLevel: session.level,
+    rawDateTime: session.date_time,
   }));
 
   return {
