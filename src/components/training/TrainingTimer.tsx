@@ -69,6 +69,7 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
 
   const timer = useTrainingTimer({
     steps,
+    mode,
     onPhaseChange,
     onCountdown,
     onComplete,

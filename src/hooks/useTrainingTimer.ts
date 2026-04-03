@@ -96,10 +96,11 @@ export const useTrainingTimer = ({
 
   // Determine which countdown thresholds to use based on phase duration
   const getCountdownThresholds = useCallback((phaseDuration: number): number[] => {
+    if (mode === "quadratic") return [3, 2, 1];
     if (phaseDuration > 60) return [30, 20, 10, 5, 3, 2, 1];
     if (phaseDuration > 30) return [20, 10, 5, 3, 2, 1];
     return [10, 5, 3, 2, 1];
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     if (!state.isRunning || state.isPaused || state.isCompleted) {
