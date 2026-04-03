@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { TrainingStep, TimerState } from "@/types/training";
+import { TrainingStep, TimerState, TrainingMode } from "@/types/training";
 
 const PREPARATION_SECONDS = 5;
 
 interface UseTrainingTimerProps {
   steps: TrainingStep[];
+  mode?: TrainingMode;
   onPhaseChange?: (step: TrainingStep) => void;
   onCountdown?: (seconds: number) => void;
   onComplete?: () => void;
@@ -14,6 +15,7 @@ interface UseTrainingTimerProps {
 
 export const useTrainingTimer = ({
   steps,
+  mode,
   onPhaseChange,
   onCountdown,
   onComplete,
@@ -94,10 +96,11 @@ export const useTrainingTimer = ({
 
   // Determine which countdown thresholds to use based on phase duration
   const getCountdownThresholds = useCallback((phaseDuration: number): number[] => {
+    if (mode === "quadratic") return [3, 2, 1];
     if (phaseDuration > 60) return [30, 20, 10, 5, 3, 2, 1];
     if (phaseDuration > 30) return [20, 10, 5, 3, 2, 1];
     return [10, 5, 3, 2, 1];
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     if (!state.isRunning || state.isPaused || state.isCompleted) {
