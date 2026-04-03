@@ -1,34 +1,36 @@
 
 
-# Aggiungere "Pesca subacquea" come tipo di sessione
+# Fix filtri sessione e data mancante nelle card
 
-## Riepilogo
+## Problemi trovati
 
-Aggiungere `spearfishing` come nuovo tipo di sessione selezionabile. Serve intervenire in **5 file** dove i tipi sessione sono definiti o mappati.
+1. **Filtri non funzionano**: `applySessionFilters` fa `new Date(s.dateTime)` ma `dateTime` è già formattato come `"Oggi · 10:00 · 2h"` — non è una data parsabile. Serve il campo `date_time` raw ISO.
 
-## File da modificare
+2. **Data mancante nelle card**: `formatSessionDateTime` mostra solo il giorno abbreviato ("Lun", "Mar") senza il numero e mese (es. "Lun 15 Apr").
 
-### 1. `src/pages/CreateSession.tsx` (riga 47)
-- Aggiungere `{ value: "spearfishing", label: "Pesca subacquea" }` all'array `sessionTypes`
+## Modifiche
 
-### 2. `src/pages/EditSession.tsx` (riga 42)
-- Stessa aggiunta all'array `sessionTypes`
+### 1. `src/hooks/useSessions.ts`
+- Aggiungere `rawDateTime: string` all'interfaccia `SessionWithDetails`
+- Nel mapping `formattedSessions`, aggiungere `rawDateTime: session.date_time`
+- Modificare `formatSessionDateTime` per includere giorno e mese quando la data è oltre domani: `"Lun 15 Apr · 10:00 · 2h"` invece di `"Lun · 10:00 · 2h"`
 
-### 3. `src/hooks/useSessions.ts` (riga 104)
-- Aggiungere `case "spearfishing": return "Pesca subacquea";` nel `mapSessionType`
+### 2. `src/pages/Community.tsx`
+- In `applySessionFilters`, cambiare `new Date(s.dateTime)` → `new Date(s.rawDateTime)` (riga 264)
 
-### 4. `src/pages/SessionDetails.tsx` (riga 71)
-- Aggiungere `case "spearfishing": return "Pesca subacquea";` nel `mapSessionType`
+## Dettagli tecnici
 
-### 5. `src/pages/MySessions.tsx` (riga 44)
-- Aggiungere `case "spearfishing": return "Pesca sub";` nel `mapSessionType`
+La funzione `formatSessionDateTime` attualmente fa:
+```
+dayStr = days[date.getDay()]; // "Lun"
+```
+Diventerà:
+```
+const day = date.getDate();
+const months = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+dayStr = `${days[date.getDay()]} ${day} ${months[date.getMonth()]}`;
+// "Lun 15 Apr"
+```
 
-### 6. `src/lib/i18n.ts`
-- Aggiungere chiave `spearfishing`: IT "Pesca subacquea" / EN "Spearfishing"
-
-## Note tecniche
-- Nessuna modifica al database: `session_type` è un campo `text` libero
-- Non serve mapping automatico spot→tipo (l'utente seleziona manualmente)
-- Le `SessionCard` nella Community e Search usano già il `mapSessionType` di `useSessions.ts`, quindi sono coperte
-- I filtri sessione (`SessionFilters`) lavorano su spot/data/pagamento, non sul tipo — nessun impatto
+Nessuna modifica al database.
 
