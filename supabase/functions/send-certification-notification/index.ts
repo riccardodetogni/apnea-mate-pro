@@ -77,6 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
             <li>Gestire partecipanti</li>
             ${newRole === "instructor" ? "<li>Creare gruppi e scuole</li>" : ""}
           </ul>
+          ${ctaButton(`${APP_URL}/profile`, "Vai al profilo")}
           <p style="color: #64748b; font-size: 14px;">Buone immersioni! 🌊<br/>— Il team Apnea Mate</p>
         </div>
       `;
