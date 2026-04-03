@@ -108,6 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="margin: 0; color: #64748b;">📅 ${sessionDate}</p>
           </div>
           <p>Accedi all'app per approvare o rifiutare la richiesta.</p>
+          ${ctaButton(`${APP_URL}/sessions/${sessionId}`, "Gestisci richiesta")}
           <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
         </div>
       `;
