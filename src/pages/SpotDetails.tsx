@@ -96,38 +96,49 @@ const SpotDetails = () => {
         toast.error(joinError.message || "Impossibile inviare la richiesta");
       }
     } else {
-      toast.success("Richiesta inviata! L'organizzatore riceverà la tua richiesta");
+      const isCreator = pendingJoinSession.creator_id === user.id;
 
-      // Get user profile for notification
-      const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("name")
-        .eq("user_id", user.id)
-        .single();
+      if (isCreator) {
+        await supabase
+          .from("session_participants")
+          .update({ status: "confirmed" })
+          .eq("session_id", pendingJoinSession.id)
+          .eq("user_id", user.id);
 
-      await createNotification({
-        userId: pendingJoinSession.creator_id,
-        type: "session_join_request",
-        title: "Nuova richiesta di partecipazione",
-        message: `${userProfile?.name || "Un utente"} vuole partecipare a "${pendingJoinSession.title}"`,
-        metadata: {
-          session_id: pendingJoinSession.id,
-          session_title: pendingJoinSession.title,
-          user_id: user.id,
-          user_name: userProfile?.name || undefined,
-        },
-      });
+        toast.success("Ti sei iscritto alla tua sessione!");
+      } else {
+        toast.success("Richiesta inviata! L'organizzatore riceverà la tua richiesta");
 
-      try {
-        await supabase.functions.invoke("send-session-notification", {
-          body: {
-            type: "join_request",
-            sessionId: pendingJoinSession.id,
-            participantUserId: user.id,
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .single();
+
+        await createNotification({
+          userId: pendingJoinSession.creator_id,
+          type: "session_join_request",
+          title: "Nuova richiesta di partecipazione",
+          message: `${userProfile?.name || "Un utente"} vuole partecipare a "${pendingJoinSession.title}"`,
+          metadata: {
+            session_id: pendingJoinSession.id,
+            session_title: pendingJoinSession.title,
+            user_id: user.id,
+            user_name: userProfile?.name || undefined,
           },
         });
-      } catch (e) {
-        console.error("Failed to send notification:", e);
+
+        try {
+          await supabase.functions.invoke("send-session-notification", {
+            body: {
+              type: "join_request",
+              sessionId: pendingJoinSession.id,
+              participantUserId: user.id,
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send notification:", e);
+        }
       }
 
       refetch();

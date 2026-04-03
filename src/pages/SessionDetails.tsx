@@ -145,43 +145,56 @@ const SessionDetails = () => {
         });
       }
     } else {
-      toast({
-        title: "Richiesta inviata!",
-        description: "L'organizzatore riceverà la tua richiesta di partecipazione",
-      });
+      const isCreator = user.id === session.creator_id;
 
-      // Get user profile for notification
-      const { data: userProfile } = await supabase
-        .from("profiles")
-        .select("name")
-        .eq("user_id", user.id)
-        .single();
+      if (isCreator) {
+        // Auto-confirm creator joining own session
+        await supabase
+          .from("session_participants")
+          .update({ status: "confirmed" })
+          .eq("session_id", session.id)
+          .eq("user_id", user.id);
 
-      // Create in-app notification for session creator
-      await createNotification({
-        userId: session.creator_id,
-        type: "session_join_request",
-        title: "Nuova richiesta di partecipazione",
-        message: `${userProfile?.name || "Un utente"} vuole partecipare a "${session.title}"`,
-        metadata: {
-          session_id: session.id,
-          session_title: session.title,
-          user_id: user.id,
-          user_name: userProfile?.name || undefined,
-        },
-      });
+        toast({
+          title: "Ti sei iscritto!",
+          description: "Sei stato aggiunto alla tua sessione",
+        });
+      } else {
+        toast({
+          title: "Richiesta inviata!",
+          description: "L'organizzatore riceverà la tua richiesta di partecipazione",
+        });
 
-      // Send notification email to session creator
-      try {
-        await supabase.functions.invoke("send-session-notification", {
-          body: {
-            type: "join_request",
-            sessionId: session.id,
-            participantUserId: user.id,
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", user.id)
+          .single();
+
+        await createNotification({
+          userId: session.creator_id,
+          type: "session_join_request",
+          title: "Nuova richiesta di partecipazione",
+          message: `${userProfile?.name || "Un utente"} vuole partecipare a "${session.title}"`,
+          metadata: {
+            session_id: session.id,
+            session_title: session.title,
+            user_id: user.id,
+            user_name: userProfile?.name || undefined,
           },
         });
-      } catch (e) {
-        console.error("Failed to send notification:", e);
+
+        try {
+          await supabase.functions.invoke("send-session-notification", {
+            body: {
+              type: "join_request",
+              sessionId: session.id,
+              participantUserId: user.id,
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send notification:", e);
+        }
       }
     }
   };
