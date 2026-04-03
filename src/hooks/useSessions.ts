@@ -72,7 +72,9 @@ const formatSessionDateTime = (dateTime: string, durationMinutes: number): strin
     dayStr = "Domani";
   } else {
     const days = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
-    dayStr = days[date.getDay()];
+    const day = date.getDate();
+    const months = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+    dayStr = `${days[date.getDay()]} ${day} ${months[date.getMonth()]}`;
   }
   
   const hours = date.getHours().toString().padStart(2, "0");
