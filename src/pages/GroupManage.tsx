@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
 import { supabase } from "@/integrations/supabase/client";
+import { t } from "@/lib/i18n";
 import { 
   ArrowLeft, 
   Loader2, 
@@ -70,7 +71,7 @@ const GroupManage = () => {
 
   const handleSaveSettings = async () => {
     if (!groupName.trim()) {
-      toast({ title: "Errore", description: "Il nome del gruppo è obbligatorio", variant: "destructive" });
+      toast({ title: t("error"), description: t("groupNameRequired"), variant: "destructive" });
       return;
     }
 
@@ -82,9 +83,9 @@ const GroupManage = () => {
     setSavingSettings(false);
 
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Impostazioni salvate!" });
+      toast({ title: t("settingsSaved") });
     }
   };
 
@@ -98,23 +99,21 @@ const GroupManage = () => {
     });
     
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Membro approvato!" });
+      toast({ title: t("memberApproved") });
 
-      // Create notification for approved member
       await createNotification({
         userId: userId,
         type: "group_request_approved",
-        title: "Richiesta approvata!",
-        message: `Sei stato accettato nel gruppo "${group!.name}"`,
+        title: t("requestApproved"),
+        message: t("memberApprovedNotif").replace("{name}", group!.name),
         metadata: {
           group_id: group!.id,
           group_name: group!.name,
         },
       });
 
-      // Send email notification
       try {
         await supabase.functions.invoke("send-group-notification", {
           body: {
@@ -139,23 +138,21 @@ const GroupManage = () => {
     });
     
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Richiesta rifiutata" });
+      toast({ title: t("requestRejected") });
 
-      // Create in-app notification for rejected member
       await createNotification({
         userId: userId,
-        type: "group_request_approved", // reuse closest type - no "rejected" enum value exists
-        title: "Richiesta non accettata",
-        message: `La tua richiesta per il gruppo "${group!.name}" non è stata accettata`,
+        type: "group_request_approved",
+        title: t("requestNotAccepted"),
+        message: t("requestRejectedNotif").replace("{name}", group!.name),
         metadata: {
           group_id: group!.id,
           group_name: group!.name,
         },
       });
 
-      // Send email notification for rejection
       try {
         await supabase.functions.invoke("send-group-notification", {
           body: {
@@ -180,10 +177,10 @@ const GroupManage = () => {
     });
     
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
-      const roleLabel = role === 'owner' ? 'proprietario' : role === 'admin' ? 'admin' : 'membro';
-      toast({ title: `Ruolo aggiornato a ${roleLabel}` });
+      const roleLabel = role === 'owner' ? t("ownerRole") : role === 'admin' ? t("adminRole") : t("memberRole");
+      toast({ title: `${t("roleUpdatedTo")} ${roleLabel}` });
     }
   };
 
@@ -197,9 +194,9 @@ const GroupManage = () => {
     });
     
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Membro rimosso" });
+      toast({ title: t("memberRemoved") });
     }
   };
 
@@ -213,9 +210,9 @@ const GroupManage = () => {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'owner': return 'Proprietario';
-      case 'admin': return 'Admin';
-      default: return 'Membro';
+      case 'owner': return t("ownerRole");
+      case 'admin': return t("adminRole");
+      default: return t("memberRole");
     }
   };
 
@@ -231,9 +228,9 @@ const GroupManage = () => {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="text-center py-12">
-          <p className="text-muted">Gruppo non trovato</p>
+          <p className="text-muted">{t("groupNotFound")}</p>
           <Button variant="outline" onClick={() => navigate("/groups")} className="mt-4">
-            Torna ai gruppi
+            {t("backToGroups")}
           </Button>
         </div>
       </div>
@@ -244,9 +241,9 @@ const GroupManage = () => {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="text-center py-12">
-          <p className="text-muted">Non hai i permessi per gestire questo gruppo</p>
+          <p className="text-muted">{t("noPermissionManage")}</p>
           <Button variant="outline" onClick={() => navigate(`/groups/${id}`)} className="mt-4">
-            Torna al gruppo
+            {t("backToGroup")}
           </Button>
         </div>
       </div>
@@ -270,7 +267,7 @@ const GroupManage = () => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-card-foreground truncate">
-              {member.profile?.name || 'Utente'}
+              {member.profile?.name || t("user")}
             </span>
             {getRoleIcon(member.role)}
           </div>
@@ -292,19 +289,19 @@ const GroupManage = () => {
               {member.role !== 'owner' && (
                 <DropdownMenuItem onClick={() => handlePromote(member.user_id, 'owner')}>
                   <Crown className="w-4 h-4 mr-2 text-warning" />
-                  Rendi proprietario
+                  {t("makeOwner")}
                 </DropdownMenuItem>
               )}
               {member.role !== 'admin' && member.role !== 'owner' && (
                 <DropdownMenuItem onClick={() => handlePromote(member.user_id, 'admin')}>
                   <Shield className="w-4 h-4 mr-2 text-primary" />
-                  Rendi admin
+                  {t("makeAdmin")}
                 </DropdownMenuItem>
               )}
               {member.role !== 'member' && (
                 <DropdownMenuItem onClick={() => handlePromote(member.user_id, 'member')}>
                   <User className="w-4 h-4 mr-2" />
-                  Rimuovi ruolo
+                  {t("removeRole")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
@@ -313,14 +310,14 @@ const GroupManage = () => {
                 className="text-destructive"
               >
                 <UserMinus className="w-4 h-4 mr-2" />
-                Rimuovi dal gruppo
+                {t("removeFromGroup")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
         
         {isCreator && (
-          <span className="text-xs text-white/55 px-2 py-1 bg-white/10 rounded">Creatore</span>
+          <span className="text-xs text-white/55 px-2 py-1 bg-white/10 rounded">{t("creatorLabel")}</span>
         )}
       </div>
     );
@@ -340,9 +337,9 @@ const GroupManage = () => {
         
         <div className="flex-1 min-w-0">
           <span className="font-medium text-card-foreground truncate block">
-            {member.profile?.name || 'Utente'}
+            {member.profile?.name || t("user")}
           </span>
-          <span className="text-xs text-white/55">Richiesta in attesa</span>
+          <span className="text-xs text-white/55">{t("pendingRequest")}</span>
         </div>
 
         <div className="flex gap-2">
@@ -379,7 +376,7 @@ const GroupManage = () => {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div>
-          <h1 className="font-semibold text-lg">Gestisci gruppo</h1>
+          <h1 className="font-semibold text-lg">{t("manageGroupTitle")}</h1>
           <p className="text-xs text-muted">{group.name}</p>
         </div>
       </header>
@@ -388,7 +385,7 @@ const GroupManage = () => {
         <Tabs defaultValue={pendingMembers.length > 0 ? "pending" : "members"}>
           <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="pending" className="relative">
-              Richieste
+              {t("requests")}
               {pendingMembers.length > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-warning text-warning-foreground rounded-full">
                   {pendingMembers.length}
@@ -396,18 +393,18 @@ const GroupManage = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="members">
-              Membri ({approvedMembers.length})
+              {t("members")} ({approvedMembers.length})
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="w-4 h-4 mr-1" />
-              Impostazioni
+              {t("settingsTab")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="space-y-3">
             {pendingMembers.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted">Nessuna richiesta in attesa</p>
+                <p className="text-muted">{t("noPendingRequests")}</p>
               </div>
             ) : (
               pendingMembers.map(member => (
@@ -419,12 +416,11 @@ const GroupManage = () => {
           <TabsContent value="members" className="space-y-3">
             {approvedMembers.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted">Nessun membro</p>
+                <p className="text-muted">{t("noMembers")}</p>
               </div>
             ) : (
               approvedMembers
                 .sort((a, b) => {
-                  // Sort by role: owner > admin > member
                   const roleOrder = { owner: 0, admin: 1, member: 2 };
                   return (roleOrder[a.role as keyof typeof roleOrder] || 2) - 
                          (roleOrder[b.role as keyof typeof roleOrder] || 2);
@@ -449,28 +445,28 @@ const GroupManage = () => {
                   }}
                   size="lg"
                 />
-                <p className="text-xs text-white/55">Tocca per cambiare foto</p>
+                <p className="text-xs text-white/55">{t("tapToChangePhoto")}</p>
               </div>
 
               {/* Group Name */}
               <div className="space-y-2 mb-4">
-                <Label htmlFor="groupName">Nome del gruppo</Label>
+                <Label htmlFor="groupName">{t("groupNameLabel")}</Label>
                 <Input
                   id="groupName"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Nome del gruppo"
+                  placeholder={t("groupNameInputPlaceholder")}
                 />
               </div>
 
               {/* Group Description */}
               <div className="space-y-2 mb-4">
-                <Label htmlFor="groupDesc">Descrizione</Label>
+                <Label htmlFor="groupDesc">{t("descriptionLabel")}</Label>
                 <Textarea
                   id="groupDesc"
                   value={groupDescription}
                   onChange={(e) => setGroupDescription(e.target.value)}
-                  placeholder="Descrivi il tuo gruppo..."
+                  placeholder={t("describeYourGroup")}
                   rows={3}
                 />
               </div>
@@ -485,7 +481,7 @@ const GroupManage = () => {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                Salva impostazioni
+                {t("saveSettings")}
               </Button>
             </div>
           </TabsContent>

@@ -28,15 +28,15 @@ const DiscoverFreedivers = () => {
     
     if (success) {
       toast({
-        title: isNowFollowing ? `Ora segui ${user.name}` : `Non segui più ${user.name}`,
+        title: isNowFollowing ? `${t("nowFollowing")} ${user.name}` : `${t("noLongerFollowing")} ${user.name}`,
         description: isNowFollowing 
-          ? "Le sue sessioni appariranno nella Community" 
+          ? t("sessionsWillAppear")
           : undefined,
       });
     } else {
       toast({
-        title: "Errore",
-        description: "Impossibile completare l'azione",
+        title: t("error"),
+        description: t("cannotCompleteAction"),
         variant: "destructive",
       });
     }
@@ -59,7 +59,7 @@ const DiscoverFreedivers = () => {
       return (
         <Badge variant="secondary" className="bg-white/10 text-primary">
           <UserCheck className="w-3 h-3 mr-1" />
-          Certificato
+          {t("certifiedBadge")}
         </Badge>
       );
     }
@@ -105,7 +105,7 @@ const DiscoverFreedivers = () => {
             className="flex-1"
             onClick={() => handleFollow(user)}
           >
-            {isFollowing ? "Seguito" : "Segui"}
+            {isFollowing ? t("followed") : t("follow")}
           </Button>
           <Button
             variant="outline"
@@ -147,14 +147,14 @@ const DiscoverFreedivers = () => {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-bold">Scopri apneisti</h1>
+        <h1 className="text-xl font-bold">{t("discoverFreedivers")}</h1>
       </div>
 
       {/* Search */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Cerca apneisti..."
+          placeholder={t("searchFreedivers")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -168,10 +168,10 @@ const DiscoverFreedivers = () => {
             <Users className="w-5 h-5 text-primary mt-0.5" />
             <div>
               <p className="text-sm font-medium text-foreground">
-                Segui almeno un apneista
+                {t("followAtLeastOne")}
               </p>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Le sessioni delle persone che segui appariranno nella Community!
+                {t("followAtLeastOneDesc")}
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@ const DiscoverFreedivers = () => {
 
       {/* Section header */}
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-        Suggeriti per te
+        {t("suggestedForYou")}
       </h2>
 
       {/* User list */}
@@ -202,8 +202,8 @@ const DiscoverFreedivers = () => {
             </div>
             <p className="text-muted-foreground">
               {searchQuery
-                ? "Nessun apneista trovato con questo nome."
-                : "Non ci sono altri apneisti da suggerirti al momento."}
+                ? t("noFreediversFound")
+                : t("noSuggestionsNow")}
             </p>
             {searchQuery && (
               <Button
@@ -211,7 +211,7 @@ const DiscoverFreedivers = () => {
                 className="mt-2"
                 onClick={() => setSearchQuery("")}
               >
-                Mostra tutti i suggerimenti
+                {t("showAllSuggestions")}
               </Button>
             )}
           </div>

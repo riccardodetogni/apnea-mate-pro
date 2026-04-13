@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { t, getEnvironmentTypes } from "@/lib/i18n";
 import "leaflet/dist/leaflet.css";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -26,13 +27,6 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   shadowUrl: markerShadow,
 });
-
-const environmentTypes = [
-  { value: "sea", label: "Mare" },
-  { value: "pool", label: "Piscina" },
-  { value: "deep_pool", label: "Piscina profonda" },
-  { value: "lake", label: "Lago" },
-];
 
 interface SpotCreatorProps {
   onSpotCreated: (spotId: string) => void;
@@ -70,7 +64,6 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(mapRef.current);
 
-    // Click on map to place marker
     mapRef.current.on("click", (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       setCoordinates({ lat, lng });
@@ -144,16 +137,16 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
         }
       } else {
         toast({
-          title: "Nessun risultato",
-          description: "Indirizzo non trovato. Prova con un altro termine.",
+          title: t("noResult"),
+          description: t("noResultDesc"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Geocoding failed:", error);
       toast({
-        title: "Errore",
-        description: "Impossibile cercare l'indirizzo",
+        title: t("error"),
+        description: t("cannotSearchAddress"),
         variant: "destructive",
       });
     } finally {
@@ -164,8 +157,8 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
   const handleSave = async () => {
     if (!form.name.trim()) {
       toast({
-        title: "Errore",
-        description: "Inserisci un nome per lo spot",
+        title: t("error"),
+        description: t("insertSpotName"),
         variant: "destructive",
       });
       return;
@@ -173,8 +166,8 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
     if (!form.location.trim()) {
       toast({
-        title: "Errore",
-        description: "Inserisci una località",
+        title: t("error"),
+        description: t("insertLocationSpot"),
         variant: "destructive",
       });
       return;
@@ -197,15 +190,15 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
       if (error) throw error;
 
       toast({
-        title: "Spot creato!",
-        description: "Puoi ora selezionarlo per la tua sessione",
+        title: t("spotCreated"),
+        description: t("spotCreatedDesc"),
       });
       onSpotCreated(data.id);
     } catch (error: any) {
       console.error("Error creating spot:", error);
       toast({
-        title: "Errore",
-        description: error.message || "Impossibile creare lo spot",
+        title: t("error"),
+        description: error.message || t("cannotCreateSpot"),
         variant: "destructive",
       });
     } finally {
@@ -213,10 +206,12 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
     }
   };
 
+  const environmentTypes = getEnvironmentTypes();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Nuovo spot</span>
+        <span className="text-sm font-medium">{t("newSpot")}</span>
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           <X className="w-4 h-4" />
         </Button>
@@ -224,10 +219,10 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
       {/* Name */}
       <div className="space-y-2">
-        <Label htmlFor="spotName">Nome spot *</Label>
+        <Label htmlFor="spotName">{t("spotNameLabel")}</Label>
         <Input
           id="spotName"
-          placeholder="Es: Punta Crena"
+          placeholder={t("spotNamePlaceholder")}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           maxLength={100}
@@ -236,7 +231,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
       {/* Environment type */}
       <div className="space-y-2">
-        <Label>Tipo ambiente</Label>
+        <Label>{t("environmentType")}</Label>
         <Select
           value={form.environment_type}
           onValueChange={(v) => setForm({ ...form, environment_type: v })}
@@ -245,9 +240,9 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {environmentTypes.map((t) => (
-              <SelectItem key={t.value} value={t.value}>
-                {t.label}
+            {environmentTypes.map((envType) => (
+              <SelectItem key={envType.value} value={envType.value}>
+                {envType.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -256,12 +251,12 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
       {/* Address search */}
       <div className="space-y-2">
-        <Label>Cerca indirizzo</Label>
+        <Label>{t("searchAddress")}</Label>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Via Roma, Genova..."
+              placeholder={t("searchAddressPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddressSearch()}
@@ -277,7 +272,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
             {searching ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              "Cerca"
+              t("searchButton")
             )}
           </Button>
         </div>
@@ -285,7 +280,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
       {/* Map */}
       <div className="space-y-2">
-        <Label>Oppure clicca sulla mappa</Label>
+        <Label>{t("orClickOnMap")}</Label>
         <div
           ref={containerRef}
           className="h-[200px] rounded-lg overflow-hidden border"
@@ -301,7 +296,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
               className="h-8 text-sm"
-              placeholder="Località"
+              placeholder={t("locationLabel")}
             />
             {coordinates && (
               <p className="text-xs text-muted-foreground">
@@ -320,7 +315,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
           className="flex-1"
           onClick={onCancel}
         >
-          Annulla
+          {t("cancel")}
         </Button>
         <Button
           type="button"
@@ -333,7 +328,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
           ) : (
             <>
               <Check className="w-4 h-4 mr-1" />
-              Salva spot
+              {t("saveSpot")}
             </>
           )}
         </Button>

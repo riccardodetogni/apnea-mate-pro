@@ -1,35 +1,31 @@
 import { CertificationStatus as Status } from "@/hooks/useProfile";
 import { CheckCircle, FileX } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 interface CertificationStatusProps {
   status: Status | null;
 }
 
-const statusConfig: Record<"not_submitted" | "approved", {
-  icon: typeof CheckCircle;
-  label: string;
-  description: string;
-  color: string;
-  bgColor: string;
-}> = {
+const getStatusConfig = () => ({
   not_submitted: {
     icon: FileX,
-    label: "Non inviata",
-    description: "Non hai ancora inviato una certificazione",
+    label: t("certStatusNotSubmitted"),
+    description: t("certStatusNotSubmittedDesc"),
     color: "text-muted",
     bgColor: "bg-muted/10",
   },
   approved: {
     icon: CheckCircle,
-    label: "Approvata",
-    description: "La tua certificazione è stata verificata",
+    label: t("certStatusApprovedLabel"),
+    description: t("certStatusApprovedDesc"),
     color: "text-success",
     bgColor: "bg-success/10",
   },
-};
+});
 
 export const CertificationStatusBadge = ({ status }: CertificationStatusProps) => {
   const effectiveStatus = status === "approved" ? "approved" : "not_submitted";
+  const statusConfig = getStatusConfig();
   const config = statusConfig[effectiveStatus];
   const Icon = config.icon;
 
@@ -52,7 +48,7 @@ export const CertificationBadge = ({ certified }: { certified: boolean }) => {
   return (
     <div className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
       <CheckCircle className="w-3.5 h-3.5" />
-      Certificato
+      {t("certifiedBadge")}
     </div>
   );
 };

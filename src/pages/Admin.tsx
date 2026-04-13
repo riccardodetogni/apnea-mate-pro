@@ -33,16 +33,21 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
-const roleLabels: Record<AppRole, string> = {
-  regular: "Utente",
-  certified: "Certificato",
-  instructor: "Istruttore",
-  admin: "Admin",
+const getRoleLabel = (role: AppRole): string => {
+  switch (role) {
+    case "regular": return t("user");
+    case "certified": return t("certifiedFreediverRole");
+    case "instructor": return t("instructor");
+    case "admin": return "Admin";
+  }
 };
 
-const groupTypeLabels: Record<string, string> = {
-  community_spontanea: "Gruppo spontaneo",
-  scuola_club: "Scuola/Club",
+const getGroupTypeLabel = (type: string): string => {
+  switch (type) {
+    case "community_spontanea": return t("communityGroupType");
+    case "scuola_club": return t("schoolClubGroupType");
+    default: return type;
+  }
 };
 
 const Admin = () => {
@@ -75,8 +80,8 @@ const Admin = () => {
   useEffect(() => {
     if (!loading && !isAdmin) {
       toast({
-        title: "Accesso negato",
-        description: "Non hai i permessi per accedere a questa pagina",
+        title: t("accessDenied"),
+        description: t("noPermissionForPage"),
         variant: "destructive",
       });
       navigate("/community");
@@ -91,14 +96,14 @@ const Admin = () => {
     
     if (error) {
       toast({
-        title: "Errore",
-        description: "Impossibile aggiornare il ruolo",
+        title: t("error"),
+        description: t("cannotUpdateRole"),
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Ruolo aggiornato",
-        description: `${selectedUser.name} è ora ${roleLabels[newUserRole]}`,
+        title: t("roleUpdated"),
+        description: `${selectedUser.name} → ${getRoleLabel(newUserRole)}`,
       });
       setRoleDialogOpen(false);
       setSelectedUser(null);
@@ -112,16 +117,16 @@ const Admin = () => {
     
     if (error) {
       toast({
-        title: "Errore",
-        description: "Impossibile aggiornare lo stato di verifica",
+        title: t("error"),
+        description: t("cannotUpdateVerification"),
         variant: "destructive",
       });
     } else {
       toast({
-        title: group.verified ? "Verifica rimossa" : "Gruppo verificato",
+        title: group.verified ? t("verificationRemoved") : t("groupVerified"),
         description: group.verified 
-          ? `${group.name} non è più verificato` 
-          : `${group.name} è ora un partner verificato`,
+          ? `${group.name} ${t("noLongerVerified")}` 
+          : `${group.name} ${t("nowVerifiedPartner")}`,
       });
     }
   };
@@ -164,7 +169,7 @@ const Admin = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            Utenti ({allUsers.length})
+            {t("users")} ({allUsers.length})
           </button>
           <button
             onClick={() => setActiveTab("groups")}
@@ -175,7 +180,7 @@ const Admin = () => {
             }`}
           >
             <UsersRound className="w-4 h-4" />
-            Gruppi ({allGroups.length})
+            {t("groups")} ({allGroups.length})
           </button>
         </div>
       </div>
@@ -186,7 +191,7 @@ const Admin = () => {
             {allGroups.length === 0 ? (
               <div className="text-center py-12 text-muted">
                 <UsersRound className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Nessun gruppo trovato</p>
+                <p>{t("noGroupFound")}</p>
               </div>
             ) : (
               allGroups.map((group) => (
@@ -207,14 +212,14 @@ const Admin = () => {
                       </div>
                       <p className="text-sm text-white/55 truncate">{group.location}</p>
                       <div className="flex items-center gap-3 mt-1 text-xs text-white/55">
-                        <span>{groupTypeLabels[group.group_type] || group.group_type}</span>
+                        <span>{getGroupTypeLabel(group.group_type)}</span>
                         <span>•</span>
-                        <span>{group.member_count} membri</span>
+                        <span>{group.member_count} {t("members")}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-white/55">
-                        {group.verified ? "Verificato" : "Non verificato"}
+                        {group.verified ? t("verified") : t("notVerified")}
                       </span>
                       <Switch
                         checked={group.verified}
@@ -254,7 +259,7 @@ const Admin = () => {
                   {user.role === "certified" || user.role === "instructor" ? (
                     <Award className="w-3.5 h-3.5 text-primary" />
                   ) : null}
-                  {roleLabels[user.role]}
+                  {getRoleLabel(user.role)}
                 </button>
               </div>
             ))}
@@ -266,22 +271,22 @@ const Admin = () => {
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifica ruolo</DialogTitle>
+            <DialogTitle>{t("editRole")}</DialogTitle>
             <DialogDescription>
-              Cambia il ruolo di {selectedUser?.name}
+              {t("changeRoleOf")} {selectedUser?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Ruolo</Label>
+              <Label>{t("role")}</Label>
               <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="regular">Utente</SelectItem>
-                  <SelectItem value="certified">Apneista Certificato</SelectItem>
-                  <SelectItem value="instructor">Istruttore</SelectItem>
+                  <SelectItem value="regular">{t("user")}</SelectItem>
+                  <SelectItem value="certified">{t("certifiedFreediverRole")}</SelectItem>
+                  <SelectItem value="instructor">{t("instructor")}</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -289,10 +294,10 @@ const Admin = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
-              Annulla
+              {t("cancel")}
             </Button>
             <Button onClick={handleUpdateRole} disabled={processing}>
-              {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salva"}
+              {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
