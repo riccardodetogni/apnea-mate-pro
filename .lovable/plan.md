@@ -1,13 +1,18 @@
 
-# Fix: rimuovere header duplicato "Prossime sessioni"
+# Make links clickable in chat bubbles
 
-## Problema
-Il titolo "Prossime sessioni" appare due volte nella pagina dettaglio gruppo. Sia `GroupDetails.tsx` (riga 224) sia `GroupSessionsList.tsx` (righe 29 e 39) renderizzano lo stesso `<h3>{t("upcomingSessions")}</h3>`.
+## Problem
+Message content is rendered as plain text (`{message.content}`), so URLs are not clickable.
 
-## Soluzione
-Rimuovere l'header interno da `GroupSessionsList.tsx` (righe 29 e 39), lasciando quello in `GroupDetails.tsx` che include anche i toggle lista/calendario.
+## Solution
+Add a helper function `linkify` that detects URLs in message text and wraps them in `<a>` tags with `target="_blank"` and `rel="noopener noreferrer"`.
 
-### Modifiche
-**`src/components/groups/GroupSessionsList.tsx`**
-- Rimuovere `<h3>` su riga 29 (caso empty) e riga 39 (caso con sessioni)
-- Il container `space-y-3` resta, ma senza il titolo duplicato
+### Changes: `src/components/chat/ChatBubble.tsx`
+
+1. Add a `linkify(text: string)` function that splits the text by URL regex, returning an array of strings and `<a>` elements
+2. Replace `{message.content}` on lines 16 and 32 with `{linkify(message.content)}`
+3. Style links with underline and appropriate colors (e.g. `underline break-all` for both sent/received bubbles)
+
+The URL regex: `/https?:\/\/[^\s]+/g`
+
+Single file change, straightforward.
