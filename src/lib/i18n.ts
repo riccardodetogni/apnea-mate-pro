@@ -285,6 +285,10 @@ const translations = {
     createCourseDesc: "Corso di apnea per la tua scuola",
     createGroupDesc: "Crea un gruppo locale di apneisti",
     createTrainingDesc: "Registra il tuo allenamento personale",
+    selectGroup: "Seleziona gruppo",
+    selectGroupPlaceholder: "Scegli un gruppo verificato",
+    noVerifiedGroups: "Non gestisci nessuna scuola verificata",
+    onlyVerifiedSchools: "Solo le scuole verificate possono creare eventi e corsi.",
 
     // Events
     upcomingEvents: "Eventi in arrivo",
@@ -1020,6 +1024,10 @@ const translations = {
     createCourseDesc: "Freediving course for your school",
     createGroupDesc: "Create a local group of freedivers",
     createTrainingDesc: "Log your personal training",
+    selectGroup: "Select group",
+    selectGroupPlaceholder: "Choose a verified group",
+    noVerifiedGroups: "You don't manage any verified school",
+    onlyVerifiedSchools: "Only verified schools can create events and courses.",
 
     // Events
     upcomingEvents: "Upcoming events",
