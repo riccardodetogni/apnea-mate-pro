@@ -5,7 +5,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useSpots } from "@/hooks/useSpots";
 import { useMyGroups } from "@/hooks/useMyGroups";
 import { supabase } from "@/integrations/supabase/client";
-import { t } from "@/lib/i18n";
+import { t, getSessionTypes, getLevels } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,22 +38,6 @@ import {
 } from "@/components/ui/tooltip";
 import BatchDatePicker, { type SelectedDate } from "@/components/sessions/BatchDatePicker";
 
-const sessionTypes = [
-  { value: "sea_trip", label: "Uscita mare" },
-  { value: "pool_session", label: "Piscina" },
-  { value: "deep_pool_session", label: "Piscina profonda" },
-  { value: "lake_trip", label: "Uscita lago" },
-  { value: "training", label: "Allenamento" },
-  { value: "spearfishing", label: "Pesca subacquea" },
-];
-
-const levels = [
-  { value: "all_levels", label: "Tutti i livelli" },
-  { value: "beginner", label: "Principiante" },
-  { value: "intermediate", label: "Intermedio" },
-  { value: "advanced", label: "Avanzato" },
-];
-
 // Map environment_type to session_type
 const environmentToSessionType: Record<string, string> = {
   sea: "sea_trip",
@@ -70,12 +54,14 @@ const CreateSession = () => {
   const { groups: myGroups, loading: groupsLoading } = useMyGroups();
   const { toast } = useToast();
 
+  const sessionTypes = getSessionTypes();
+  const levels = getLevels();
+
   const [submitting, setSubmitting] = useState(false);
   const [creatorJoins, setCreatorJoins] = useState(true);
   const [groupOnly, setGroupOnly] = useState(false);
   const [multiMode, setMultiMode] = useState(false);
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([]);
-  // Store raw string values for number inputs to handle editing gracefully
   const [durationInput, setDurationInput] = useState("60");
   const [participantsInput, setParticipantsInput] = useState("6");
   const [form, setForm] = useState({
@@ -95,8 +81,6 @@ const CreateSession = () => {
   const canCreate = isCertified || isInstructor;
   const canBatch = isInstructor || myGroups.length > 0;
 
-
-  // Auto-fill session_type based on selected spot's environment_type
   useEffect(() => {
     if (form.spot_id) {
       const selectedSpot = spots.find((s) => s.id === form.spot_id);
@@ -109,7 +93,6 @@ const CreateSession = () => {
     }
   }, [form.spot_id, spots]);
 
-  // Handlers for number inputs with proper blur validation
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDurationInput(e.target.value);
   };
@@ -152,41 +135,39 @@ const CreateSession = () => {
     if (!user || !canCreate) return;
 
     if (!form.title.trim()) {
-      toast({ title: "Errore", description: "Inserisci un titolo", variant: "destructive" });
+      toast({ title: t("error"), description: t("insertTitle"), variant: "destructive" });
       return;
     }
 
     if (!form.spot_id) {
-      toast({ title: "Errore", description: "Seleziona uno spot", variant: "destructive" });
+      toast({ title: t("error"), description: t("selectSpot"), variant: "destructive" });
       return;
     }
 
-    // Validate dates
     if (multiMode) {
       if (selectedDates.length === 0) {
-        toast({ title: "Errore", description: "Seleziona almeno una data", variant: "destructive" });
+        toast({ title: t("error"), description: t("selectAtLeastOneDate"), variant: "destructive" });
         return;
       }
-      // Check all dates have times and are in the future
       for (const sd of selectedDates) {
         if (!sd.time) {
-          toast({ title: "Errore", description: "Inserisci l'ora per tutte le date", variant: "destructive" });
+          toast({ title: t("error"), description: t("insertTimeForAllDates"), variant: "destructive" });
           return;
         }
         const dt = new Date(`${sd.date}T${sd.time}`);
         if (dt <= new Date()) {
-          toast({ title: "Errore", description: "Tutte le date devono essere nel futuro", variant: "destructive" });
+          toast({ title: t("error"), description: t("allDatesMustBeFuture"), variant: "destructive" });
           return;
         }
       }
     } else {
       if (!form.date || !form.time) {
-        toast({ title: "Errore", description: "Inserisci data e ora", variant: "destructive" });
+        toast({ title: t("error"), description: t("insertDateAndTime"), variant: "destructive" });
         return;
       }
       const dateTime = new Date(`${form.date}T${form.time}`);
       if (dateTime <= new Date()) {
-        toast({ title: "Errore", description: "La data deve essere nel futuro", variant: "destructive" });
+        toast({ title: t("error"), description: t("dateMustBeFuture"), variant: "destructive" });
         return;
       }
     }
@@ -240,13 +221,13 @@ const CreateSession = () => {
       if (multiMode) {
         toast({
           title: `${results.length} ${t("sessionsCreated")}`,
-          description: "Le sessioni sono state pubblicate",
+          description: t("sessionsPublishedDesc"),
         });
         navigate("/my-sessions");
       } else {
         toast({
-          title: "Sessione creata!",
-          description: "La tua sessione è stata pubblicata",
+          title: t("sessionCreatedTitle"),
+          description: t("sessionCreatedDesc"),
         });
         navigate(`/sessions/${results[0].id}`);
       }
@@ -254,14 +235,14 @@ const CreateSession = () => {
       console.error("Error creating session:", error);
       if (error.message?.includes("row-level security")) {
         toast({
-          title: "Non autorizzato",
-          description: "Devi essere certificato per creare sessioni",
+          title: t("unauthorized"),
+          description: t("mustBeCertifiedToCreate"),
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Errore",
-          description: error.message || "Impossibile creare la sessione",
+          title: t("error"),
+          description: error.message || t("cannotCreateSession"),
           variant: "destructive",
         });
       }
@@ -285,7 +266,7 @@ const CreateSession = () => {
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
           <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="font-semibold text-lg">Nuova sessione</h1>
+        <h1 className="font-semibold text-lg">{t("newSessionTitle")}</h1>
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
@@ -294,22 +275,22 @@ const CreateSession = () => {
             <div className="w-16 h-16 rounded-2xl bg-warning/10 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-warning" />
             </div>
-            <h3 className="font-semibold text-foreground mb-2">Certificazione richiesta</h3>
+            <h3 className="font-semibold text-foreground mb-2">{t("certificationRequired")}</h3>
             <p className="text-sm text-muted mb-6">
-              Per creare sessioni devi essere un apneista certificato o istruttore. Puoi inviare la tua certificazione dal profilo.
+              {t("certificationRequiredDesc")}
             </p>
             <Button variant="outline" onClick={() => navigate("/profile")}>
-              Vai al profilo
+              {t("goToProfile")}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="title">Titolo *</Label>
+              <Label htmlFor="title">{t("titleRequired")}</Label>
               <Input
                 id="title"
-                placeholder="Es: Allenamento profondità"
+                placeholder={t("titlePlaceholder")}
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 maxLength={100}
@@ -318,10 +299,10 @@ const CreateSession = () => {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Descrizione</Label>
+              <Label htmlFor="description">{t("descriptionLabel")}</Label>
               <Textarea
                 id="description"
-                placeholder="Dettagli aggiuntivi sulla sessione..."
+                placeholder={t("descriptionPlaceholder")}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={3}
@@ -330,7 +311,7 @@ const CreateSession = () => {
 
             {/* Spot */}
             <div className="space-y-2">
-              <Label>Spot *</Label>
+              <Label>{t("spotLabel")}</Label>
               <SpotSelector
                 spots={spots}
                 selectedSpotId={form.spot_id}
@@ -344,26 +325,25 @@ const CreateSession = () => {
             {myGroups.length > 0 && (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label>Gruppo (opzionale)</Label>
+                  <Label>{t("groupOptional")}</Label>
                   <Select value={form.group_id} onValueChange={(v) => {
                     setForm({ ...form, group_id: v === "none" ? "" : v });
-                    // Reset groupOnly if no group selected
                     if (v === "none") setGroupOnly(false);
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Nessun gruppo">
+                      <SelectValue placeholder={t("noGroup")}>
                         {form.group_id ? (
                           <span className="flex items-center gap-2">
                             <UsersRound className="w-4 h-4" />
                             {myGroups.find(g => g.id === form.group_id)?.name}
                           </span>
                         ) : (
-                          "Nessun gruppo"
+                          t("noGroup")
                         )}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Nessun gruppo</SelectItem>
+                      <SelectItem value="none">{t("noGroup")}</SelectItem>
                       {myGroups.map(group => (
                         <SelectItem key={group.id} value={group.id}>
                           <span className="flex items-center gap-2">
@@ -376,7 +356,6 @@ const CreateSession = () => {
                   </Select>
                 </div>
 
-                {/* Group-only visibility toggle - only shown when a group is selected */}
                 {form.group_id && (
                   <div className="flex items-center space-x-3 py-2 px-3 bg-muted/50 rounded-lg">
                     <Checkbox
@@ -384,13 +363,10 @@ const CreateSession = () => {
                       checked={groupOnly}
                       onCheckedChange={(checked) => setGroupOnly(checked === true)}
                     />
-                    <label
-                      htmlFor="groupOnly"
-                      className="text-sm leading-tight"
-                    >
-                      <span className="font-medium">Visibile solo ai membri del gruppo</span>
+                    <label htmlFor="groupOnly" className="text-sm leading-tight">
+                      <span className="font-medium">{t("groupOnlyLabel")}</span>
                       <span className="block text-muted-foreground text-xs mt-0.5">
-                        La sessione non apparirà nella ricerca pubblica
+                        {t("groupOnlyDesc")}
                       </span>
                     </label>
                   </div>
@@ -401,20 +377,20 @@ const CreateSession = () => {
             {/* Type & Level */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Tipo sessione</Label>
+                <Label>{t("sessionTypeLabel")}</Label>
                 <Select value={form.session_type} onValueChange={(v) => setForm({ ...form, session_type: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {sessionTypes.map(t => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    {sessionTypes.map(st => (
+                      <SelectItem key={st.value} value={st.value}>{st.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Livello</Label>
+                <Label>{t("levelLabel")}</Label>
                 <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
                   <SelectTrigger>
                     <SelectValue />
@@ -464,7 +440,7 @@ const CreateSession = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label htmlFor="date">Data *</Label>
+                  <Label htmlFor="date">{t("dateLabel")}</Label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                     <Input
@@ -478,7 +454,7 @@ const CreateSession = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time">Ora *</Label>
+                  <Label htmlFor="time">{t("timeLabel")}</Label>
                   <div className="relative">
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                     <Input
@@ -496,7 +472,7 @@ const CreateSession = () => {
             {/* Duration & Max Participants */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="duration">Durata (min)</Label>
+                <Label htmlFor="duration">{t("durationLabel")}</Label>
                 <Input
                   id="duration"
                   type="number"
@@ -509,7 +485,7 @@ const CreateSession = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="max">Max partecipanti</Label>
+                <Label htmlFor="max">{t("maxParticipantsLabel")}</Label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                   <Input
@@ -537,7 +513,7 @@ const CreateSession = () => {
                 htmlFor="creatorJoins"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Partecipo anch'io alla sessione
+                {t("creatorJoinsLabel")}
               </label>
             </div>
 
@@ -574,12 +550,12 @@ const CreateSession = () => {
               {submitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creazione...
+                  {t("creating")}
                 </>
               ) : multiMode ? (
-                `Pubblica ${selectedDates.length} session${selectedDates.length === 1 ? "e" : "i"}`
+                `${t("publishSessions")} ${selectedDates.length} session${selectedDates.length === 1 ? "e" : "i"}`
               ) : (
-                "Pubblica sessione"
+                t("publishSession")
               )}
             </Button>
           </form>
