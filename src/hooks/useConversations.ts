@@ -4,8 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface ConversationListItem {
   id: string;
-  type: "session" | "group" | "dm";
+  type: "session" | "group" | "dm" | "event";
   session_id: string | null;
+  event_id: string | null;
   group_id: string | null;
   created_at: string;
   // Derived
