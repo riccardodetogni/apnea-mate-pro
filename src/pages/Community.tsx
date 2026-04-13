@@ -6,11 +6,15 @@ import { SearchBar } from "@/components/community/SearchBar";
 import { SectionHeader } from "@/components/community/SectionHeader";
 import { SessionCard } from "@/components/community/SessionCard";
 import { GroupCard } from "@/components/community/GroupCard";
+import { EventCard } from "@/components/community/EventCard";
+import { CourseCard } from "@/components/community/CourseCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
 import { SessionFilters, SessionFilterState, defaultSessionFilters } from "@/components/community/SessionFilters";
 import { useSessions, useSessionsFromFollowing, SessionWithDetails } from "@/hooks/useSessions";
 import { useGroups, GroupWithDetails } from "@/hooks/useGroups";
+import { useEvents } from "@/hooks/useEvents";
+import { useCourses } from "@/hooks/useCourses";
 import { useSearch } from "@/hooks/useSearch";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { t } from "@/lib/i18n";
@@ -58,6 +62,9 @@ const Community = () => {
     joinGroup,
     refetch: refetchGroups,
   } = useGroups();
+
+  const { events, loading: eventsLoading } = useEvents();
+  const { courses, loading: coursesLoading } = useCourses();
   
   const { 
     search, 
@@ -458,6 +465,68 @@ const Community = () => {
               message={t("noMoreSessions")}
               actionLabel={t("exploreFreedivers")}
               onAction={() => navigate("/discover")}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Upcoming Events */}
+      <div className="mt-4">
+        <SectionHeader 
+          title={t("upcomingEvents")} 
+          actionLabel={t("viewAll")}
+          onAction={() => {}}
+        />
+        <div className="scroll-row">
+          {eventsLoading ? (
+            <>
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+            </>
+          ) : events.length > 0 ? (
+            events.map(event => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onClick={() => navigate(`/events/${event.id}`)}
+              />
+            ))
+          ) : (
+            <EmptyCard
+              message={t("noEvents")}
+              actionLabel={t("createEvent")}
+              onAction={() => navigate("/create/event")}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Available Courses */}
+      <div className="mt-4">
+        <SectionHeader 
+          title={t("availableCoursesSection")} 
+          actionLabel={t("viewAll")}
+          onAction={() => {}}
+        />
+        <div className="scroll-row">
+          {coursesLoading ? (
+            <>
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+            </>
+          ) : courses.length > 0 ? (
+            courses.map(course => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onClick={() => navigate(`/courses/${course.id}`)}
+              />
+            ))
+          ) : (
+            <EmptyCard
+              message={t("noCourses")}
+              actionLabel={t("createCourse")}
+              onAction={() => navigate("/create/course")}
             />
           )}
         </div>

@@ -6,6 +6,8 @@ import { GroupHeroCard } from "@/components/groups/GroupHeroCard";
 import { GroupMembersSection } from "@/components/groups/GroupMembersSection";
 import { GroupMembersSheet } from "@/components/groups/GroupMembersSheet";
 import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
+import { EventCard } from "@/components/community/EventCard";
+import { CourseCard } from "@/components/community/CourseCard";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle, List, CalendarDays } from "lucide-react";
@@ -15,6 +17,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notifications";
 import { getOrCreateGroupConversation } from "@/hooks/useConversations";
+import { useEvents } from "@/hooks/useEvents";
+import { useCourses } from "@/hooks/useCourses";
 
 const GroupDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +26,8 @@ const GroupDetails = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { group, members, sessions, loading, error, joinGroup, leaveGroup, approveMember, rejectMember } = useGroupDetails(id);
+  const { events, loading: eventsLoading } = useEvents(id);
+  const { courses, loading: coursesLoading } = useCourses(id);
   const [showMembersSheet, setShowMembersSheet] = useState(false);
   const [sessionsView, setSessionsView] = useState<"list" | "calendar">("list");
 
@@ -244,12 +250,36 @@ const GroupDetails = () => {
         )}
       </div>
 
-      {/* Courses placeholder */}
+      {/* Group Events */}
+      <div className="mt-6">
+        <h3 className="text-base font-semibold text-foreground mb-3">{t("groupEvents")}</h3>
+        {eventsLoading ? (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("loading")}</p></div>
+        ) : events.length > 0 ? (
+          <div className="scroll-row">
+            {events.map(event => (
+              <EventCard key={event.id} event={event} onClick={() => navigate(`/events/${event.id}`)} />
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("noEvents")}</p></div>
+        )}
+      </div>
+
+      {/* Group Courses */}
       <div className="mt-6 space-y-3">
-        <h3 className="text-base font-semibold text-foreground">{t("activeCourses")}</h3>
-        <div className="p-4 rounded-xl bg-muted/20 text-center">
-          <p className="text-sm text-muted">Nessun corso attivo</p>
-        </div>
+        <h3 className="text-base font-semibold text-foreground">{t("groupCourses")}</h3>
+        {coursesLoading ? (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("loading")}</p></div>
+        ) : courses.length > 0 ? (
+          <div className="scroll-row">
+            {courses.map(course => (
+              <CourseCard key={course.id} course={course} onClick={() => navigate(`/courses/${course.id}`)} />
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("noCourses")}</p></div>
+        )}
       </div>
 
       {/* Members */}

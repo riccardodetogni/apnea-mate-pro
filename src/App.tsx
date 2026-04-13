@@ -34,6 +34,10 @@ const DiscoverFreedivers = lazy(() => import("./pages/DiscoverFreedivers"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Messages = lazy(() => import("./pages/Messages"));
 const ChatThread = lazy(() => import("./pages/ChatThread"));
+const CreateEvent = lazy(() => import("./pages/CreateEvent"));
+const CreateCourse = lazy(() => import("./pages/CreateCourse"));
+const EventDetails = lazy(() => import("./pages/EventDetails"));
+const CourseDetails = lazy(() => import("./pages/CourseDetails"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -87,6 +91,10 @@ const App = () => (
                 <Route path="/discover" element={<RequireAuth><DiscoverFreedivers /></RequireAuth>} />
                 <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
                 <Route path="/messages/:id" element={<RequireAuth><ChatThread /></RequireAuth>} />
+                <Route path="/create/event" element={<RequireAuth><CreateEvent /></RequireAuth>} />
+                <Route path="/create/course" element={<RequireAuth><CreateCourse /></RequireAuth>} />
+                <Route path="/events/:id" element={<RequireAuth><EventDetails /></RequireAuth>} />
+                <Route path="/courses/:id" element={<RequireAuth><CourseDetails /></RequireAuth>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -130,6 +130,118 @@ export type Database = {
           },
         ]
       }
+      course_participants: {
+        Row: {
+          course_id: string
+          id: string
+          joined_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_participants_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          contact_url: string | null
+          course_type: string
+          cover_image_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string
+          group_id: string | null
+          id: string
+          is_paid: boolean
+          is_public: boolean
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          max_participants: number
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_url?: string | null
+          course_type: string
+          cover_image_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date: string
+          group_id?: string | null
+          id?: string
+          is_paid?: boolean
+          is_public?: boolean
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_participants?: number
+          start_date: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_url?: string | null
+          course_type?: string
+          cover_image_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string
+          group_id?: string | null
+          id?: string
+          is_paid?: boolean
+          is_public?: boolean
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_participants?: number
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -216,6 +328,156 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: []
+      }
+      event_participants: {
+        Row: {
+          event_id: string
+          id: string
+          joined_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_schedule: {
+        Row: {
+          day_number: number
+          description: string | null
+          end_time: string | null
+          event_id: string
+          id: string
+          start_time: string | null
+          title: string | null
+        }
+        Insert: {
+          day_number: number
+          description?: string | null
+          end_time?: string | null
+          event_id: string
+          id?: string
+          start_time?: string | null
+          title?: string | null
+        }
+        Update: {
+          day_number?: number
+          description?: string | null
+          end_time?: string | null
+          event_id?: string
+          id?: string
+          start_time?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_schedule_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          contact_url: string | null
+          cover_image_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string
+          event_type: string
+          group_id: string | null
+          id: string
+          is_paid: boolean
+          is_public: boolean
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          max_participants: number
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date: string
+          event_type: string
+          group_id?: string | null
+          id?: string
+          is_paid?: boolean
+          is_public?: boolean
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_participants?: number
+          start_date: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          contact_url?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string
+          event_type?: string
+          group_id?: string | null
+          id?: string
+          is_paid?: boolean
+          is_public?: boolean
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_participants?: number
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       follows: {
         Row: {
