@@ -183,6 +183,22 @@ const EventDetails = () => {
             <UserMinus className="w-4 h-4" /> Annulla iscrizione
           </Button>
         )}
+        {user && (userStatus === "confirmed" || user.id === event.creator_id) && (
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={async () => {
+              try {
+                const convId = await getOrCreateEventConversation(event.id, user.id);
+                navigate(`/messages/${convId}`);
+              } catch {
+                toast({ title: "Errore", description: "Impossibile aprire la chat", variant: "destructive" });
+              }
+            }}
+          >
+            <MessageCircle className="w-4 h-4" /> Chat
+          </Button>
+        )}
       </div>
 
       {/* Description */}
