@@ -10,21 +10,16 @@ import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { t } from "@/lib/i18n";
+import { t, getCourseTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
-
-const courseTypes = [
-  { value: "beginner", label: "Base" },
-  { value: "advanced", label: "Avanzato" },
-  { value: "instructor", label: "Istruttore" },
-  { value: "specialty", label: "Specialità" },
-];
 
 const CreateCourse = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  const courseTypes = getCourseTypes();
 
   const [form, setForm] = useState({
     title: "",
@@ -43,7 +38,7 @@ const CreateCourse = () => {
 
   const handleSubmit = async () => {
     if (!user || !form.title || !form.start_date || !form.end_date) {
-      toast({ title: "Compila tutti i campi obbligatori", variant: "destructive" });
+      toast({ title: t("fillRequiredFields"), variant: "destructive" });
       return;
     }
 
@@ -71,10 +66,10 @@ const CreateCourse = () => {
 
       if (error) throw error;
 
-      toast({ title: "Corso creato!" });
+      toast({ title: t("courseCreated") });
       navigate(`/courses/${course.id}`);
     } catch (err: any) {
-      toast({ title: "Errore", description: err.message, variant: "destructive" });
+      toast({ title: t("error"), description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -110,12 +105,12 @@ const CreateCourse = () => {
 
         <div className="space-y-2">
           <Label>{t("courseTitle")}</Label>
-          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Es. Corso Apnea 1° Livello" />
+          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={t("coursePlaceholderTitle")} />
         </div>
 
         <div className="space-y-2">
           <Label>{t("courseDescription")}</Label>
-          <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Descrivi il corso, programma, requisiti..." rows={4} />
+          <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={t("coursePlaceholderDesc")} rows={4} />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -135,7 +130,7 @@ const CreateCourse = () => {
         </div>
 
         <div className="space-y-2">
-          <Label>{t("maxParticipants")} (0 = illimitati)</Label>
+          <Label>{t("maxParticipants")} ({t("unlimitedParticipants")})</Label>
           <Input type="number" min={0} value={form.max_participants} onChange={e => setForm(f => ({ ...f, max_participants: parseInt(e.target.value) || 0 }))} />
         </div>
 
@@ -147,9 +142,9 @@ const CreateCourse = () => {
         {/* Contacts */}
         <div className="space-y-3 pt-2 border-t border-border">
           <h3 className="font-semibold text-foreground">{t("contactInfo")}</h3>
-          <Input value={form.contact_email} onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))} placeholder="Email per iscrizioni" type="email" />
-          <Input value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))} placeholder="Telefono" type="tel" />
-          <Input value={form.contact_url} onChange={e => setForm(f => ({ ...f, contact_url: e.target.value }))} placeholder="Link sito scuola" type="url" />
+          <Input value={form.contact_email} onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))} placeholder={t("courseContactEmailPlaceholder")} type="email" />
+          <Input value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))} placeholder={t("contactPhonePlaceholder")} type="tel" />
+          <Input value={form.contact_url} onChange={e => setForm(f => ({ ...f, contact_url: e.target.value }))} placeholder={t("courseContactUrlPlaceholder")} type="url" />
         </div>
 
         <Button onClick={handleSubmit} disabled={loading} className="w-full">

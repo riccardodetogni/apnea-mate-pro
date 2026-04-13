@@ -10,7 +10,7 @@ import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { t } from "@/lib/i18n";
+import { t, getEventTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react";
 
 interface ScheduleDay {
@@ -21,17 +21,13 @@ interface ScheduleDay {
   end_time: string;
 }
 
-const eventTypes = [
-  { value: "stage", label: "Stage" },
-  { value: "competition", label: "Gara" },
-  { value: "trip", label: "Trip" },
-];
-
 const CreateEvent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  const eventTypes = getEventTypes();
 
   const [form, setForm] = useState({
     title: "",
@@ -71,7 +67,7 @@ const CreateEvent = () => {
 
   const handleSubmit = async () => {
     if (!user || !form.title || !form.start_date || !form.end_date) {
-      toast({ title: "Compila tutti i campi obbligatori", variant: "destructive" });
+      toast({ title: t("fillRequiredFields"), variant: "destructive" });
       return;
     }
 
@@ -113,10 +109,10 @@ const CreateEvent = () => {
         }
       }
 
-      toast({ title: "Evento creato!" });
+      toast({ title: t("eventCreated") });
       navigate(`/events/${event.id}`);
     } catch (err: any) {
-      toast({ title: "Errore", description: err.message, variant: "destructive" });
+      toast({ title: t("error"), description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -152,12 +148,12 @@ const CreateEvent = () => {
 
         <div className="space-y-2">
           <Label>{t("eventTitle")}</Label>
-          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Es. Deep Week Sardegna" />
+          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder={t("eventPlaceholderTitle")} />
         </div>
 
         <div className="space-y-2">
           <Label>{t("eventDescription")}</Label>
-          <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Descrivi l'evento..." rows={4} />
+          <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder={t("eventPlaceholderDesc")} rows={4} />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -177,7 +173,7 @@ const CreateEvent = () => {
         </div>
 
         <div className="space-y-2">
-          <Label>{t("maxParticipants")} (0 = illimitati)</Label>
+          <Label>{t("maxParticipants")} ({t("unlimitedParticipants")})</Label>
           <Input type="number" min={0} value={form.max_participants} onChange={e => setForm(f => ({ ...f, max_participants: parseInt(e.target.value) || 0 }))} />
         </div>
 
@@ -189,9 +185,9 @@ const CreateEvent = () => {
         {/* Contacts */}
         <div className="space-y-3 pt-2 border-t border-border">
           <h3 className="font-semibold text-foreground">{t("contactInfo")}</h3>
-          <Input value={form.contact_email} onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))} placeholder="Email di contatto" type="email" />
-          <Input value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))} placeholder="Telefono" type="tel" />
-          <Input value={form.contact_url} onChange={e => setForm(f => ({ ...f, contact_url: e.target.value }))} placeholder="Link per info (sito web)" type="url" />
+          <Input value={form.contact_email} onChange={e => setForm(f => ({ ...f, contact_email: e.target.value }))} placeholder={t("contactEmailPlaceholder")} type="email" />
+          <Input value={form.contact_phone} onChange={e => setForm(f => ({ ...f, contact_phone: e.target.value }))} placeholder={t("contactPhonePlaceholder")} type="tel" />
+          <Input value={form.contact_url} onChange={e => setForm(f => ({ ...f, contact_url: e.target.value }))} placeholder={t("contactUrlPlaceholder")} type="url" />
         </div>
 
         {/* Schedule */}
@@ -205,11 +201,11 @@ const CreateEvent = () => {
               {schedule.map((day, i) => (
                 <div key={i} className="p-3 bg-secondary rounded-xl space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Giorno {day.day_number}</span>
+                    <span className="text-sm font-medium">{t("dayLabel")} {day.day_number}</span>
                     <button onClick={() => removeScheduleDay(i)} className="text-destructive"><Trash2 className="w-4 h-4" /></button>
                   </div>
-                  <Input value={day.title} onChange={e => updateScheduleDay(i, "title", e.target.value)} placeholder="Titolo giornata" />
-                  <Textarea value={day.description} onChange={e => updateScheduleDay(i, "description", e.target.value)} placeholder="Dettagli" rows={2} />
+                  <Input value={day.title} onChange={e => updateScheduleDay(i, "title", e.target.value)} placeholder={t("scheduleDayTitlePlaceholder")} />
+                  <Textarea value={day.description} onChange={e => updateScheduleDay(i, "description", e.target.value)} placeholder={t("scheduleDayDetailsPlaceholder")} rows={2} />
                   <div className="grid grid-cols-2 gap-2">
                     <Input type="time" value={day.start_time} onChange={e => updateScheduleDay(i, "start_time", e.target.value)} />
                     <Input type="time" value={day.end_time} onChange={e => updateScheduleDay(i, "end_time", e.target.value)} />
@@ -217,7 +213,7 @@ const CreateEvent = () => {
                 </div>
               ))}
               <Button variant="outline" onClick={addScheduleDay} className="w-full gap-2">
-                <Plus className="w-4 h-4" /> Aggiungi giornata
+                <Plus className="w-4 h-4" /> {t("addDay")}
               </Button>
             </div>
           )}
