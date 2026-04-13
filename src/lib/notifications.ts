@@ -7,6 +7,7 @@ export type NotificationType =
   | "session_cancelled"
   | "group_join_request"
   | "group_request_approved"
+  | "group_verification_request"
   | "new_follower";
 
 export interface NotificationMetadata {

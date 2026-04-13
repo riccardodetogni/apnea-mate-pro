@@ -21,7 +21,8 @@ import {
   MoreVertical,
   UserMinus,
   Save,
-  Settings
+  Settings,
+  BadgeCheck,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -48,7 +49,8 @@ const GroupManage = () => {
     rejectMember, 
     promoteMember, 
     removeMember,
-    updateGroup
+    updateGroup,
+    refetch,
   } = useGroupDetails(id);
 
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
@@ -56,6 +58,7 @@ const GroupManage = () => {
   const [groupDescription, setGroupDescription] = useState(group?.description || "");
   const [groupAvatarUrl, setGroupAvatarUrl] = useState(group?.avatar_url || null);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [requestingVerification, setRequestingVerification] = useState(false);
 
   // Sync group settings when loaded
   useState(() => {
@@ -87,6 +90,45 @@ const GroupManage = () => {
     } else {
       toast({ title: t("settingsSaved") });
     }
+  };
+
+  const handleRequestVerification = async () => {
+    if (!id || !group) return;
+    setRequestingVerification(true);
+
+    const { error: updateError } = await supabase
+      .from("groups")
+      .update({ verification_requested: true } as any)
+      .eq("id", id);
+
+    if (updateError) {
+      toast({ title: t("error"), description: updateError.message, variant: "destructive" });
+      setRequestingVerification(false);
+      return;
+    }
+
+    // Notify all admins
+    const { data: adminRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    if (adminRoles) {
+      for (const admin of adminRoles) {
+        await createNotification({
+          userId: admin.user_id,
+          type: "group_verification_request" as any,
+          title: t("requestVerification"),
+          message: `${group.name}`,
+          metadata: { group_id: id, group_name: group.name },
+        });
+      }
+    }
+
+    toast({ title: t("verificationRequested"), description: t("verificationRequestSent") });
+    setRequestingVerification(false);
+    // Refresh group data
+    refetch();
   };
 
   const handleApprove = async (userId: string) => {
@@ -483,6 +525,27 @@ const GroupManage = () => {
                 )}
                 {t("saveSettings")}
               </Button>
+
+              {/* Request Verification for scuola_club */}
+              {group?.group_type === 'scuola_club' && !group?.verified && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2"
+                    disabled={group?.verification_requested || requestingVerification}
+                    onClick={handleRequestVerification}
+                  >
+                    {requestingVerification ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : group?.verification_requested ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <BadgeCheck className="w-4 h-4" />
+                    )}
+                    {group?.verification_requested ? t("verificationRequested") : t("requestVerification")}
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, Profile, AppRole } from "./useProfile";
+import { t } from "@/lib/i18n";
 
 export interface AdminGroup {
   id: string;
@@ -8,6 +9,7 @@ export interface AdminGroup {
   location: string;
   group_type: string;
   verified: boolean;
+  verification_requested: boolean;
   created_at: string;
   member_count: number;
 }
@@ -51,7 +53,7 @@ export const useAdmin = () => {
 
     const { data: groups, error } = await supabase
       .from("groups")
-      .select("id, name, location, group_type, verified, created_at")
+      .select("id, name, location, group_type, verified, verification_requested, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -110,9 +112,14 @@ export const useAdmin = () => {
   };
 
   const toggleGroupVerification = async (groupId: string, verified: boolean) => {
+    const updateData: any = { verified };
+    if (verified) {
+      updateData.verification_requested = false;
+    }
+
     const { error } = await supabase
       .from("groups")
-      .update({ verified })
+      .update(updateData)
       .eq("id", groupId);
 
     if (!error) {
@@ -126,11 +133,11 @@ export const useAdmin = () => {
       if (group?.created_by) {
         await supabase.from("notifications").insert({
           user_id: group.created_by,
-          type: "group_request_approved" as const,
-          title: verified ? "Gruppo verificato" : "Verifica rimossa",
+          type: verified ? "group_request_approved" as const : "group_request_approved" as const,
+          title: verified ? t("groupVerified") : t("verificationRemoved"),
           message: verified
-            ? `Il tuo gruppo "${group.name}" è stato verificato come partner ufficiale.`
-            : `La verifica del tuo gruppo "${group.name}" è stata rimossa.`,
+            ? `${t("groupVerified")}: "${group.name}"`
+            : `${t("verificationRemoved")}: "${group.name}"`,
           metadata: { group_id: groupId },
         });
       }

@@ -194,42 +194,56 @@ const Admin = () => {
                 <p>{t("noGroupFound")}</p>
               </div>
             ) : (
-              allGroups.map((group) => (
-                <div
-                  key={group.id}
-                  className="bg-card rounded-xl border border-white/8 p-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary">
-                      <UsersRound className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-card-foreground truncate">{group.name}</h3>
-                        {group.verified && (
-                          <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
-                        )}
+              [...allGroups]
+                .sort((a, b) => {
+                  const aPending = a.verification_requested && !a.verified ? 1 : 0;
+                  const bPending = b.verification_requested && !b.verified ? 1 : 0;
+                  return bPending - aPending;
+                })
+                .map((group) => {
+                  const isPendingVerification = group.verification_requested && !group.verified;
+                  return (
+                    <div
+                      key={group.id}
+                      className={`bg-card rounded-xl border p-4 ${isPendingVerification ? "border-warning" : "border-white/8"}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary">
+                          <UsersRound className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-card-foreground truncate">{group.name}</h3>
+                            {group.verified && (
+                              <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+                            )}
+                            {isPendingVerification && (
+                              <span className="px-2 py-0.5 text-xs bg-warning/20 text-warning rounded-full whitespace-nowrap">
+                                {t("pendingVerification")}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-white/55 truncate">{group.location}</p>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-white/55">
+                            <span>{getGroupTypeLabel(group.group_type)}</span>
+                            <span>•</span>
+                            <span>{group.member_count} {t("members")}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-white/55">
+                            {group.verified ? t("verified") : t("notVerified")}
+                          </span>
+                          <Switch
+                            checked={group.verified}
+                            onCheckedChange={() => handleToggleVerification(group)}
+                            disabled={togglingGroupId === group.id}
+                          />
+                        </div>
                       </div>
-                      <p className="text-sm text-white/55 truncate">{group.location}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-white/55">
-                        <span>{getGroupTypeLabel(group.group_type)}</span>
-                        <span>•</span>
-                        <span>{group.member_count} {t("members")}</span>
-                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-white/55">
-                        {group.verified ? t("verified") : t("notVerified")}
-                      </span>
-                      <Switch
-                        checked={group.verified}
-                        onCheckedChange={() => handleToggleVerification(group)}
-                        disabled={togglingGroupId === group.id}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))
+                  );
+                })
             )}
           </div>
         )}

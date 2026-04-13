@@ -618,6 +618,10 @@ const translations = {
     nowVerifiedPartner: "è ora un partner verificato",
     certifiedFreediverRole: "Apneista Certificato",
     cannotUpdateVerification: "Impossibile aggiornare lo stato di verifica",
+    requestVerification: "Richiedi Verifica",
+    verificationRequested: "Verifica Richiesta",
+    verificationRequestSent: "La richiesta di verifica è stata inviata agli amministratori.",
+    pendingVerification: "In attesa di verifica",
 
     // MySessions
     mySessions: "Le mie sessioni",
@@ -1357,6 +1361,10 @@ const translations = {
     nowVerifiedPartner: "is now a verified partner",
     certifiedFreediverRole: "Certified Freediver",
     cannotUpdateVerification: "Cannot update verification status",
+    requestVerification: "Request Verification",
+    verificationRequested: "Verification Requested",
+    verificationRequestSent: "The verification request has been sent to administrators.",
+    pendingVerification: "Pending verification",
 
     // MySessions
     mySessions: "My sessions",

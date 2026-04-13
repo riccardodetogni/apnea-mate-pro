@@ -587,6 +587,7 @@ export type Database = {
           name: string
           requires_approval: boolean
           updated_at: string
+          verification_requested: boolean
           verified: boolean
         }
         Insert: {
@@ -604,6 +605,7 @@ export type Database = {
           name: string
           requires_approval?: boolean
           updated_at?: string
+          verification_requested?: boolean
           verified?: boolean
         }
         Update: {
@@ -621,6 +623,7 @@ export type Database = {
           name?: string
           requires_approval?: boolean
           updated_at?: string
+          verification_requested?: boolean
           verified?: boolean
         }
         Relationships: []
@@ -1166,6 +1169,7 @@ export type Database = {
         | "group_join_request"
         | "group_request_approved"
         | "new_follower"
+        | "group_verification_request"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1308,6 +1312,7 @@ export const Constants = {
         "group_join_request",
         "group_request_approved",
         "new_follower",
+        "group_verification_request",
       ],
     },
   },
