@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyParticipations, MyCreatedSession } from "@/hooks/useMyParticipations";
 import { useSessions } from "@/hooks/useSessions";
-import { t } from "@/lib/i18n";
+import { t, mapSessionType } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,18 +32,6 @@ const formatDate = (dateTime: string): string => {
     minute: "2-digit",
   };
   return date.toLocaleDateString("it-IT", options);
-};
-
-const mapSessionType = (type: string): string => {
-  switch (type) {
-    case "sea_trip": return "Mare";
-    case "pool_session": return "Piscina";
-    case "deep_pool_session": return "Deep pool";
-    case "lake_trip": return "Lago";
-    case "training": return "Allenamento";
-    case "spearfishing": return "Pesca sub";
-    default: return type;
-  }
 };
 
 const MySessions = () => {
@@ -105,7 +93,7 @@ const MySessions = () => {
             )}
           </div>
           <Badge variant={isPending ? "outline" : "default"} className={isPending ? "bg-warning/10 text-warning border-warning/30" : "bg-success/10 text-success border-success/30"}>
-            {isPending ? "In attesa" : "Confermato"}
+            {isPending ? t("waitingBadge") : t("confirmedBadge")}
           </Badge>
         </div>
 
@@ -122,10 +110,10 @@ const MySessions = () => {
 
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-[hsl(var(--card-border))]">
           <span className="text-xs text-[hsl(var(--card-muted))]">
-            {mapSessionType(session.session_type)} · {participation.confirmed_count}/{session.max_participants} partecipanti
+            {mapSessionType(session.session_type)} · {participation.confirmed_count}/{session.max_participants} {t("participantsLabel")}
           </span>
           <span className="text-xs text-[hsl(var(--card-muted))]">
-            Organizzatore: {session.creator?.name || "—"}
+            {t("organizerLabel")}: {session.creator?.name || "—"}
           </span>
         </div>
       </button>
@@ -157,7 +145,7 @@ const MySessions = () => {
             )}
             <Badge variant="outline" className="bg-[hsl(var(--badge-blue-bg))] text-[hsl(var(--card-foreground))] border-primary/30">
               <Crown className="w-3 h-3 mr-1" />
-              Creata da te
+              {t("createdByYouBadge")}
             </Badge>
           </div>
         </div>
@@ -175,11 +163,11 @@ const MySessions = () => {
 
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-[hsl(var(--card-border))]">
           <span className="text-xs text-[hsl(var(--card-muted))]">
-            {mapSessionType(session.session_type)} · {session.confirmed_count}/{session.max_participants} confermati
+            {mapSessionType(session.session_type)} · {session.confirmed_count}/{session.max_participants} {t("confirmedBadge")}
           </span>
           {session.pending_count > 0 && (
             <span className="text-xs text-warning font-medium">
-              {session.pending_count} richieste in attesa
+              {session.pending_count} {t("requestsWaiting")}
             </span>
           )}
         </div>
@@ -194,7 +182,7 @@ const MySessions = () => {
           <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="font-semibold text-lg">Le mie sessioni</h1>
+          <h1 className="font-semibold text-lg">{t("mySessions")}</h1>
         </header>
         <div className="px-4 py-6 max-w-[430px] mx-auto space-y-3">
           <Skeleton className="h-32 w-full rounded-2xl" />
@@ -216,7 +204,7 @@ const MySessions = () => {
           <button onClick={() => navigate("/community")} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="font-semibold text-lg flex-1">Le mie sessioni</h1>
+        <h1 className="font-semibold text-lg flex-1">{t("mySessions")}</h1>
         <div className="flex gap-1">
           <button
             onClick={() => setViewMode("list")}
@@ -239,12 +227,12 @@ const MySessions = () => {
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-foreground mb-2">Nessuna sessione</h3>
+            <h3 className="font-semibold text-foreground mb-2">{t("noSessions")}</h3>
             <p className="text-sm text-muted mb-6">
-              Non sei ancora iscritto a nessuna sessione. Esplora la community per trovare sessioni vicino a te!
+              {t("noSessionsDesc")}
             </p>
             <Button variant="primaryGradient" onClick={() => navigate("/community")}>
-              Esplora sessioni
+              {t("exploreSessions")}
             </Button>
           </div>
         ) : viewMode === "calendar" ? (
@@ -256,7 +244,7 @@ const MySessions = () => {
               <div>
                 <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
                   <Bell className="w-4 h-4 text-warning" />
-                  Richieste in attesa ({createdWithPendingRequests.reduce((acc, s) => acc + s.pending_count, 0)})
+                  {t("pendingRequestsSection")} ({createdWithPendingRequests.reduce((acc, s) => acc + s.pending_count, 0)})
                 </h2>
                 <div className="space-y-3">
                   {createdWithPendingRequests.map(s => (
@@ -271,7 +259,7 @@ const MySessions = () => {
               <div>
                 <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  In attesa di approvazione ({pendingParticipations.length})
+                  {t("waitingApprovalSection")} ({pendingParticipations.length})
                 </h2>
                 <div className="space-y-3">
                   {pendingParticipations.map(p => (
@@ -286,7 +274,7 @@ const MySessions = () => {
               <div>
                 <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
                   <Check className="w-4 h-4 text-success" />
-                  Confermate ({confirmedParticipations.length})
+                  {t("confirmedSection")} ({confirmedParticipations.length})
                 </h2>
                 <div className="space-y-3">
                   {confirmedParticipations.map(p => (
@@ -301,7 +289,7 @@ const MySessions = () => {
               <div>
                 <h2 className="text-sm font-medium text-muted mb-3 flex items-center gap-2">
                   <Crown className="w-4 h-4 text-primary" />
-                  Create da te ({createdWithoutPendingRequests.length})
+                  {t("createdByYouSection")} ({createdWithoutPendingRequests.length})
                 </h2>
                 <div className="space-y-3">
                   {createdWithoutPendingRequests.map(s => (

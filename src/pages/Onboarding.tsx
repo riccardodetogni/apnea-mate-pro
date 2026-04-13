@@ -77,7 +77,6 @@ const Onboarding = () => {
       );
       const data = await response.json();
 
-      // Extract city and region
       const city = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality;
       const state = data.address?.state || data.address?.region;
       const locationStr = [city, state].filter(Boolean).join(", ");
@@ -85,21 +84,21 @@ const Onboarding = () => {
       if (locationStr) {
         setLocation(locationStr);
         toast({
-          title: "Posizione rilevata",
+          title: t("locationDetected"),
           description: locationStr,
         });
       } else {
         toast({
-          title: "Posizione non trovata",
-          description: "Inserisci manualmente la tua località",
+          title: t("locationNotFound"),
+          description: t("insertLocationManually"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Geolocation error:", error);
       toast({
-        title: "Impossibile rilevare la posizione",
-        description: "Assicurati di aver concesso i permessi di localizzazione",
+        title: t("cannotDetectLocation"),
+        description: t("grantLocationPermission"),
         variant: "destructive",
       });
     } finally {
@@ -119,16 +118,16 @@ const Onboarding = () => {
     if (step === 1) {
       if (!name.trim()) {
         toast({
-          title: "Nome richiesto",
-          description: "Inserisci il tuo nome per continuare",
+          title: t("nameRequired"),
+          description: t("nameRequiredDesc"),
           variant: "destructive",
         });
         return;
       }
       if (!location.trim()) {
         toast({
-          title: "Località richiesta",
-          description: "Inserisci la tua città o regione per continuare",
+          title: t("locationRequired"),
+          description: t("locationRequiredDesc"),
           variant: "destructive",
         });
         return;
@@ -137,27 +136,26 @@ const Onboarding = () => {
 
     if (step === 2 && isCertified === null) {
       toast({
-        title: "Seleziona un'opzione",
-        description: "Indica se sei un apneista certificato",
+        title: t("selectAnOption"),
+        description: t("selectAnOptionDesc"),
         variant: "destructive",
       });
       return;
     }
 
-    // Validate step 3 - certification details required if user is certified
     if (step === 3 && isCertified === true) {
       if (!agency) {
         toast({
-          title: "Agenzia richiesta",
-          description: "Seleziona l'agenzia di certificazione",
+          title: t("agencyRequired"),
+          description: t("agencyRequiredDesc"),
           variant: "destructive",
         });
         return;
       }
       if (!level.trim()) {
         toast({
-          title: "Livello richiesto",
-          description: "Inserisci il livello di certificazione",
+          title: t("levelRequired"),
+          description: t("levelRequiredDesc"),
           variant: "destructive",
         });
         return;
@@ -184,7 +182,7 @@ const Onboarding = () => {
 
   const handleBack = () => {
     if (step === 5 && isCertified === false) {
-      setStep(4); // PB step
+      setStep(4);
     } else if (step === 4 && isCertified === false) {
       setStep(2);
     } else if (step > 1) {
@@ -198,7 +196,6 @@ const Onboarding = () => {
     setSaving(true);
 
     try {
-      // Update profile in database
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -214,7 +211,6 @@ const Onboarding = () => {
         throw profileError;
       }
 
-      // Submit certification if provided
       if (isCertified && agency && level) {
         let documentUrl: string | undefined;
 
@@ -248,16 +244,16 @@ const Onboarding = () => {
       await refreshProfile();
       
       toast({
-        title: "Profilo completato!",
-        description: "Benvenuto in Apnea Mate",
+        title: t("profileCompleted"),
+        description: t("welcomeToApneaMate"),
       });
       
       navigate("/community");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast({
-        title: "Errore",
-        description: "Impossibile salvare il profilo. Riprova.",
+        title: t("error"),
+        description: t("cannotSaveProfile"),
         variant: "destructive",
       });
     } finally {
@@ -271,8 +267,8 @@ const Onboarding = () => {
       setFile(selectedFile);
     } else if (selectedFile) {
       toast({
-        title: "File troppo grande",
-        description: "Il file non può superare i 5MB",
+        title: t("fileTooLarge"),
+        description: t("fileTooLargeDesc"),
         variant: "destructive",
       });
     }
@@ -328,7 +324,7 @@ const Onboarding = () => {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Mario Rossi"
+                  placeholder={t("namePlaceholder")}
                   className="rounded-xl h-12"
                 />
               </div>
@@ -339,7 +335,7 @@ const Onboarding = () => {
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Racconta qualcosa di te..."
+                  placeholder={t("bioPlaceholder")}
                   maxLength={300}
                   className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none h-24"
                 />
@@ -360,7 +356,7 @@ const Onboarding = () => {
                     className="h-12 w-12 rounded-xl flex-shrink-0"
                     onClick={handleUseMyLocation}
                     disabled={locationLoading}
-                    title="Usa la mia posizione"
+                    title={t("useMyLocation")}
                   >
                     {locationLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -491,7 +487,7 @@ const Onboarding = () => {
                   id="level"
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
-                  placeholder="es. AIDA 2, SSI Level 1"
+                  placeholder={t("certLevelPlaceholder")}
                   className="rounded-xl h-12"
                 />
               </div>
@@ -502,7 +498,7 @@ const Onboarding = () => {
                   id="certId"
                   value={certId}
                   onChange={(e) => setCertId(e.target.value)}
-                  placeholder="es. AIDA-12345"
+                  placeholder={t("certIdPlaceholder")}
                   className="rounded-xl h-12"
                 />
               </div>
@@ -511,7 +507,7 @@ const Onboarding = () => {
                 <Label>{t("uploadCertificate")}</Label>
                 <label className="block w-full h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex items-center justify-center gap-2 text-muted hover:text-primary transition-colors cursor-pointer">
                   <Upload className="w-5 h-5" />
-                  <span className="text-sm">{file ? file.name : "Carica documento"}</span>
+                  <span className="text-sm">{file ? file.name : t("uploadDocument")}</span>
                   <input
                     type="file"
                     accept="image/*,.pdf"

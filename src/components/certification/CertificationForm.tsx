@@ -7,6 +7,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Upload, Loader2, Award } from "lucide-react";
+import { t } from "@/lib/i18n";
 
 const certificationAgencies = [
   "AIDA",
@@ -37,11 +38,10 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Check file size (max 5MB)
       if (selectedFile.size > 5 * 1024 * 1024) {
         toast({
-          title: "File troppo grande",
-          description: "Il file non può superare i 5MB",
+          title: t("fileTooLarge"),
+          description: t("fileTooLargeDesc"),
           variant: "destructive",
         });
         return;
@@ -55,8 +55,8 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
 
     if (!agency || !level) {
       toast({
-        title: "Campi obbligatori",
-        description: "Seleziona agenzia e livello di certificazione",
+        title: t("requiredFields"),
+        description: t("requiredFieldsDesc"),
         variant: "destructive",
       });
       return;
@@ -64,8 +64,8 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
 
     if (!user) {
       toast({
-        title: "Errore",
-        description: "Devi essere autenticato",
+        title: t("error"),
+        description: t("mustBeAuthenticated"),
         variant: "destructive",
       });
       return;
@@ -76,7 +76,6 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
     try {
       let documentUrl: string | undefined;
 
-      // Upload file if provided
       if (file) {
         const fileExt = file.name.split(".").pop();
         const filePath = `${user.id}/${Date.now()}.${fileExt}`;
@@ -108,8 +107,8 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
       }
 
       toast({
-        title: "Certificazione aggiunta",
-        description: "Sei ora un apneista certificato",
+        title: t("certificationAdded"),
+        description: t("nowCertifiedFreediver"),
       });
 
       await refreshProfile();
@@ -117,8 +116,8 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
     } catch (error) {
       console.error("Error submitting certification:", error);
       toast({
-        title: "Errore",
-        description: "Impossibile inviare la certificazione",
+        title: t("error"),
+        description: t("cannotSubmitCert"),
         variant: "destructive",
       });
     } finally {
@@ -131,13 +130,13 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
       <div className="flex items-center gap-3 p-4 bg-primary/10 rounded-xl mb-6">
         <Award className="w-6 h-6 text-primary" />
         <div>
-          <h3 className="font-semibold text-foreground">Invia certificazione</h3>
-          <p className="text-sm text-muted">Sarà verificata dal nostro team</p>
+          <h3 className="font-semibold text-foreground">{t("submitCertificationTitle")}</h3>
+          <p className="text-sm text-muted">{t("willBeVerified")}</p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label>Agenzia di certificazione *</Label>
+        <Label>{t("certAgencyLabel")}</Label>
         <div className="grid grid-cols-2 gap-2">
           {certificationAgencies.map((a) => (
             <button
@@ -157,33 +156,33 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="level">Livello di certificazione *</Label>
+        <Label htmlFor="level">{t("certLevelLabel")}</Label>
         <Input
           id="level"
           value={level}
           onChange={(e) => setLevel(e.target.value)}
-          placeholder="es. AIDA 2, SSI Level 1"
+          placeholder={t("certLevelPlaceholder")}
           className="rounded-xl h-12"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="certId">ID certificazione (opzionale)</Label>
+        <Label htmlFor="certId">{t("certIdLabel")}</Label>
         <Input
           id="certId"
           value={certId}
           onChange={(e) => setCertId(e.target.value)}
-          placeholder="es. AIDA-12345"
+          placeholder={t("certIdPlaceholder")}
           className="rounded-xl h-12"
         />
       </div>
 
       <div className="space-y-2">
-        <Label>Documento (opzionale)</Label>
+        <Label>{t("documentOptional")}</Label>
         <label className="block w-full h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex items-center justify-center gap-2 text-muted hover:text-primary transition-colors cursor-pointer">
           <Upload className="w-5 h-5" />
           <span className="text-sm">
-            {file ? file.name : "Carica certificato"}
+            {file ? file.name : t("uploadCertificateBtn")}
           </span>
           <input
             type="file"
@@ -192,7 +191,7 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
             className="hidden"
           />
         </label>
-        <p className="text-xs text-muted">Formati: immagine o PDF (max 5MB)</p>
+        <p className="text-xs text-muted">{t("formats")}</p>
       </div>
 
       <div className="flex gap-3 pt-4">
@@ -204,7 +203,7 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
             className="flex-1"
             disabled={loading}
           >
-            Annulla
+            {t("cancel")}
           </Button>
         )}
         <Button
@@ -216,7 +215,7 @@ export const CertificationForm = ({ onSuccess, onCancel }: CertificationFormProp
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            "Invia richiesta"
+            t("sendRequest")
           )}
         </Button>
       </div>

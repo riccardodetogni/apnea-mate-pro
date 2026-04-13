@@ -23,24 +23,22 @@ const Groups = () => {
 
   const handleJoinGroup = async (groupId: string) => {
     if (!user) {
-      toast({ title: "Devi accedere per unirti", variant: "destructive" });
+      toast({ title: t("mustLoginToJoin"), variant: "destructive" });
       return;
     }
     const { error, isPending } = await joinGroup(groupId);
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else if (isPending) {
-      toast({ title: "Richiesta inviata", description: "In attesa di approvazione" });
+      toast({ title: t("requestSentGroup"), description: t("waitingApprovalGroup") });
     } else {
-      toast({ title: "Iscrizione effettuata!" });
+      toast({ title: t("subscriptionDone") });
     }
   };
 
-  // Filter groups based on selected filter and search
   const filteredGroups = useMemo(() => {
     let result = groups;
 
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(g =>
@@ -49,7 +47,6 @@ const Groups = () => {
       );
     }
 
-    // Apply category filter
     switch (filter) {
       case "schools":
         result = result.filter(g => g.isInstructorLed);
@@ -58,7 +55,6 @@ const Groups = () => {
         result = result.filter(g => g.isMember);
         break;
       case "nearby":
-        // For now, show all - would need geolocation
         break;
     }
 
@@ -79,7 +75,7 @@ const Groups = () => {
           className="gap-1.5"
         >
           <Plus className="w-4 h-4" />
-          Crea
+          {t("create")}
         </Button>
       </header>
 
@@ -105,7 +101,7 @@ const Groups = () => {
         </div>
       ) : filteredGroups.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted">Nessun gruppo trovato</p>
+          <p className="text-muted">{t("noGroupsFound")}</p>
         </div>
       ) : (
         <div className="space-y-3">

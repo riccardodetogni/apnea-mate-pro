@@ -24,12 +24,12 @@ interface SessionCalendarProps {
   navigateFrom?: string;
 }
 
-const statusConfig = {
-  confirmed: { label: "Confermato", dotClass: "bg-[hsl(var(--success))]", badgeClass: "bg-success/10 text-success border-success/30" },
-  pending: { label: "In attesa", dotClass: "bg-[hsl(var(--warning))]", badgeClass: "bg-warning/10 text-warning border-warning/30" },
-  created: { label: "Creata da te", dotClass: "bg-[hsl(var(--primary))]", badgeClass: "bg-primary/10 text-primary border-primary/30" },
-  available: { label: "Disponibile", dotClass: "bg-[hsl(var(--muted-foreground))]", badgeClass: "bg-muted/30 text-muted-foreground border-muted-foreground/30" },
-};
+const getStatusConfig = () => ({
+  confirmed: { label: t("statusConfirmed"), dotClass: "bg-[hsl(var(--success))]", badgeClass: "bg-success/10 text-success border-success/30" },
+  pending: { label: t("statusPending"), dotClass: "bg-[hsl(var(--warning))]", badgeClass: "bg-warning/10 text-warning border-warning/30" },
+  created: { label: t("statusCreatedByYou"), dotClass: "bg-[hsl(var(--primary))]", badgeClass: "bg-primary/10 text-primary border-primary/30" },
+  available: { label: t("statusAvailable"), dotClass: "bg-[hsl(var(--muted-foreground))]", badgeClass: "bg-muted/30 text-muted-foreground border-muted-foreground/30" },
+});
 
 export const SessionCalendar = ({ sessions, onSessionClick, navigateFrom }: SessionCalendarProps) => {
   const navigate = useNavigate();
@@ -51,7 +51,6 @@ export const SessionCalendar = ({ sessions, onSessionClick, navigateFrom }: Sess
       if (!byDate[key]) byDate[key] = [];
       byDate[key].push(s);
 
-      // Add date to the highest-priority status bucket for this day
       const existing = statusDates[s.status];
       if (!existing.some((d) => isSameDay(d, date))) {
         existing.push(date);
@@ -77,6 +76,7 @@ export const SessionCalendar = ({ sessions, onSessionClick, navigateFrom }: Sess
 
   const selectedKey = format(selectedDay, "yyyy-MM-dd");
   const daySessions = sessionsByDate[selectedKey] || [];
+  const statusConfig = getStatusConfig();
 
   const handleClick = (sessionId: string) => {
     if (onSessionClick) {
