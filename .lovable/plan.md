@@ -1,77 +1,47 @@
 
 
-# Restrict Event & Course Creation to Verified Group Owners
+# Add "Request Verification" flow for school/club groups
 
-## Current state
-- RLS INSERT policies on `events` and `courses` allow creation by anyone with `instructor` or `admin` role, OR group owners (even of non-verified groups)
-- UI shows event/course options to everyone in the Create page with no permission check
-- No `group_id` is required when creating events/courses
+## Overview
+Add a button in GroupManage settings tab for `scuola_club` groups to request verification. Admins see pending requests highlighted in the Admin dashboard and can approve/reject.
 
-## What changes
+## Database changes
 
-### 1. Database: new RPC function `is_verified_group_owner`
-Create a security definer function that checks if a user owns/admins at least one verified group:
+### 1. Add `verification_requested` column to `groups`
 ```sql
-CREATE OR REPLACE FUNCTION public.is_verified_group_owner(_user_id uuid)
-RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.groups g
-    JOIN public.group_members gm ON gm.group_id = g.id
-    WHERE gm.user_id = _user_id
-      AND gm.role IN ('owner', 'admin')
-      AND gm.status = 'approved'
-      AND g.verified = true
-  )
-$$;
+ALTER TABLE public.groups ADD COLUMN verification_requested boolean NOT NULL DEFAULT false;
 ```
 
-### 2. Database: update RLS INSERT policies
-Replace the current INSERT policies on `events` and `courses` to require verified group ownership:
-
-**Events:**
+### 2. Add `group_verification_request` to `notification_type` enum
 ```sql
-DROP POLICY "Instructors and group owners can create events" ON public.events;
-CREATE POLICY "Verified group owners can create events" ON public.events
-  FOR INSERT TO public
-  WITH CHECK (
-    auth.uid() = creator_id
-    AND group_id IS NOT NULL
-    AND is_group_owner(auth.uid(), group_id)
-    AND EXISTS (SELECT 1 FROM public.groups WHERE id = group_id AND verified = true)
-  );
+ALTER TYPE public.notification_type ADD VALUE 'group_verification_request';
 ```
 
-**Courses:** same pattern.
+## UI changes
 
-Also allow `admin` role users to bypass (they can always create):
-```sql
-OR has_role(auth.uid(), 'admin'::app_role)
-```
+### 3. `src/pages/GroupManage.tsx` — Settings tab
+- Below the save button, if `group.group_type === 'scuola_club'` and `!group.verified`:
+  - Show a "Request Verification" button (or "Verification Requested" disabled state if already requested)
+  - On click: update `groups.verification_requested = true`, send notification to all admin users
 
-### 3. Database: also add function to get user's verified groups
-For the UI dropdown, create an RPC or just query groups where user is owner + verified.
+### 4. `src/hooks/useGroupDetails.ts`
+- Include `verification_requested` in the fetched group data and `GroupDetails` interface
 
-### 4. UI: Create page — hide event/course if not verified group owner
-- In `Create.tsx`, fetch whether user is a verified group owner (query `groups` joined with `group_members`)
-- Hide the "event" and "course" options if not
+### 5. `src/hooks/useAdmin.ts`
+- Include `verification_requested` in `AdminGroup` interface and query
 
-### 5. UI: CreateEvent & CreateCourse — require group_id selection
-- Add a mandatory group selector dropdown (only showing verified groups the user owns)
-- `group_id` becomes required, not optional
-- Remove the ability to create events/courses without a group
+### 6. `src/pages/Admin.tsx` — Groups tab
+- Show a badge/highlight on groups where `verification_requested = true` and `verified = false`
+- Sort these groups to the top of the list
+- When admin toggles verification on, also reset `verification_requested = false`
 
-### 6. UI: hook for verified group ownership
-Create a small hook `useVerifiedGroups()` that returns the list of verified groups the user owns/admins. Used by Create page (to show/hide options) and by CreateEvent/CreateCourse (for the group selector).
+### 7. `src/lib/i18n.ts`
+- Add keys: `requestVerification`, `verificationRequested`, `verificationRequestSent`, `pendingVerification` (IT + EN)
 
-## Files to change
-- **Migration**: new RPC + updated RLS policies on `events` and `courses`
-- **`src/hooks/useMyGroups.ts`** (or new hook): add filter for verified groups where user is owner
-- **`src/pages/Create.tsx`**: conditionally show event/course options
-- **`src/pages/CreateEvent.tsx`**: add required group selector
-- **`src/pages/CreateCourse.tsx`**: add required group selector
-
-## Summary
-Events and courses become group-bound content that only verified school owners can create. Admins retain full access. The UI hides options for non-eligible users and requires selecting a verified group.
+## Flow summary
+1. Owner creates a `scuola_club` group → goes to Manage → Settings
+2. Sees "Request Verification" button → clicks it
+3. All admins get a notification with group name
+4. Admin opens dashboard → sees group highlighted as "pending verification"
+5. Admin toggles verified switch → group becomes verified, flag resets
 
