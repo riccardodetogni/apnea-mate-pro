@@ -91,7 +91,46 @@ const GroupManage = () => {
     }
   };
 
-  const handleApprove = async (userId: string) => {
+  const handleRequestVerification = async () => {
+    if (!id || !group) return;
+    setRequestingVerification(true);
+
+    const { error: updateError } = await supabase
+      .from("groups")
+      .update({ verification_requested: true } as any)
+      .eq("id", id);
+
+    if (updateError) {
+      toast({ title: t("error"), description: updateError.message, variant: "destructive" });
+      setRequestingVerification(false);
+      return;
+    }
+
+    // Notify all admins
+    const { data: adminRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    if (adminRoles) {
+      for (const admin of adminRoles) {
+        await createNotification({
+          userId: admin.user_id,
+          type: "group_verification_request" as any,
+          title: t("requestVerification"),
+          message: `${group.name}`,
+          metadata: { group_id: id, group_name: group.name },
+        });
+      }
+    }
+
+    toast({ title: t("verificationRequested"), description: t("verificationRequestSent") });
+    setRequestingVerification(false);
+    // Refresh group data
+    refetch();
+  };
+
+
     setProcessingIds(prev => new Set(prev).add(userId));
     const { error } = await approveMember(userId);
     setProcessingIds(prev => {
