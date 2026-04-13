@@ -75,7 +75,6 @@ export const GroupSessionsList = ({ sessions, groupId }: GroupSessionsListProps)
             </button>
           );
         })}
-      </div>
     </div>
   );
 };
