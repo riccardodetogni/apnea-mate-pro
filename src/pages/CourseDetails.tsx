@@ -11,11 +11,11 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap } from "lucide-react";
 
-const courseTypeLabels: Record<string, string> = {
-  beginner: "Base",
-  advanced: "Avanzato",
-  instructor: "Istruttore",
-  specialty: "Specialità",
+const courseTypeKeys: Record<string, string> = {
+  beginner: "courseTypeBeginner",
+  advanced: "courseTypeAdvanced",
+  instructor: "courseTypeInstructor",
+  specialty: "courseTypeSpecialty",
 };
 
 const CourseDetails = () => {
@@ -57,10 +57,10 @@ const CourseDetails = () => {
     setJoining(true);
     const { error } = await supabase.from("course_participants").insert({ course_id: id, user_id: user.id, status: "pending" });
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
       setUserStatus("pending");
-      toast({ title: "Richiesta inviata!" });
+      toast({ title: t("requestSent") });
     }
     setJoining(false);
   };
@@ -70,7 +70,7 @@ const CourseDetails = () => {
     setJoining(true);
     await supabase.from("course_participants").delete().eq("course_id", id).eq("user_id", user.id);
     setUserStatus(null);
-    toast({ title: "Iscrizione annullata" });
+    toast({ title: t("registrationCancelled") });
     setJoining(false);
   };
 
@@ -79,7 +79,7 @@ const CourseDetails = () => {
       await navigator.share({ title: course?.title, url: window.location.href });
     } catch {
       await navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link copiato!" });
+      toast({ title: t("linkCopied") });
     }
   };
 
@@ -97,7 +97,7 @@ const CourseDetails = () => {
     return (
       <AppLayout>
         <div className="text-center py-12">
-          <p className="text-muted">Corso non trovato</p>
+          <p className="text-muted">{t("courseNotFound")}</p>
           <Button variant="outline" onClick={() => navigate(-1)} className="mt-4">{t("back")}</Button>
         </div>
       </AppLayout>
@@ -116,7 +116,7 @@ const CourseDetails = () => {
         </button>
         <div className="flex-1" />
         <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
-          <Share2 className="w-4 h-4" /> Condividi
+          <Share2 className="w-4 h-4" /> {t("share")}
         </Button>
       </div>
 
@@ -124,9 +124,9 @@ const CourseDetails = () => {
       <div className="card-session !p-6 mb-4">
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex items-center gap-1 text-xs py-1 px-2.5 rounded-full bg-emerald-500/20 text-emerald-300">
-            <GraduationCap className="w-3 h-3" /> {courseTypeLabels[course.course_type] || course.course_type}
+            <GraduationCap className="w-3 h-3" /> {t((courseTypeKeys[course.course_type] || "courseTypeBeginner") as any)}
           </span>
-          {course.is_paid && <span className="badge-level">💰 A pagamento</span>}
+          {course.is_paid && <span className="badge-level">💰 {t("paidSession")}</span>}
         </div>
         <h1 className="text-xl font-bold text-card-foreground mb-2">{course.title}</h1>
         <div className="space-y-1.5 text-sm text-[hsl(var(--card-soft))]">
@@ -142,7 +142,7 @@ const CourseDetails = () => {
           {course.max_participants > 0 && (
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              {participantCount}/{course.max_participants} iscritti
+              {participantCount}/{course.max_participants} {t("enrolled")}
             </div>
           )}
         </div>
@@ -153,17 +153,17 @@ const CourseDetails = () => {
         {user && !userStatus && (
           <Button onClick={handleJoin} disabled={joining} className="flex-1 gap-2">
             {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-            Richiedi iscrizione
+            {t("requestRegistration")}
           </Button>
         )}
         {userStatus === "pending" && (
           <Button onClick={handleLeave} disabled={joining} variant="outline" className="flex-1 gap-2">
-            <Clock className="w-4 h-4" /> Annulla richiesta
+            <Clock className="w-4 h-4" /> {t("cancelRequest")}
           </Button>
         )}
         {userStatus === "confirmed" && (
           <Button onClick={handleLeave} disabled={joining} variant="outline" className="flex-1 gap-2">
-            <UserMinus className="w-4 h-4" /> Annulla iscrizione
+            <UserMinus className="w-4 h-4" /> {t("cancelRegistration")}
           </Button>
         )}
       </div>
@@ -198,7 +198,7 @@ const CourseDetails = () => {
               (creatorProfile?.name || "U").charAt(0).toUpperCase()
             )}
           </div>
-          <span className="font-medium text-foreground">{creatorProfile?.name || "Utente"}</span>
+          <span className="font-medium text-foreground">{creatorProfile?.name || t("user")}</span>
         </button>
       </div>
     </AppLayout>

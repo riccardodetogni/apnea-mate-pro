@@ -21,10 +21,10 @@ interface EventScheduleItem {
   end_time: string | null;
 }
 
-const eventTypeConfig: Record<string, { label: string; icon: typeof Ticket; color: string }> = {
-  stage: { label: "Stage", icon: Ticket, color: "bg-purple-500/20 text-purple-400" },
-  competition: { label: "Gara", icon: Trophy, color: "bg-red-500/20 text-red-400" },
-  trip: { label: "Trip", icon: Compass, color: "bg-blue-500/20 text-blue-400" },
+const eventTypeConfig: Record<string, { labelKey: string; icon: typeof Ticket; color: string }> = {
+  stage: { labelKey: "eventTypeStage", icon: Ticket, color: "bg-purple-500/20 text-purple-400" },
+  competition: { labelKey: "eventTypeCompetition", icon: Trophy, color: "bg-red-500/20 text-red-400" },
+  trip: { labelKey: "eventTypeTrip", icon: Compass, color: "bg-blue-500/20 text-blue-400" },
 };
 
 const EventDetails = () => {
@@ -71,10 +71,10 @@ const EventDetails = () => {
     setJoining(true);
     const { error } = await supabase.from("event_participants").insert({ event_id: id, user_id: user.id, status: "pending" });
     if (error) {
-      toast({ title: "Errore", description: error.message, variant: "destructive" });
+      toast({ title: t("error"), description: error.message, variant: "destructive" });
     } else {
       setUserStatus("pending");
-      toast({ title: "Richiesta inviata!" });
+      toast({ title: t("requestSent") });
     }
     setJoining(false);
   };
@@ -84,7 +84,7 @@ const EventDetails = () => {
     setJoining(true);
     await supabase.from("event_participants").delete().eq("event_id", id).eq("user_id", user.id);
     setUserStatus(null);
-    toast({ title: "Iscrizione annullata" });
+    toast({ title: t("registrationCancelled") });
     setJoining(false);
   };
 
@@ -93,7 +93,7 @@ const EventDetails = () => {
       await navigator.share({ title: event?.title, url: window.location.href });
     } catch {
       await navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link copiato!" });
+      toast({ title: t("linkCopied") });
     }
   };
 
@@ -111,7 +111,7 @@ const EventDetails = () => {
     return (
       <AppLayout>
         <div className="text-center py-12">
-          <p className="text-muted">Evento non trovato</p>
+          <p className="text-muted">{t("eventNotFound")}</p>
           <Button variant="outline" onClick={() => navigate(-1)} className="mt-4">{t("back")}</Button>
         </div>
       </AppLayout>
@@ -133,7 +133,7 @@ const EventDetails = () => {
         </button>
         <div className="flex-1" />
         <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
-          <Share2 className="w-4 h-4" /> Condividi
+          <Share2 className="w-4 h-4" /> {t("share")}
         </Button>
       </div>
 
@@ -141,15 +141,15 @@ const EventDetails = () => {
       <div className="card-session !p-6 mb-4">
         <div className="flex items-center gap-2 mb-3">
           <span className={`inline-flex items-center gap-1 text-xs py-1 px-2.5 rounded-full ${config.color}`}>
-            <Icon className="w-3 h-3" /> {config.label}
+            <Icon className="w-3 h-3" /> {t(config.labelKey as any)}
           </span>
-          {event.is_paid && <span className="badge-level">💰 A pagamento</span>}
+          {event.is_paid && <span className="badge-level">💰 {t("paidSession")}</span>}
         </div>
         <h1 className="text-xl font-bold text-card-foreground mb-2">{event.title}</h1>
         <div className="space-y-1.5 text-sm text-[hsl(var(--card-soft))]">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            {format(start, "d MMM", { locale: it })} – {format(end, "d MMM yyyy", { locale: it })} · {days} giorni
+            {format(start, "d MMM", { locale: it })} – {format(end, "d MMM yyyy", { locale: it })} · {days} {t("days")}
           </div>
           {event.location && (
             <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ const EventDetails = () => {
           {event.max_participants > 0 && (
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              {participantCount}/{event.max_participants} iscritti
+              {participantCount}/{event.max_participants} {t("enrolled")}
             </div>
           )}
         </div>
@@ -170,17 +170,17 @@ const EventDetails = () => {
         {user && !userStatus && (
           <Button onClick={handleJoin} disabled={joining} className="flex-1 gap-2">
             {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-            Richiedi iscrizione
+            {t("requestRegistration")}
           </Button>
         )}
         {userStatus === "pending" && (
           <Button onClick={handleLeave} disabled={joining} variant="outline" className="flex-1 gap-2">
-            <Clock className="w-4 h-4" /> Annulla richiesta
+            <Clock className="w-4 h-4" /> {t("cancelRequest")}
           </Button>
         )}
         {userStatus === "confirmed" && (
           <Button onClick={handleLeave} disabled={joining} variant="outline" className="flex-1 gap-2">
-            <UserMinus className="w-4 h-4" /> Annulla iscrizione
+            <UserMinus className="w-4 h-4" /> {t("cancelRegistration")}
           </Button>
         )}
         {user && (userStatus === "confirmed" || user.id === event.creator_id) && (
@@ -192,7 +192,7 @@ const EventDetails = () => {
                 const convId = await getOrCreateEventConversation(event.id, user.id);
                 navigate(`/messages/${convId}`);
               } catch {
-                toast({ title: "Errore", description: "Impossibile aprire la chat", variant: "destructive" });
+                toast({ title: t("error"), description: t("cannotOpenChat"), variant: "destructive" });
               }
             }}
           >
@@ -225,7 +225,7 @@ const EventDetails = () => {
             {schedule.map(day => (
               <div key={day.id} className="p-3 bg-secondary rounded-xl">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-primary">Giorno {day.day_number}</span>
+                  <span className="text-xs font-medium text-primary">{t("dayLabel")} {day.day_number}</span>
                   {day.start_time && day.end_time && (
                     <span className="text-xs text-muted">{day.start_time} – {day.end_time}</span>
                   )}
@@ -252,7 +252,7 @@ const EventDetails = () => {
               (creatorProfile?.name || "U").charAt(0).toUpperCase()
             )}
           </div>
-          <span className="font-medium text-foreground">{creatorProfile?.name || "Utente"}</span>
+          <span className="font-medium text-foreground">{creatorProfile?.name || t("user")}</span>
         </button>
       </div>
     </AppLayout>
