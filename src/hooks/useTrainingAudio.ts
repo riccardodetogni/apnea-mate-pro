@@ -83,7 +83,15 @@ export const useTrainingAudio = () => {
 
   const speakCountdown = useCallback((seconds: number) => {
     const lang = getLanguage();
-    if (seconds === 30) {
+    if (seconds === 150) {
+      speak(lang === "it" ? "2 minuti e 30" : "2 minutes 30");
+    } else if (seconds === 120) {
+      speak(lang === "it" ? "2 minuti" : "2 minutes");
+    } else if (seconds === 90) {
+      speak(lang === "it" ? "1 minuto e 30" : "1 minute 30");
+    } else if (seconds === 60) {
+      speak(lang === "it" ? "1 minuto" : "1 minute");
+    } else if (seconds === 30) {
       speak(lang === "it" ? "30 secondi" : "30 seconds");
     } else if (seconds === 20) {
       speak(lang === "it" ? "20 secondi" : "20 seconds");
