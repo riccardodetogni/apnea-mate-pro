@@ -266,7 +266,30 @@ const translations = {
     createSession: "Crea sessione",
     createGroup: "Crea gruppo",
     createTraining: "Aggiungi training",
+    createEvent: "Crea evento",
+    createCourse: "Crea corso",
     whatCreate: "Cosa vuoi creare?",
+
+    // Events
+    upcomingEvents: "Eventi in arrivo",
+    eventType: "Tipo di evento",
+    eventTitle: "Titolo evento",
+    eventDescription: "Descrizione",
+    eventSchedule: "Programma giornaliero",
+    startDate: "Data inizio",
+    endDate: "Data fine",
+    maxParticipants: "Partecipanti max",
+    contactInfo: "Contatti",
+    noEvents: "Nessun evento in programma",
+    groupEvents: "Eventi del gruppo",
+
+    // Courses
+    availableCoursesSection: "Corsi disponibili",
+    courseType: "Tipo di corso",
+    courseTitle: "Titolo corso",
+    courseDescription: "Descrizione",
+    noCourses: "Nessun corso disponibile",
+    groupCourses: "Corsi del gruppo",
     
     // Common
     loading: "Caricamento...",
@@ -636,7 +659,30 @@ const translations = {
     createSession: "Create session",
     createGroup: "Create group",
     createTraining: "Add training",
+    createEvent: "Create event",
+    createCourse: "Create course",
     whatCreate: "What do you want to create?",
+
+    // Events
+    upcomingEvents: "Upcoming events",
+    eventType: "Event type",
+    eventTitle: "Event title",
+    eventDescription: "Description",
+    eventSchedule: "Daily schedule",
+    startDate: "Start date",
+    endDate: "End date",
+    maxParticipants: "Max participants",
+    contactInfo: "Contact",
+    noEvents: "No upcoming events",
+    groupEvents: "Group events",
+
+    // Courses
+    availableCoursesSection: "Available courses",
+    courseType: "Course type",
+    courseTitle: "Course title",
+    courseDescription: "Description",
+    noCourses: "No courses available",
+    groupCourses: "Group courses",
     
     // Common
     loading: "Loading...",
