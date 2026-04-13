@@ -25,20 +25,14 @@ export const GroupSessionsList = ({ sessions, groupId }: GroupSessionsListProps)
 
   if (sessions.length === 0) {
     return (
-      <div className="space-y-3">
-        <h3 className="text-base font-semibold text-foreground">{t("upcomingSessions")}</h3>
-        <div className="p-4 rounded-xl bg-muted/20 text-center">
-          <p className="text-sm text-muted">{t("noMoreSessions")}</p>
-        </div>
+      <div className="p-4 rounded-xl bg-muted/20 text-center">
+        <p className="text-sm text-muted">{t("noMoreSessions")}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-base font-semibold text-foreground">{t("upcomingSessions")}</h3>
-      
-      <div className="space-y-2">
+    <div className="space-y-2">
         {sessions.map(session => {
           const date = new Date(session.date_time);
           const spotsLeft = session.max_participants - session.participant_count;
