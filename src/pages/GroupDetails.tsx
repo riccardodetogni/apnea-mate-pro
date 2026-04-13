@@ -6,6 +6,8 @@ import { GroupHeroCard } from "@/components/groups/GroupHeroCard";
 import { GroupMembersSection } from "@/components/groups/GroupMembersSection";
 import { GroupMembersSheet } from "@/components/groups/GroupMembersSheet";
 import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
+import { EventCard } from "@/components/community/EventCard";
+import { CourseCard } from "@/components/community/CourseCard";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle, List, CalendarDays } from "lucide-react";
@@ -15,6 +17,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification } from "@/lib/notifications";
 import { getOrCreateGroupConversation } from "@/hooks/useConversations";
+import { useEvents } from "@/hooks/useEvents";
+import { useCourses } from "@/hooks/useCourses";
 
 const GroupDetails = () => {
   const { id } = useParams<{ id: string }>();
