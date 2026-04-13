@@ -125,8 +125,9 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
 
     results.push({
       id: conv.id,
-      type: conv.type as "session" | "group" | "dm",
+      type: conv.type as "session" | "group" | "dm" | "event",
       session_id: conv.session_id,
+      event_id: conv.event_id,
       group_id: conv.group_id,
       created_at: conv.created_at,
       name,
