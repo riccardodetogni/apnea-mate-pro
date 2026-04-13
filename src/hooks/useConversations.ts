@@ -288,3 +288,42 @@ export const getOrCreateDMConversation = async (currentUserId: string, otherUser
 
   return convId;
 };
+
+// Helper: get or create a conversation for an event
+export const getOrCreateEventConversation = async (eventId: string, userId: string): Promise<string> => {
+  const { data: existingId } = await supabase.rpc('find_conversation_by_event', { _event_id: eventId });
+
+  if (existingId) {
+    await supabase.from("conversation_participants").insert({
+      conversation_id: existingId,
+      user_id: userId,
+    });
+    return existingId;
+  }
+
+  const convId = crypto.randomUUID();
+
+  const { error } = await supabase
+    .from("conversations")
+    .insert({ id: convId, type: "event", event_id: eventId });
+
+  if (error) {
+    const { data: retryId } = await supabase.rpc('find_conversation_by_event', { _event_id: eventId });
+
+    if (retryId) {
+      await supabase.from("conversation_participants").insert({
+        conversation_id: retryId,
+        user_id: userId,
+      });
+      return retryId;
+    }
+    throw new Error("Failed to create event conversation");
+  }
+
+  await supabase.from("conversation_participants").insert({
+    conversation_id: convId,
+    user_id: userId,
+  });
+
+  return convId;
+};
