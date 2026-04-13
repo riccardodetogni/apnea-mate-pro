@@ -26,6 +26,8 @@ const GroupDetails = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { group, members, sessions, loading, error, joinGroup, leaveGroup, approveMember, rejectMember } = useGroupDetails(id);
+  const { events, loading: eventsLoading } = useEvents(id);
+  const { courses, loading: coursesLoading } = useCourses(id);
   const [showMembersSheet, setShowMembersSheet] = useState(false);
   const [sessionsView, setSessionsView] = useState<"list" | "calendar">("list");
 
