@@ -4,7 +4,8 @@ import {
   X, 
   XCircle, 
   Users, 
-  Heart 
+  Heart,
+  Shield,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
