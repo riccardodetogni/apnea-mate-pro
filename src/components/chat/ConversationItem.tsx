@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ConversationListItem } from "@/hooks/useConversations";
-import { MessageCircle, Users, Calendar } from "lucide-react";
+import { MessageCircle, Users, Calendar, Ticket } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { it, enUS } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -15,7 +15,8 @@ export const ConversationItem = ({ conversation }: Props) => {
   const locale = language === "it" ? it : enUS;
 
   const typeIcon = conversation.type === "session" ? Calendar :
-    conversation.type === "group" ? Users : MessageCircle;
+    conversation.type === "group" ? Users :
+    conversation.type === "event" ? Ticket : MessageCircle;
   const TypeIcon = typeIcon;
 
   const timeLabel = conversation.lastMessageAt
