@@ -7,11 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { t, getEventTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react";
+import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
 
 interface ScheduleDay {
   day_number: number;
@@ -26,6 +28,7 @@ const CreateEvent = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { verifiedGroups, loading: groupsLoading } = useVerifiedGroups();
 
   const eventTypes = getEventTypes();
 
@@ -42,6 +45,7 @@ const CreateEvent = () => {
     contact_email: "",
     contact_phone: "",
     contact_url: "",
+    group_id: "",
   });
 
   const [hasSchedule, setHasSchedule] = useState(false);
@@ -65,8 +69,13 @@ const CreateEvent = () => {
     setSchedule(prev => prev.filter((_, i) => i !== index).map((d, i) => ({ ...d, day_number: i + 1 })));
   };
 
+  // Auto-select if only one group
+  if (verifiedGroups.length === 1 && !form.group_id) {
+    setForm(f => ({ ...f, group_id: verifiedGroups[0].id }));
+  }
+
   const handleSubmit = async () => {
-    if (!user || !form.title || !form.start_date || !form.end_date) {
+    if (!user || !form.title || !form.start_date || !form.end_date || !form.group_id) {
       toast({ title: t("fillRequiredFields"), variant: "destructive" });
       return;
     }
@@ -89,6 +98,7 @@ const CreateEvent = () => {
           contact_email: form.contact_email || null,
           contact_phone: form.contact_phone || null,
           contact_url: form.contact_url || null,
+          group_id: form.group_id,
         })
         .select("id")
         .single();
@@ -130,6 +140,25 @@ const CreateEvent = () => {
       </header>
 
       <div className="space-y-5">
+        {/* Group selector */}
+        <div className="space-y-2">
+          <Label>{t("selectGroup")} *</Label>
+          {verifiedGroups.length === 0 && !groupsLoading ? (
+            <p className="text-sm text-muted-foreground">{t("noVerifiedGroups")}</p>
+          ) : (
+            <Select value={form.group_id} onValueChange={v => setForm(f => ({ ...f, group_id: v }))}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectGroupPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {verifiedGroups.map(g => (
+                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
         {/* Event type */}
         <div className="space-y-2">
           <Label>{t("eventType")}</Label>
@@ -219,7 +248,7 @@ const CreateEvent = () => {
           )}
         </div>
 
-        <Button onClick={handleSubmit} disabled={loading} className="w-full">
+        <Button onClick={handleSubmit} disabled={loading || !form.group_id} className="w-full">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("createEvent")}
         </Button>
       </div>

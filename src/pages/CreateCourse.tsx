@@ -7,17 +7,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { t, getCourseTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
+import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
 
 const CreateCourse = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { verifiedGroups, loading: groupsLoading } = useVerifiedGroups();
 
   const courseTypes = getCourseTypes();
 
@@ -34,10 +37,16 @@ const CreateCourse = () => {
     contact_email: "",
     contact_phone: "",
     contact_url: "",
+    group_id: "",
   });
 
+  // Auto-select if only one group
+  if (verifiedGroups.length === 1 && !form.group_id) {
+    setForm(f => ({ ...f, group_id: verifiedGroups[0].id }));
+  }
+
   const handleSubmit = async () => {
-    if (!user || !form.title || !form.start_date || !form.end_date) {
+    if (!user || !form.title || !form.start_date || !form.end_date || !form.group_id) {
       toast({ title: t("fillRequiredFields"), variant: "destructive" });
       return;
     }
@@ -60,6 +69,7 @@ const CreateCourse = () => {
           contact_email: form.contact_email || null,
           contact_phone: form.contact_phone || null,
           contact_url: form.contact_url || null,
+          group_id: form.group_id,
         })
         .select("id")
         .single();
@@ -87,6 +97,25 @@ const CreateCourse = () => {
       </header>
 
       <div className="space-y-5">
+        {/* Group selector */}
+        <div className="space-y-2">
+          <Label>{t("selectGroup")} *</Label>
+          {verifiedGroups.length === 0 && !groupsLoading ? (
+            <p className="text-sm text-muted-foreground">{t("noVerifiedGroups")}</p>
+          ) : (
+            <Select value={form.group_id} onValueChange={v => setForm(f => ({ ...f, group_id: v }))}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectGroupPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {verifiedGroups.map(g => (
+                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
         {/* Course type */}
         <div className="space-y-2">
           <Label>{t("courseType")}</Label>
@@ -147,7 +176,7 @@ const CreateCourse = () => {
           <Input value={form.contact_url} onChange={e => setForm(f => ({ ...f, contact_url: e.target.value }))} placeholder={t("courseContactUrlPlaceholder")} type="url" />
         </div>
 
-        <Button onClick={handleSubmit} disabled={loading} className="w-full">
+        <Button onClick={handleSubmit} disabled={loading || !form.group_id} className="w-full">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("createCourse")}
         </Button>
       </div>
