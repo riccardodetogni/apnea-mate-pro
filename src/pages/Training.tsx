@@ -38,8 +38,10 @@ const Training = () => {
     setTrainingSteps([]);
   };
 
+  const isTimer = screen === "timer";
+
   return (
-    <AppLayout>
+    <AppLayout hideNav={isTimer}>
       {screen === "home" && (
         <>
           <header className="mb-6">

@@ -79,6 +79,7 @@ export const TrainingTimer = ({ steps, mode, onFinish }: TrainingTimerProps) => 
 
   // Auto-start on mount
   useEffect(() => {
+    window.scrollTo(0, 0);
     timer.start();
     return () => {
       audio.cleanup();
