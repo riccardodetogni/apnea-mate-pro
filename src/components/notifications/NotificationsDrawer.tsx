@@ -44,7 +44,9 @@ export const NotificationsDrawer = ({ open, onOpenChange }: NotificationsDrawerP
     // Navigate based on type and metadata
     const { metadata, type } = notification;
 
-    if (type.startsWith("session_") && metadata.session_id) {
+    if (type === "group_verification_request") {
+      navigate("/admin");
+    } else if (type.startsWith("session_") && metadata.session_id) {
       navigate(`/sessions/${metadata.session_id}`);
     } else if (type.startsWith("group_") && metadata.group_id) {
       navigate(`/groups/${metadata.group_id}`);
