@@ -95,6 +95,14 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
       name = group?.name || "Gruppo";
       avatarInitial = name.charAt(0).toUpperCase();
       avatarUrl = group?.avatar_url || null;
+    } else if (conv.type === "event" && conv.event_id) {
+      const { data: evt } = await supabase
+        .from("events")
+        .select("title")
+        .eq("id", conv.event_id)
+        .single();
+      name = evt?.title || "Evento";
+      avatarInitial = name.charAt(0).toUpperCase();
     } else if (conv.type === "dm") {
       // Find the other participant
       const { data: otherParticipants } = await supabase
