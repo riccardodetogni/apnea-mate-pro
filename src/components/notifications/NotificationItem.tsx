@@ -23,6 +23,7 @@ const iconMap = {
   session_cancelled: { icon: XCircle, color: "text-red-500" },
   group_join_request: { icon: Users, color: "text-blue-500" },
   group_request_approved: { icon: Check, color: "text-green-500" },
+  group_verification_request: { icon: Shield, color: "text-amber-500" },
   new_follower: { icon: Heart, color: "text-pink-500" },
 };
 
