@@ -35,7 +35,7 @@ export const ChatInput = ({ onSend, disabled }: Props) => {
         placeholder={t("chatPlaceholder")}
         disabled={disabled || sending}
         rows={1}
-        className="flex-1 resize-none rounded-xl border border-border bg-muted/10 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-24"
+        className="min-w-0 flex-1 resize-none rounded-xl border border-border bg-muted/10 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-24"
         style={{ minHeight: 40 }}
       />
       <button
@@ -43,7 +43,7 @@ export const ChatInput = ({ onSend, disabled }: Props) => {
         disabled={!text.trim() || sending || disabled}
         className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0"
       >
-        <Send className="w-4.5 h-4.5" />
+        <Send className="w-4 h-4" />
       </button>
     </div>
   );
