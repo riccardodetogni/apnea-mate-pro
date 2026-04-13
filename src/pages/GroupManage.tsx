@@ -130,7 +130,7 @@ const GroupManage = () => {
     refetch();
   };
 
-
+  const handleApprove = async (userId: string) => {
     setProcessingIds(prev => new Set(prev).add(userId));
     const { error } = await approveMember(userId);
     setProcessingIds(prev => {
