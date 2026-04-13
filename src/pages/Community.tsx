@@ -6,11 +6,15 @@ import { SearchBar } from "@/components/community/SearchBar";
 import { SectionHeader } from "@/components/community/SectionHeader";
 import { SessionCard } from "@/components/community/SessionCard";
 import { GroupCard } from "@/components/community/GroupCard";
+import { EventCard } from "@/components/community/EventCard";
+import { CourseCard } from "@/components/community/CourseCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
 import { SessionFilters, SessionFilterState, defaultSessionFilters } from "@/components/community/SessionFilters";
 import { useSessions, useSessionsFromFollowing, SessionWithDetails } from "@/hooks/useSessions";
 import { useGroups, GroupWithDetails } from "@/hooks/useGroups";
+import { useEvents } from "@/hooks/useEvents";
+import { useCourses } from "@/hooks/useCourses";
 import { useSearch } from "@/hooks/useSearch";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { t } from "@/lib/i18n";
@@ -58,6 +62,9 @@ const Community = () => {
     joinGroup,
     refetch: refetchGroups,
   } = useGroups();
+
+  const { events, loading: eventsLoading } = useEvents();
+  const { courses, loading: coursesLoading } = useCourses();
   
   const { 
     search, 
