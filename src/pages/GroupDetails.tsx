@@ -250,12 +250,36 @@ const GroupDetails = () => {
         )}
       </div>
 
-      {/* Courses placeholder */}
+      {/* Group Events */}
+      <div className="mt-6">
+        <h3 className="text-base font-semibold text-foreground mb-3">{t("groupEvents")}</h3>
+        {eventsLoading ? (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("loading")}</p></div>
+        ) : events.length > 0 ? (
+          <div className="scroll-row">
+            {events.map(event => (
+              <EventCard key={event.id} event={event} onClick={() => navigate(`/events/${event.id}`)} />
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("noEvents")}</p></div>
+        )}
+      </div>
+
+      {/* Group Courses */}
       <div className="mt-6 space-y-3">
-        <h3 className="text-base font-semibold text-foreground">{t("activeCourses")}</h3>
-        <div className="p-4 rounded-xl bg-muted/20 text-center">
-          <p className="text-sm text-muted">Nessun corso attivo</p>
-        </div>
+        <h3 className="text-base font-semibold text-foreground">{t("groupCourses")}</h3>
+        {coursesLoading ? (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("loading")}</p></div>
+        ) : courses.length > 0 ? (
+          <div className="scroll-row">
+            {courses.map(course => (
+              <CourseCard key={course.id} course={course} onClick={() => navigate(`/courses/${course.id}`)} />
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-muted/20 text-center"><p className="text-sm text-muted">{t("noCourses")}</p></div>
+        )}
       </div>
 
       {/* Members */}
