@@ -114,24 +114,24 @@ const Community = () => {
     if (error) {
       if (error.message?.includes('duplicate')) {
         toast({
-          title: "Già iscritto",
-          description: "Sei già iscritto a questa sessione",
+          title: t("alreadyJoined"),
+          description: t("alreadyJoinedDesc"),
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Errore",
-          description: "Impossibile unirsi alla sessione",
+          title: t("error"),
+          description: t("cannotJoinSession"),
           variant: "destructive",
         });
       }
     } else {
       const isCreator = safetyModal.session?.creatorId === user?.id;
       toast({
-        title: isCreator ? "Ti sei iscritto!" : "Richiesta inviata!",
+        title: isCreator ? t("youJoined") : t("requestSent"),
         description: isCreator 
-          ? "Sei stato aggiunto alla tua sessione" 
-          : "L'organizzatore riceverà la tua richiesta di partecipazione",
+          ? t("youJoinedDesc")
+          : t("requestSentDesc"),
       });
     }
   };
@@ -144,26 +144,26 @@ const Community = () => {
     if (error) {
       if (error.message?.includes('duplicate')) {
         toast({
-          title: "Già membro",
-          description: "Sei già membro di questo gruppo",
+          title: t("alreadyMember"),
+          description: t("alreadyMemberDesc"),
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Errore",
-          description: "Impossibile unirsi al gruppo",
+          title: t("error"),
+          description: t("cannotJoinGroup"),
           variant: "destructive",
         });
       }
     } else if (isPending) {
       toast({
-        title: "Richiesta inviata",
-        description: "L'amministratore del gruppo valuterà la tua richiesta",
+        title: t("requestSentCommunity"),
+        description: t("adminWillEvaluate"),
       });
     } else {
       toast({
-        title: "Iscritto!",
-        description: "Ti sei unito al gruppo",
+        title: t("subscribedGroup"),
+        description: t("joinedGroupDesc"),
       });
     }
   };
@@ -348,12 +348,12 @@ const Community = () => {
       {query && hasResults && (
         <div className="mb-6 p-4 bg-secondary rounded-xl">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">Risultati per "{query}"</h3>
+            <h3 className="font-semibold text-foreground">{t("resultsFor")} "{query}"</h3>
             <button 
               onClick={clearSearch}
               className="text-sm text-muted hover:text-foreground"
             >
-              Chiudi
+              {t("close")}
             </button>
           </div>
           <div className="space-y-2">
@@ -423,14 +423,14 @@ const Community = () => {
           ))
         ) : filters.nearbyOnly ? (
           <EmptyCard
-            message={`Nessuna sessione entro ${filters.radiusKm}km. Disattiva il filtro per vedere tutte.`}
-            actionLabel="Mostra tutte"
+            message={t("noSessionNearby").replace("{radius}", String(filters.radiusKm))}
+            actionLabel={t("showAll")}
             onAction={toggleNearbyFilter}
           />
         ) : (
           <EmptyCard
-            message="Nessuna sessione disponibile."
-            actionLabel="Crea una sessione"
+            message={t("noSessionsAvailable")}
+            actionLabel={t("createASession")}
             onAction={() => navigate("/create/session")}
           />
         )}
@@ -576,8 +576,8 @@ const Community = () => {
             ))
           ) : (
             <EmptyCard
-              message={myGroups.length > 0 ? "Nessun altro gruppo da unirsi." : "Nessun gruppo disponibile."}
-              actionLabel="Crea un gruppo"
+              message={myGroups.length > 0 ? t("noOtherGroups") : t("noGroupsAvailable")}
+              actionLabel={t("createAGroup")}
               onAction={() => navigate("/create/group")}
             />
           )}
