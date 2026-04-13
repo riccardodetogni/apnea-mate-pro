@@ -470,6 +470,68 @@ const Community = () => {
         </div>
       </div>
 
+      {/* Upcoming Events */}
+      <div className="mt-4">
+        <SectionHeader 
+          title={t("upcomingEvents")} 
+          actionLabel={t("viewAll")}
+          onAction={() => {}}
+        />
+        <div className="scroll-row">
+          {eventsLoading ? (
+            <>
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+            </>
+          ) : events.length > 0 ? (
+            events.map(event => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onClick={() => navigate(`/events/${event.id}`)}
+              />
+            ))
+          ) : (
+            <EmptyCard
+              message={t("noEvents")}
+              actionLabel={t("createEvent")}
+              onAction={() => navigate("/create/event")}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Available Courses */}
+      <div className="mt-4">
+        <SectionHeader 
+          title={t("availableCoursesSection")} 
+          actionLabel={t("viewAll")}
+          onAction={() => {}}
+        />
+        <div className="scroll-row">
+          {coursesLoading ? (
+            <>
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+              <Skeleton className="min-w-[280px] h-[180px] rounded-2xl" />
+            </>
+          ) : courses.length > 0 ? (
+            courses.map(course => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onClick={() => navigate(`/courses/${course.id}`)}
+              />
+            ))
+          ) : (
+            <EmptyCard
+              message={t("noCourses")}
+              actionLabel={t("createCourse")}
+              onAction={() => navigate("/create/course")}
+            />
+          )}
+        </div>
+      </div>
+
       {/* Your groups */}
       {myGroups.length > 0 && (
         <div className="mt-4">
