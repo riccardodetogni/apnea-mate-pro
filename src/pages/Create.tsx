@@ -8,35 +8,35 @@ const createOptions = [
     id: "session", 
     icon: Calendar, 
     label: "createSession",
-    description: "Organizza un allenamento o uscita",
+    descKey: "createSessionDesc",
     iconClass: "bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]",
   },
   { 
     id: "event", 
     icon: Ticket, 
     label: "createEvent",
-    description: "Stage, gare o trip multi-giorno",
+    descKey: "createEventDesc",
     iconClass: "bg-purple-500/20 text-purple-400",
   },
   { 
     id: "course", 
     icon: GraduationCap, 
     label: "createCourse",
-    description: "Corso di apnea per la tua scuola",
+    descKey: "createCourseDesc",
     iconClass: "bg-emerald-500/20 text-emerald-400",
   },
   { 
     id: "group", 
     icon: Users, 
     label: "createGroup",
-    description: "Crea un gruppo locale di apneisti",
+    descKey: "createGroupDesc",
     iconClass: "bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]",
   },
   { 
     id: "training", 
     icon: BarChart3, 
     label: "createTraining",
-    description: "Registra il tuo allenamento personale",
+    descKey: "createTrainingDesc",
     iconClass: "bg-[hsl(38,92%,50%)]/20 text-[hsl(38,92%,50%)]",
   },
 ];
@@ -79,7 +79,7 @@ const Create = () => {
       </header>
 
       <div className="flex flex-col gap-3">
-        {createOptions.map(({ id, icon: Icon, label, description, iconClass }) => (
+        {createOptions.map(({ id, icon: Icon, label, descKey, iconClass }) => (
           <button
             key={id}
             onClick={() => handleOptionClick(id)}
@@ -91,7 +91,7 @@ const Create = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-card-foreground text-base">{t(label as any)}</h3>
-                <p className="text-sm text-[hsl(var(--card-muted))] mt-0.5">{description}</p>
+                <p className="text-sm text-[hsl(var(--card-muted))] mt-0.5">{t(descKey as any)}</p>
               </div>
             </div>
           </button>

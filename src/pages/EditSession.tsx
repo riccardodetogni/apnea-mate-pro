@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { t } from "@/lib/i18n";
+import { t, getSessionTypes, getLevels } from "@/lib/i18n";
 import {
   Select,
   SelectContent,
@@ -33,28 +33,15 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-const sessionTypes = [
-  { value: "sea_trip", label: "Uscita mare" },
-  { value: "pool_session", label: "Piscina" },
-  { value: "deep_pool_session", label: "Piscina profonda" },
-  { value: "lake_trip", label: "Uscita lago" },
-  { value: "training", label: "Allenamento" },
-  { value: "spearfishing", label: "Pesca subacquea" },
-];
-
-const levels = [
-  { value: "all_levels", label: "Tutti i livelli" },
-  { value: "beginner", label: "Principiante" },
-  { value: "intermediate", label: "Intermedio" },
-  { value: "advanced", label: "Avanzato" },
-];
-
 const EditSession = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { session, loading, error } = useSessionDetails(id);
   const { toast } = useToast();
+
+  const sessionTypes = getSessionTypes();
+  const levels = getLevels();
 
   const [submitting, setSubmitting] = useState(false);
   const [durationInput, setDurationInput] = useState("60");
@@ -71,7 +58,6 @@ const EditSession = () => {
     is_paid: false,
   });
 
-  // Pre-populate form when session loads
   useEffect(() => {
     if (session) {
       const dateTime = new Date(session.date_time);
@@ -94,7 +80,6 @@ const EditSession = () => {
     }
   }, [session]);
 
-  // Redirect if not the creator
   useEffect(() => {
     if (!loading && session && user && session.creator_id !== user.id) {
       navigate(`/sessions/${id}`);
@@ -143,26 +128,25 @@ const EditSession = () => {
     if (!user || !session) return;
 
     if (!form.title.trim()) {
-      toast({ title: "Errore", description: "Inserisci un titolo", variant: "destructive" });
+      toast({ title: t("error"), description: t("insertTitle"), variant: "destructive" });
       return;
     }
 
     if (!form.date || !form.time) {
-      toast({ title: "Errore", description: "Inserisci data e ora", variant: "destructive" });
+      toast({ title: t("error"), description: t("insertDateAndTime"), variant: "destructive" });
       return;
     }
 
     const dateTime = new Date(`${form.date}T${form.time}`);
     if (dateTime <= new Date()) {
-      toast({ title: "Errore", description: "La data deve essere nel futuro", variant: "destructive" });
+      toast({ title: t("error"), description: t("dateMustBeFuture"), variant: "destructive" });
       return;
     }
 
-    // Check if max_participants is less than current confirmed count
     if (form.max_participants < session.confirmedCount) {
       toast({
-        title: "Errore",
-        description: `Ci sono già ${session.confirmedCount} partecipanti confermati`,
+        title: t("error"),
+        description: t("alreadyConfirmedParticipants").replace("{count}", String(session.confirmedCount)),
         variant: "destructive",
       });
       return;
@@ -188,15 +172,15 @@ const EditSession = () => {
       if (updateError) throw updateError;
 
       toast({
-        title: "Sessione aggiornata!",
-        description: "Le modifiche sono state salvate",
+        title: t("sessionUpdated"),
+        description: t("changesSaved"),
       });
       navigate(`/sessions/${id}`);
     } catch (err: any) {
       console.error("Error updating session:", err);
       toast({
-        title: "Errore",
-        description: err.message || "Impossibile aggiornare la sessione",
+        title: t("error"),
+        description: err.message || t("cannotUpdateSession"),
         variant: "destructive",
       });
     } finally {
@@ -216,9 +200,9 @@ const EditSession = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <AlertTriangle className="w-12 h-12 text-muted mb-4" />
-        <h2 className="text-lg font-semibold mb-2">Sessione non trovata</h2>
+        <h2 className="text-lg font-semibold mb-2">{t("sessionNotFound")}</h2>
         <Button variant="outline" onClick={() => navigate("/community")}>
-          Torna alla Community
+          {t("backToCommunity")}
         </Button>
       </div>
     );
@@ -228,10 +212,10 @@ const EditSession = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <AlertTriangle className="w-12 h-12 text-warning mb-4" />
-        <h2 className="text-lg font-semibold mb-2">Non autorizzato</h2>
-        <p className="text-sm text-muted mb-4">Solo il creatore può modificare questa sessione</p>
+        <h2 className="text-lg font-semibold mb-2">{t("notAuthorized")}</h2>
+        <p className="text-sm text-muted mb-4">{t("onlyCreatorCanEdit")}</p>
         <Button variant="outline" onClick={() => navigate(`/sessions/${id}`)}>
-          Torna alla sessione
+          {t("backToSession")}
         </Button>
       </div>
     );
@@ -247,14 +231,14 @@ const EditSession = () => {
         >
           <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="font-semibold text-lg">Modifica sessione</h1>
+        <h1 className="font-semibold text-lg">{t("editSessionTitle")}</h1>
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
         {/* Spot info (read-only) */}
         {session.spot && (
           <div className="bg-card rounded-xl border border-white/8 p-4 mb-6">
-            <p className="text-xs text-white/55 uppercase tracking-wide mb-1">Spot (non modificabile)</p>
+            <p className="text-xs text-white/55 uppercase tracking-wide mb-1">{t("spotNotEditable")}</p>
             <p className="font-medium text-card-foreground flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
               {session.spot.name} · {session.spot.location}
@@ -265,10 +249,10 @@ const EditSession = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Titolo *</Label>
+            <Label htmlFor="title">{t("titleRequired")}</Label>
             <Input
               id="title"
-              placeholder="Es: Allenamento profondità"
+              placeholder={t("titlePlaceholder")}
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               maxLength={100}
@@ -277,10 +261,10 @@ const EditSession = () => {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Descrizione</Label>
+            <Label htmlFor="description">{t("descriptionLabel")}</Label>
             <Textarea
               id="description"
-              placeholder="Dettagli aggiuntivi sulla sessione..."
+              placeholder={t("descriptionPlaceholder")}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={3}
@@ -290,22 +274,22 @@ const EditSession = () => {
           {/* Type & Level */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Tipo sessione</Label>
+              <Label>{t("sessionTypeLabel")}</Label>
               <Select value={form.session_type} onValueChange={(v) => setForm({ ...form, session_type: v })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {sessionTypes.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {sessionTypes.map((st) => (
+                    <SelectItem key={st.value} value={st.value}>
+                      {st.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Livello</Label>
+              <Label>{t("levelLabel")}</Label>
               <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
                 <SelectTrigger>
                   <SelectValue />
@@ -324,7 +308,7 @@ const EditSession = () => {
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="date">Data *</Label>
+              <Label htmlFor="date">{t("dateLabel")}</Label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                 <Input
@@ -338,7 +322,7 @@ const EditSession = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="time">Ora *</Label>
+              <Label htmlFor="time">{t("timeLabel")}</Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                 <Input
@@ -355,7 +339,7 @@ const EditSession = () => {
           {/* Duration & Max Participants */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="duration">Durata (min)</Label>
+              <Label htmlFor="duration">{t("durationLabel")}</Label>
               <Input
                 id="duration"
                 type="number"
@@ -368,7 +352,7 @@ const EditSession = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="max">Max partecipanti</Label>
+              <Label htmlFor="max">{t("maxParticipantsLabel")}</Label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                 <Input
@@ -387,7 +371,7 @@ const EditSession = () => {
 
           {session.confirmedCount > 0 && (
             <p className="text-xs text-muted">
-              Nota: ci sono {session.confirmedCount} partecipanti confermati. Il numero massimo non può essere inferiore.
+              {t("confirmedParticipantsNote").replace("{count}", String(session.confirmedCount))}
             </p>
           )}
 
@@ -419,10 +403,10 @@ const EditSession = () => {
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Salvataggio...
+                {t("saving")}
               </>
             ) : (
-              "Salva modifiche"
+              t("saveChanges")
             )}
           </Button>
         </form>

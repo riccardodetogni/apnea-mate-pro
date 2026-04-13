@@ -51,27 +51,7 @@ const formatDateTime = (dateTime: string): string => {
   return date.toLocaleDateString("it-IT", options);
 };
 
-const mapLevel = (level: string): string => {
-  switch (level) {
-    case "beginner": return "Principiante";
-    case "intermediate": return "Intermedio";
-    case "advanced": return "Avanzato";
-    case "all_levels": return "Tutti i livelli";
-    default: return level;
-  }
-};
-
-const mapSessionType = (type: string): string => {
-  switch (type) {
-    case "sea_trip": return "Uscita mare";
-    case "pool_session": return "Piscina";
-    case "deep_pool_session": return "Piscina profonda";
-    case "lake_trip": return "Uscita lago";
-    case "training": return "Allenamento";
-    case "spearfishing": return "Pesca subacquea";
-    default: return type;
-  }
-};
+import { mapLevel, mapSessionType } from "@/lib/i18n";
 
 const SessionDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,7 +78,7 @@ const SessionDetails = () => {
       });
     } catch {
       await navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link copiato!" });
+      toast({ title: t("linkCopied") });
     }
   };
 
@@ -128,20 +108,20 @@ const SessionDetails = () => {
     if (error) {
       if (error.message?.includes("duplicate")) {
         toast({
-          title: "Già richiesto",
-          description: "Hai già inviato una richiesta per questa sessione",
+          title: t("alreadyRequested"),
+          description: t("alreadyRequestedDesc"),
           variant: "destructive",
         });
       } else if (error.message?.includes("session_full")) {
         toast({
-          title: "Sessione piena",
-          description: "Non ci sono più posti disponibili",
+          title: t("sessionFull"),
+          description: t("sessionFullDesc"),
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Errore",
-          description: error.message || "Impossibile inviare la richiesta",
+          title: t("error"),
+          description: error.message || t("cannotSendRequest"),
           variant: "destructive",
         });
       }
@@ -157,13 +137,13 @@ const SessionDetails = () => {
           .eq("user_id", user.id);
 
         toast({
-          title: "Ti sei iscritto!",
-          description: "Sei stato aggiunto alla tua sessione",
+          title: t("youJoined"),
+          description: t("youJoinedDesc"),
         });
       } else {
         toast({
-          title: "Richiesta inviata!",
-          description: "L'organizzatore riceverà la tua richiesta di partecipazione",
+          title: t("requestSent"),
+          description: t("requestSentDesc"),
         });
 
         const { data: userProfile } = await supabase
@@ -206,9 +186,9 @@ const SessionDetails = () => {
     setActionLoading(null);
 
     if (error) {
-      toast({ title: "Errore", description: "Impossibile approvare", variant: "destructive" });
+      toast({ title: t("error"), description: t("cannotApprove"), variant: "destructive" });
     } else {
-      toast({ title: "Approvato!", description: "Partecipante confermato" });
+      toast({ title: t("approvedTitle"), description: t("approvedDesc") });
 
       // Create in-app notification for participant
       await createNotification({
@@ -243,9 +223,9 @@ const SessionDetails = () => {
     setActionLoading(null);
 
     if (error) {
-      toast({ title: "Errore", description: "Impossibile rifiutare", variant: "destructive" });
+      toast({ title: t("error"), description: t("cannotReject"), variant: "destructive" });
     } else {
-      toast({ title: "Rifiutato", description: "Richiesta rifiutata" });
+      toast({ title: t("rejectedTitle"), description: t("rejectedDesc") });
 
       // Create in-app notification for participant
       await createNotification({
@@ -283,9 +263,9 @@ const SessionDetails = () => {
     const { error } = await cancelSession();
 
     if (error) {
-      toast({ title: "Errore", description: "Impossibile annullare la sessione", variant: "destructive" });
+      toast({ title: t("error"), description: t("cannotCancelSession"), variant: "destructive" });
     } else {
-      toast({ title: "Sessione annullata", description: "La sessione è stata cancellata" });
+      toast({ title: t("sessionCancelled"), description: t("sessionCancelledDesc") });
 
       // Notify all confirmed AND pending participants about the cancellation
       for (const participant of allParticipants) {
@@ -317,9 +297,9 @@ const SessionDetails = () => {
     setActionLoading(null);
 
     if (error) {
-      toast({ title: "Errore", description: "Impossibile annullare", variant: "destructive" });
+      toast({ title: t("error"), description: t("cannotCancelParticipation"), variant: "destructive" });
     } else {
-      toast({ title: "Partecipazione annullata", description: "Hai lasciato la sessione" });
+      toast({ title: t("participationCancelled"), description: t("participationCancelledDesc") });
 
       // Notify creator that a participant left
       const { data: userProfile } = await supabase
@@ -365,9 +345,9 @@ const SessionDetails = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <AlertTriangle className="w-12 h-12 text-muted mb-4" />
-        <h2 className="text-lg font-semibold mb-2">Sessione non trovata</h2>
+        <h2 className="text-lg font-semibold mb-2">{t("sessionNotFound")}</h2>
         <Button variant="outline" onClick={() => navigate("/community")}>
-          Torna alla Community
+          {t("backToCommunity")}
         </Button>
       </div>
     );
@@ -532,7 +512,7 @@ const SessionDetails = () => {
                 {actionLoading === "leave" ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  "Annulla"
+                  t("cancel")
                 )}
               </Button>
             </div>
@@ -550,7 +530,7 @@ const SessionDetails = () => {
                   <span className="w-6 h-6 rounded-full bg-warning/20 text-warning flex items-center justify-center text-sm">
                     {pendingParticipants.length}
                   </span>
-                  Richieste in attesa
+                  {t("pendingRequests")}
                 </h3>
                 <div className="space-y-2">
                   {pendingParticipants.map(p => (
@@ -574,7 +554,7 @@ const SessionDetails = () => {
                         className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
-                        {p.profile?.name || "Utente"}
+                        {p.profile?.name || t("user")}
                       </span>
                       <div className="flex gap-1">
                         <Button
@@ -614,7 +594,7 @@ const SessionDetails = () => {
                 <span className="w-6 h-6 rounded-full bg-success/20 text-success flex items-center justify-center text-sm">
                   {confirmedParticipants.length}
                 </span>
-                Partecipanti confermati
+                {t("confirmedParticipants")}
               </h3>
               {confirmedParticipants.length > 0 ? (
                 <div className="space-y-2">
@@ -639,14 +619,14 @@ const SessionDetails = () => {
                         className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
-                        {p.profile?.name || "Utente"}
+                        {p.profile?.name || t("user")}
                       </span>
                       <Check className="w-4 h-4 text-success" />
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[hsl(var(--card-muted))]">Nessun partecipante confermato</p>
+                <p className="text-sm text-[hsl(var(--card-muted))]">{t("noConfirmedParticipants")}</p>
               )}
               </div>
             </div>
@@ -657,7 +637,7 @@ const SessionDetails = () => {
               className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
               onClick={() => setCancelDialogOpen(true)}
             >
-              Annulla sessione
+              {t("cancelSession")}
             </Button>
           </div>
         )}
@@ -675,9 +655,9 @@ const SessionDetails = () => {
                 {joining ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : isFull ? (
-                  "Sessione piena"
+                  t("sessionFullButton")
                 ) : (
-                  "Richiedi di partecipare"
+                  t("requestToJoin")
                 )}
               </Button>
               {spotsLeft > 0 && spotsLeft <= 3 && (
@@ -711,9 +691,9 @@ const SessionDetails = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleCancelSession} className="bg-destructive text-destructive-foreground">
-              Conferma annullamento
+              {t("confirmCancellation")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
