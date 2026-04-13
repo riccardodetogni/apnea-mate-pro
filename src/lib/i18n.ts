@@ -57,15 +57,22 @@ const translations = {
     pool: "Piscina",
     deepPool: "Deep pool",
     
-    // Session types
+    // Session types (for selects/labels)
     seaTrip: "Uscita mare",
+    poolSession: "Piscina",
     deepPoolSession: "Piscina profonda",
+    lakeTrip: "Uscita lago",
+    trainingSession: "Allenamento",
+    spearfishing: "Pesca subacquea",
     
     // Levels
     beginner: "Base",
     intermediate: "Intermedio",
     advanced: "Avanzato",
     allLevels: "Tutti i livelli",
+    levelBeginner: "Principiante",
+    levelIntermediate: "Intermedio",
+    levelAdvanced: "Avanzato",
     
     // Auth
     login: "Accedi",
@@ -140,7 +147,11 @@ const translations = {
     
     // Certification status
     certStatusNotSubmitted: "Non inviata",
+    certStatusNotSubmittedDesc: "Non hai ancora inviato una certificazione",
     certStatusApproved: "Certificazione attiva",
+    certStatusApprovedLabel: "Approvata",
+    certStatusApprovedDesc: "La tua certificazione è stata verificata",
+    certifiedBadge: "Certificato",
     
     // Spots
     discoverSpots: "Scopri spot",
@@ -269,6 +280,11 @@ const translations = {
     createEvent: "Crea evento",
     createCourse: "Crea corso",
     whatCreate: "Cosa vuoi creare?",
+    createSessionDesc: "Organizza un allenamento o uscita",
+    createEventDesc: "Stage, gare o trip multi-giorno",
+    createCourseDesc: "Corso di apnea per la tua scuola",
+    createGroupDesc: "Crea un gruppo locale di apneisti",
+    createTrainingDesc: "Registra il tuo allenamento personale",
 
     // Events
     upcomingEvents: "Eventi in arrivo",
@@ -282,6 +298,9 @@ const translations = {
     contactInfo: "Contatti",
     noEvents: "Nessun evento in programma",
     groupEvents: "Eventi del gruppo",
+    eventTypeStage: "Stage",
+    eventTypeCompetition: "Gara",
+    eventTypeTrip: "Trip",
 
     // Courses
     availableCoursesSection: "Corsi disponibili",
@@ -290,6 +309,10 @@ const translations = {
     courseDescription: "Descrizione",
     noCourses: "Nessun corso disponibile",
     groupCourses: "Corsi del gruppo",
+    courseTypeBeginner: "Base",
+    courseTypeAdvanced: "Avanzato",
+    courseTypeInstructor: "Istruttore",
+    courseTypeSpecialty: "Specialità",
     
     // Common
     loading: "Caricamento...",
@@ -300,6 +323,9 @@ const translations = {
     confirm: "Conferma",
     delete: "Elimina",
     edit: "Modifica",
+    share: "Condividi",
+    close: "Chiudi",
+    create: "Crea",
     
     // Notifications
     notifications: "Notifiche",
@@ -341,6 +367,7 @@ const translations = {
     chatPlaceholder: "Scrivi un messaggio...",
     chatSession: "Chat sessione",
     chatGroup: "Chat gruppo",
+    chatEvent: "Chat evento",
     sendMessage: "Messaggio",
     // Reviews
     reviews: "Recensioni",
@@ -365,6 +392,7 @@ const translations = {
     iAmInstructor: "Sono un Istruttore",
     paidSession: "Sessione a pagamento",
     paidSessionDisclaimer: "Apnea Mate non gestisce, elabora né incassa pagamenti per le sessioni organizzate tra utenti. Ogni accordo economico avviene esclusivamente tra le parti coinvolte, sotto la loro piena responsabilità. Apnea Mate S.r.l. non è parte della transazione e non risponde in alcun modo di eventuali controversie, mancati pagamenti o inadempimenti.",
+    paidBadge: "💰 A pagamento",
     // Batch session creation
     singleSession: "Singola",
     multipleDates: "Date multiple",
@@ -381,6 +409,10 @@ const translations = {
     calendarView: "Calendario",
     listView: "Lista",
     noSessionsOnDate: "Nessuna sessione in questo giorno",
+    statusConfirmed: "Confermato",
+    statusPending: "In attesa",
+    statusCreatedByYou: "Creata da te",
+    statusAvailable: "Disponibile",
     // Session filters
     filterAllDates: "Tutte",
     filterToday: "Oggi",
@@ -396,6 +428,317 @@ const translations = {
      filterReset: "Reset",
      filterTitle: "Filtri",
      filterType: "Tipo",
+
+    // --- New keys for hardcoded strings ---
+
+    // CreateSession / EditSession shared
+    newSessionTitle: "Nuova sessione",
+    editSessionTitle: "Modifica sessione",
+    titleLabel: "Titolo",
+    titleRequired: "Titolo *",
+    titlePlaceholder: "Es: Allenamento profondità",
+    descriptionLabel: "Descrizione",
+    descriptionPlaceholder: "Dettagli aggiuntivi sulla sessione...",
+    spotLabel: "Spot *",
+    groupOptional: "Gruppo (opzionale)",
+    noGroup: "Nessun gruppo",
+    groupOnlyLabel: "Visibile solo ai membri del gruppo",
+    groupOnlyDesc: "La sessione non apparirà nella ricerca pubblica",
+    sessionTypeLabel: "Tipo sessione",
+    levelLabel: "Livello",
+    dateLabel: "Data *",
+    timeLabel: "Ora *",
+    durationLabel: "Durata (min)",
+    maxParticipantsLabel: "Max partecipanti",
+    creatorJoinsLabel: "Partecipo anch'io alla sessione",
+    publishSession: "Pubblica sessione",
+    publishSessions: "Pubblica",
+    creating: "Creazione...",
+    sessionCreatedTitle: "Sessione creata!",
+    sessionCreatedDesc: "La tua sessione è stata pubblicata",
+    sessionsPublishedDesc: "Le sessioni sono state pubblicate",
+    certificationRequired: "Certificazione richiesta",
+    certificationRequiredDesc: "Per creare sessioni devi essere un apneista certificato o istruttore. Puoi inviare la tua certificazione dal profilo.",
+    goToProfile: "Vai al profilo",
+    insertTitle: "Inserisci un titolo",
+    selectSpot: "Seleziona uno spot",
+    selectAtLeastOneDate: "Seleziona almeno una data",
+    insertTimeForAllDates: "Inserisci l'ora per tutte le date",
+    allDatesMustBeFuture: "Tutte le date devono essere nel futuro",
+    insertDateAndTime: "Inserisci data e ora",
+    dateMustBeFuture: "La data deve essere nel futuro",
+    unauthorized: "Non autorizzato",
+    mustBeCertifiedToCreate: "Devi essere certificato per creare sessioni",
+    cannotCreateSession: "Impossibile creare la sessione",
+
+    // EditSession specific
+    spotNotEditable: "Spot (non modificabile)",
+    saveChanges: "Salva modifiche",
+    saving: "Salvataggio...",
+    sessionUpdated: "Sessione aggiornata!",
+    changesSaved: "Le modifiche sono state salvate",
+    cannotUpdateSession: "Impossibile aggiornare la sessione",
+    sessionNotFound: "Sessione non trovata",
+    backToCommunity: "Torna alla Community",
+    notAuthorized: "Non autorizzato",
+    onlyCreatorCanEdit: "Solo il creatore può modificare questa sessione",
+    backToSession: "Torna alla sessione",
+    confirmedParticipantsNote: "Nota: ci sono {count} partecipanti confermati. Il numero massimo non può essere inferiore.",
+    alreadyConfirmedParticipants: "Ci sono già {count} partecipanti confermati",
+
+    // SessionDetails
+    confirmed: "confermati",
+    freediver: "Apneista",
+    alreadyRequested: "Già richiesto",
+    alreadyRequestedDesc: "Hai già inviato una richiesta per questa sessione",
+    sessionFull: "Sessione piena",
+    sessionFullDesc: "Non ci sono più posti disponibili",
+    cannotSendRequest: "Impossibile inviare la richiesta",
+    youJoined: "Ti sei iscritto!",
+    youJoinedDesc: "Sei stato aggiunto alla tua sessione",
+    requestSent: "Richiesta inviata!",
+    requestSentDesc: "L'organizzatore riceverà la tua richiesta di partecipazione",
+    newJoinRequest: "Nuova richiesta di partecipazione",
+    newJoinRequestMsg: "{name} vuole partecipare a \"{title}\"",
+    approvedTitle: "Approvato!",
+    approvedDesc: "Partecipante confermato",
+    cannotApprove: "Impossibile approvare",
+    rejectedTitle: "Rifiutato",
+    rejectedDesc: "Richiesta rifiutata",
+    cannotReject: "Impossibile rifiutare",
+    requestApproved: "Richiesta approvata!",
+    requestApprovedMsg: "La tua partecipazione a \"{title}\" è stata confermata",
+    requestNotAccepted: "Richiesta non accettata",
+    requestNotAcceptedMsg: "La tua richiesta per \"{title}\" non è stata accettata",
+    sessionCancelled: "Sessione annullata",
+    sessionCancelledDesc: "La sessione è stata cancellata",
+    sessionCancelledNotif: "La sessione \"{title}\" è stata annullata dall'organizzatore",
+    cannotCancelSession: "Impossibile annullare la sessione",
+    participationCancelled: "Partecipazione annullata",
+    participationCancelledDesc: "Hai lasciato la sessione",
+    cannotCancelParticipation: "Impossibile annullare",
+    participantWithdrew: "Partecipante ritirato",
+    participantWithdrewMsg: "{name} ha lasciato la sessione \"{title}\"",
+    linkCopied: "Link copiato!",
+    pendingRequests: "Richieste in attesa",
+    confirmedParticipants: "Partecipanti confermati",
+    noConfirmedParticipants: "Nessun partecipante confermato",
+    cancelSession: "Annulla sessione",
+    cancelSessionQuestion: "Annullare la sessione?",
+    cancelSessionIrreversible: "Questa azione è irreversibile. Tutti i partecipanti verranno notificati.",
+    confirmCancellation: "Conferma annullamento",
+    sessionFullButton: "Sessione piena",
+    requestToJoin: "Richiedi di partecipare",
+    spotsLeftText: "Solo {count} {spots} rimast{suffix}!",
+    enrolledYes: "✓ Sei iscritto!",
+    waitingApproval: "⏳ In attesa di approvazione",
+    participationConfirmed: "La tua partecipazione è confermata",
+    organizerMustApprove: "L'organizzatore deve approvare la tua richiesta",
+
+    // EventDetails
+    eventNotFound: "Evento non trovato",
+    requestRegistration: "Richiedi iscrizione",
+    cancelRequest: "Annulla richiesta",
+    cancelRegistration: "Annulla iscrizione",
+    registrationCancelled: "Iscrizione annullata",
+    cannotOpenChat: "Impossibile aprire la chat",
+    dayLabel: "Giorno",
+    enrolled: "iscritti",
+    days: "giorni",
+
+    // CourseDetails
+    courseNotFound: "Corso non trovato",
+
+    // CreateEvent
+    eventPlaceholderTitle: "Es. Deep Week Sardegna",
+    eventPlaceholderDesc: "Descrivi l'evento...",
+    contactEmailPlaceholder: "Email di contatto",
+    contactPhonePlaceholder: "Telefono",
+    contactUrlPlaceholder: "Link per info (sito web)",
+    scheduleDayTitlePlaceholder: "Titolo giornata",
+    scheduleDayDetailsPlaceholder: "Dettagli",
+    addDay: "Aggiungi giornata",
+    fillRequiredFields: "Compila tutti i campi obbligatori",
+    eventCreated: "Evento creato!",
+    courseCreated: "Corso creato!",
+    unlimitedParticipants: "0 = illimitati",
+
+    // CreateCourse
+    coursePlaceholderTitle: "Es. Corso Apnea 1° Livello",
+    coursePlaceholderDesc: "Descrivi il corso, programma, requisiti...",
+    courseContactEmailPlaceholder: "Email per iscrizioni",
+    courseContactUrlPlaceholder: "Link sito scuola",
+
+    // Onboarding
+    namePlaceholder: "Mario Rossi",
+    bioPlaceholder: "Racconta qualcosa di te...",
+    uploadDocument: "Carica documento",
+    other: "Altro",
+    locationDetected: "Posizione rilevata",
+    locationNotFound: "Posizione non trovata",
+    insertLocationManually: "Inserisci manualmente la tua località",
+    cannotDetectLocation: "Impossibile rilevare la posizione",
+    grantLocationPermission: "Assicurati di aver concesso i permessi di localizzazione",
+    nameRequired: "Nome richiesto",
+    nameRequiredDesc: "Inserisci il tuo nome per continuare",
+    locationRequired: "Località richiesta",
+    locationRequiredDesc: "Inserisci la tua città o regione per continuare",
+    selectAnOption: "Seleziona un'opzione",
+    selectAnOptionDesc: "Indica se sei un apneista certificato",
+    agencyRequired: "Agenzia richiesta",
+    agencyRequiredDesc: "Seleziona l'agenzia di certificazione",
+    levelRequired: "Livello richiesto",
+    levelRequiredDesc: "Inserisci il livello di certificazione",
+    profileCompleted: "Profilo completato!",
+    welcomeToApneaMate: "Benvenuto in Apnea Mate",
+    cannotSaveProfile: "Impossibile salvare il profilo. Riprova.",
+    fileTooLarge: "File troppo grande",
+    fileTooLargeDesc: "Il file non può superare i 5MB",
+    useMyLocation: "Usa la mia posizione",
+
+    // Admin
+    accessDenied: "Accesso negato",
+    noPermissionForPage: "Non hai i permessi per accedere a questa pagina",
+    cannotUpdateRole: "Impossibile aggiornare il ruolo",
+    roleUpdated: "Ruolo aggiornato",
+    editRole: "Modifica ruolo",
+    changeRoleOf: "Cambia il ruolo di",
+    role: "Ruolo",
+    users: "Utenti",
+    groups: "Gruppi",
+    noGroupFound: "Nessun gruppo trovato",
+    verified: "Verificato",
+    notVerified: "Non verificato",
+    verificationRemoved: "Verifica rimossa",
+    groupVerified: "Gruppo verificato",
+    noLongerVerified: "non è più verificato",
+    nowVerifiedPartner: "è ora un partner verificato",
+    certifiedFreediverRole: "Apneista Certificato",
+    cannotUpdateVerification: "Impossibile aggiornare lo stato di verifica",
+
+    // MySessions
+    mySessions: "Le mie sessioni",
+    noSessions: "Nessuna sessione",
+    noSessionsDesc: "Non sei ancora iscritto a nessuna sessione. Esplora la community per trovare sessioni vicino a te!",
+    exploreSessions: "Esplora sessioni",
+    pendingRequestsSection: "Richieste in attesa",
+    waitingApprovalSection: "In attesa di approvazione",
+    confirmedSection: "Confermate",
+    createdByYouSection: "Create da te",
+    createdByYouBadge: "Creata da te",
+    requestsWaiting: "richieste in attesa",
+    participantsLabel: "partecipanti",
+    organizerLabel: "Organizzatore",
+    waitingBadge: "In attesa",
+    confirmedBadge: "Confermato",
+
+    // Groups page
+    mustLoginToJoin: "Devi accedere per unirti",
+    requestSentGroup: "Richiesta inviata",
+    waitingApprovalGroup: "In attesa di approvazione",
+    subscriptionDone: "Iscrizione effettuata!",
+    noGroupsFound: "Nessun gruppo trovato",
+
+    // GroupManage
+    manageGroupTitle: "Gestisci gruppo",
+    requests: "Richieste",
+    settingsTab: "Impostazioni",
+    noPendingRequests: "Nessuna richiesta in attesa",
+    noMembers: "Nessun membro",
+    memberApproved: "Membro approvato!",
+    memberApprovedNotif: "Sei stato accettato nel gruppo \"{name}\"",
+    requestRejected: "Richiesta rifiutata",
+    requestRejectedNotif: "La tua richiesta per il gruppo \"{name}\" non è stata accettata",
+    roleUpdatedTo: "Ruolo aggiornato a",
+    memberRemoved: "Membro rimosso",
+    ownerRole: "Proprietario",
+    adminRole: "Admin",
+    memberRole: "Membro",
+    makeOwner: "Rendi proprietario",
+    makeAdmin: "Rendi admin",
+    removeRole: "Rimuovi ruolo",
+    removeFromGroup: "Rimuovi dal gruppo",
+    creatorLabel: "Creatore",
+    pendingRequest: "Richiesta in attesa",
+    groupNameRequired: "Il nome del gruppo è obbligatorio",
+    settingsSaved: "Impostazioni salvate!",
+    groupNameLabel: "Nome del gruppo",
+    groupNameInputPlaceholder: "Nome del gruppo",
+    describeYourGroup: "Descrivi il tuo gruppo...",
+    saveSettings: "Salva impostazioni",
+    tapToChangePhoto: "Tocca per cambiare foto",
+    groupNotFound: "Gruppo non trovato",
+    backToGroups: "Torna ai gruppi",
+    noPermissionManage: "Non hai i permessi per gestire questo gruppo",
+    backToGroup: "Torna al gruppo",
+
+    // SpotCreator
+    newSpot: "Nuovo spot",
+    spotNameLabel: "Nome spot *",
+    spotNamePlaceholder: "Es: Punta Crena",
+    environmentType: "Tipo ambiente",
+    searchAddress: "Cerca indirizzo",
+    searchAddressPlaceholder: "Via Roma, Genova...",
+    searchButton: "Cerca",
+    orClickOnMap: "Oppure clicca sulla mappa",
+    locationLabel: "Località",
+    saveSpot: "Salva spot",
+    spotCreated: "Spot creato!",
+    spotCreatedDesc: "Puoi ora selezionarlo per la tua sessione",
+    insertSpotName: "Inserisci un nome per lo spot",
+    insertLocationSpot: "Inserisci una località",
+    noResult: "Nessun risultato",
+    noResultDesc: "Indirizzo non trovato. Prova con un altro termine.",
+    cannotSearchAddress: "Impossibile cercare l'indirizzo",
+    cannotCreateSpot: "Impossibile creare lo spot",
+
+    // CertificationForm
+    submitCertificationTitle: "Invia certificazione",
+    willBeVerified: "Sarà verificata dal nostro team",
+    certAgencyLabel: "Agenzia di certificazione *",
+    certLevelLabel: "Livello di certificazione *",
+    certLevelPlaceholder: "es. AIDA 2, SSI Level 1",
+    certIdLabel: "ID certificazione (opzionale)",
+    certIdPlaceholder: "es. AIDA-12345",
+    documentOptional: "Documento (opzionale)",
+    uploadCertificateBtn: "Carica certificato",
+    formats: "Formati: immagine o PDF (max 5MB)",
+    requiredFields: "Campi obbligatori",
+    requiredFieldsDesc: "Seleziona agenzia e livello di certificazione",
+    mustBeAuthenticated: "Devi essere autenticato",
+    certificationAdded: "Certificazione aggiunta",
+    nowCertifiedFreediver: "Sei ora un apneista certificato",
+    cannotSubmitCert: "Impossibile inviare la certificazione",
+    sendRequest: "Invia richiesta",
+
+    // Community page specific
+    resultsFor: "Risultati per",
+    noSessionNearby: "Nessuna sessione entro {radius}km. Disattiva il filtro per vedere tutte.",
+    showAll: "Mostra tutte",
+    noSessionsAvailable: "Nessuna sessione disponibile.",
+    createASession: "Crea una sessione",
+    alreadyJoined: "Già iscritto",
+    alreadyJoinedDesc: "Sei già iscritto a questa sessione",
+    cannotJoinSession: "Impossibile unirsi alla sessione",
+    alreadyMember: "Già membro",
+    alreadyMemberDesc: "Sei già membro di questo gruppo",
+    cannotJoinGroup: "Impossibile unirsi al gruppo",
+    requestSentCommunity: "Richiesta inviata",
+    adminWillEvaluate: "L'amministratore del gruppo valuterà la tua richiesta",
+    subscribedGroup: "Iscritto!",
+    joinedGroupDesc: "Ti sei unito al gruppo",
+    noOtherGroups: "Nessun altro gruppo da unirsi.",
+    noGroupsAvailable: "Nessun gruppo disponibile.",
+    createAGroup: "Crea un gruppo",
+
+    // DiscoverFreedivers
+    followed: "Seguito",
+    follow: "Segui",
+    cannotCompleteAction: "Impossibile completare l'azione",
+
+    // Misc
+    communityGroupType: "Gruppo spontaneo",
+    schoolClubGroupType: "Scuola/Club",
    },
   en: {
     // App
@@ -452,13 +795,20 @@ const translations = {
     
     // Session types
     seaTrip: "Sea trip",
+    poolSession: "Pool",
     deepPoolSession: "Deep pool",
+    lakeTrip: "Lake trip",
+    trainingSession: "Training",
+    spearfishing: "Spearfishing",
     
     // Levels
     beginner: "Beginner",
     intermediate: "Intermediate",
     advanced: "Advanced",
     allLevels: "All levels",
+    levelBeginner: "Beginner",
+    levelIntermediate: "Intermediate",
+    levelAdvanced: "Advanced",
     
     // Auth
     login: "Login",
@@ -533,7 +883,11 @@ const translations = {
     
     // Certification status
     certStatusNotSubmitted: "Not submitted",
+    certStatusNotSubmittedDesc: "You haven't submitted a certification yet",
     certStatusApproved: "Certification active",
+    certStatusApprovedLabel: "Approved",
+    certStatusApprovedDesc: "Your certification has been verified",
+    certifiedBadge: "Certified",
     
     // Spots
     discoverSpots: "Discover spots",
@@ -662,6 +1016,11 @@ const translations = {
     createEvent: "Create event",
     createCourse: "Create course",
     whatCreate: "What do you want to create?",
+    createSessionDesc: "Organize a training or outing",
+    createEventDesc: "Workshops, competitions or multi-day trips",
+    createCourseDesc: "Freediving course for your school",
+    createGroupDesc: "Create a local group of freedivers",
+    createTrainingDesc: "Log your personal training",
 
     // Events
     upcomingEvents: "Upcoming events",
@@ -675,6 +1034,9 @@ const translations = {
     contactInfo: "Contact",
     noEvents: "No upcoming events",
     groupEvents: "Group events",
+    eventTypeStage: "Workshop",
+    eventTypeCompetition: "Competition",
+    eventTypeTrip: "Trip",
 
     // Courses
     availableCoursesSection: "Available courses",
@@ -683,6 +1045,10 @@ const translations = {
     courseDescription: "Description",
     noCourses: "No courses available",
     groupCourses: "Group courses",
+    courseTypeBeginner: "Beginner",
+    courseTypeAdvanced: "Advanced",
+    courseTypeInstructor: "Instructor",
+    courseTypeSpecialty: "Specialty",
     
     // Common
     loading: "Loading...",
@@ -693,6 +1059,9 @@ const translations = {
     confirm: "Confirm",
     delete: "Delete",
     edit: "Edit",
+    share: "Share",
+    close: "Close",
+    create: "Create",
     
     // Notifications
     notifications: "Notifications",
@@ -734,6 +1103,7 @@ const translations = {
     chatPlaceholder: "Write a message...",
     chatSession: "Session chat",
     chatGroup: "Group chat",
+    chatEvent: "Event chat",
     sendMessage: "Message",
     // Reviews
     reviews: "Reviews",
@@ -758,6 +1128,7 @@ const translations = {
     iAmInstructor: "I am an Instructor",
     paidSession: "Paid session",
     paidSessionDisclaimer: "Apnea Mate does not manage, process, or collect payments for sessions organized between users. Any financial agreement is made exclusively between the parties involved, under their full responsibility. Apnea Mate S.r.l. is not a party to the transaction and is not liable in any way for disputes, non-payments, or breaches.",
+    paidBadge: "💰 Paid",
     // Batch session creation
     singleSession: "Single",
     multipleDates: "Multiple dates",
@@ -774,6 +1145,10 @@ const translations = {
     calendarView: "Calendar",
     listView: "List",
     noSessionsOnDate: "No sessions on this day",
+    statusConfirmed: "Confirmed",
+    statusPending: "Pending",
+    statusCreatedByYou: "Created by you",
+    statusAvailable: "Available",
     // Session filters
     filterAllDates: "All",
     filterToday: "Today",
@@ -789,6 +1164,317 @@ const translations = {
      filterReset: "Reset",
      filterTitle: "Filters",
      filterType: "Type",
+
+    // --- New keys for hardcoded strings ---
+
+    // CreateSession / EditSession shared
+    newSessionTitle: "New session",
+    editSessionTitle: "Edit session",
+    titleLabel: "Title",
+    titleRequired: "Title *",
+    titlePlaceholder: "E.g. Depth training",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Additional details about the session...",
+    spotLabel: "Spot *",
+    groupOptional: "Group (optional)",
+    noGroup: "No group",
+    groupOnlyLabel: "Visible only to group members",
+    groupOnlyDesc: "The session won't appear in public search",
+    sessionTypeLabel: "Session type",
+    levelLabel: "Level",
+    dateLabel: "Date *",
+    timeLabel: "Time *",
+    durationLabel: "Duration (min)",
+    maxParticipantsLabel: "Max participants",
+    creatorJoinsLabel: "I'll join the session too",
+    publishSession: "Publish session",
+    publishSessions: "Publish",
+    creating: "Creating...",
+    sessionCreatedTitle: "Session created!",
+    sessionCreatedDesc: "Your session has been published",
+    sessionsPublishedDesc: "Sessions have been published",
+    certificationRequired: "Certification required",
+    certificationRequiredDesc: "To create sessions you must be a certified freediver or instructor. You can submit your certification from your profile.",
+    goToProfile: "Go to profile",
+    insertTitle: "Enter a title",
+    selectSpot: "Select a spot",
+    selectAtLeastOneDate: "Select at least one date",
+    insertTimeForAllDates: "Enter time for all dates",
+    allDatesMustBeFuture: "All dates must be in the future",
+    insertDateAndTime: "Enter date and time",
+    dateMustBeFuture: "Date must be in the future",
+    unauthorized: "Unauthorized",
+    mustBeCertifiedToCreate: "You must be certified to create sessions",
+    cannotCreateSession: "Cannot create session",
+
+    // EditSession specific
+    spotNotEditable: "Spot (not editable)",
+    saveChanges: "Save changes",
+    saving: "Saving...",
+    sessionUpdated: "Session updated!",
+    changesSaved: "Changes have been saved",
+    cannotUpdateSession: "Cannot update session",
+    sessionNotFound: "Session not found",
+    backToCommunity: "Back to Community",
+    notAuthorized: "Not authorized",
+    onlyCreatorCanEdit: "Only the creator can edit this session",
+    backToSession: "Back to session",
+    confirmedParticipantsNote: "Note: there are {count} confirmed participants. The max cannot be lower.",
+    alreadyConfirmedParticipants: "There are already {count} confirmed participants",
+
+    // SessionDetails
+    confirmed: "confirmed",
+    freediver: "Freediver",
+    alreadyRequested: "Already requested",
+    alreadyRequestedDesc: "You already sent a request for this session",
+    sessionFull: "Session full",
+    sessionFullDesc: "No more spots available",
+    cannotSendRequest: "Cannot send request",
+    youJoined: "You joined!",
+    youJoinedDesc: "You've been added to your session",
+    requestSent: "Request sent!",
+    requestSentDesc: "The organizer will receive your participation request",
+    newJoinRequest: "New join request",
+    newJoinRequestMsg: "{name} wants to join \"{title}\"",
+    approvedTitle: "Approved!",
+    approvedDesc: "Participant confirmed",
+    cannotApprove: "Cannot approve",
+    rejectedTitle: "Rejected",
+    rejectedDesc: "Request rejected",
+    cannotReject: "Cannot reject",
+    requestApproved: "Request approved!",
+    requestApprovedMsg: "Your participation in \"{title}\" has been confirmed",
+    requestNotAccepted: "Request not accepted",
+    requestNotAcceptedMsg: "Your request for \"{title}\" was not accepted",
+    sessionCancelled: "Session cancelled",
+    sessionCancelledDesc: "The session has been cancelled",
+    sessionCancelledNotif: "Session \"{title}\" has been cancelled by the organizer",
+    cannotCancelSession: "Cannot cancel session",
+    participationCancelled: "Participation cancelled",
+    participationCancelledDesc: "You left the session",
+    cannotCancelParticipation: "Cannot cancel",
+    participantWithdrew: "Participant withdrew",
+    participantWithdrewMsg: "{name} left session \"{title}\"",
+    linkCopied: "Link copied!",
+    pendingRequests: "Pending requests",
+    confirmedParticipants: "Confirmed participants",
+    noConfirmedParticipants: "No confirmed participants",
+    cancelSession: "Cancel session",
+    cancelSessionQuestion: "Cancel session?",
+    cancelSessionIrreversible: "This action is irreversible. All participants will be notified.",
+    confirmCancellation: "Confirm cancellation",
+    sessionFullButton: "Session full",
+    requestToJoin: "Request to join",
+    spotsLeftText: "Only {count} spot{suffix} left!",
+    enrolledYes: "✓ You're enrolled!",
+    waitingApproval: "⏳ Waiting for approval",
+    participationConfirmed: "Your participation is confirmed",
+    organizerMustApprove: "The organizer must approve your request",
+
+    // EventDetails
+    eventNotFound: "Event not found",
+    requestRegistration: "Request registration",
+    cancelRequest: "Cancel request",
+    cancelRegistration: "Cancel registration",
+    registrationCancelled: "Registration cancelled",
+    cannotOpenChat: "Cannot open chat",
+    dayLabel: "Day",
+    enrolled: "enrolled",
+    days: "days",
+
+    // CourseDetails
+    courseNotFound: "Course not found",
+
+    // CreateEvent
+    eventPlaceholderTitle: "E.g. Deep Week Sardinia",
+    eventPlaceholderDesc: "Describe the event...",
+    contactEmailPlaceholder: "Contact email",
+    contactPhonePlaceholder: "Phone",
+    contactUrlPlaceholder: "Link for info (website)",
+    scheduleDayTitlePlaceholder: "Day title",
+    scheduleDayDetailsPlaceholder: "Details",
+    addDay: "Add day",
+    fillRequiredFields: "Fill in all required fields",
+    eventCreated: "Event created!",
+    courseCreated: "Course created!",
+    unlimitedParticipants: "0 = unlimited",
+
+    // CreateCourse
+    coursePlaceholderTitle: "E.g. Freediving Course Level 1",
+    coursePlaceholderDesc: "Describe the course, program, requirements...",
+    courseContactEmailPlaceholder: "Email for registration",
+    courseContactUrlPlaceholder: "School website link",
+
+    // Onboarding
+    namePlaceholder: "John Doe",
+    bioPlaceholder: "Tell us about yourself...",
+    uploadDocument: "Upload document",
+    other: "Other",
+    locationDetected: "Location detected",
+    locationNotFound: "Location not found",
+    insertLocationManually: "Enter your location manually",
+    cannotDetectLocation: "Cannot detect location",
+    grantLocationPermission: "Make sure you have granted location permissions",
+    nameRequired: "Name required",
+    nameRequiredDesc: "Enter your name to continue",
+    locationRequired: "Location required",
+    locationRequiredDesc: "Enter your city or region to continue",
+    selectAnOption: "Select an option",
+    selectAnOptionDesc: "Indicate if you're a certified freediver",
+    agencyRequired: "Agency required",
+    agencyRequiredDesc: "Select the certification agency",
+    levelRequired: "Level required",
+    levelRequiredDesc: "Enter the certification level",
+    profileCompleted: "Profile completed!",
+    welcomeToApneaMate: "Welcome to Apnea Mate",
+    cannotSaveProfile: "Cannot save profile. Please try again.",
+    fileTooLarge: "File too large",
+    fileTooLargeDesc: "File cannot exceed 5MB",
+    useMyLocation: "Use my location",
+
+    // Admin
+    accessDenied: "Access denied",
+    noPermissionForPage: "You don't have permission to access this page",
+    cannotUpdateRole: "Cannot update role",
+    roleUpdated: "Role updated",
+    editRole: "Edit role",
+    changeRoleOf: "Change role of",
+    role: "Role",
+    users: "Users",
+    groups: "Groups",
+    noGroupFound: "No groups found",
+    verified: "Verified",
+    notVerified: "Not verified",
+    verificationRemoved: "Verification removed",
+    groupVerified: "Group verified",
+    noLongerVerified: "is no longer verified",
+    nowVerifiedPartner: "is now a verified partner",
+    certifiedFreediverRole: "Certified Freediver",
+    cannotUpdateVerification: "Cannot update verification status",
+
+    // MySessions
+    mySessions: "My sessions",
+    noSessions: "No sessions",
+    noSessionsDesc: "You haven't joined any sessions yet. Explore the community to find sessions near you!",
+    exploreSessions: "Explore sessions",
+    pendingRequestsSection: "Pending requests",
+    waitingApprovalSection: "Waiting for approval",
+    confirmedSection: "Confirmed",
+    createdByYouSection: "Created by you",
+    createdByYouBadge: "Created by you",
+    requestsWaiting: "requests pending",
+    participantsLabel: "participants",
+    organizerLabel: "Organizer",
+    waitingBadge: "Pending",
+    confirmedBadge: "Confirmed",
+
+    // Groups page
+    mustLoginToJoin: "You must log in to join",
+    requestSentGroup: "Request sent",
+    waitingApprovalGroup: "Waiting for approval",
+    subscriptionDone: "Successfully joined!",
+    noGroupsFound: "No groups found",
+
+    // GroupManage
+    manageGroupTitle: "Manage group",
+    requests: "Requests",
+    settingsTab: "Settings",
+    noPendingRequests: "No pending requests",
+    noMembers: "No members",
+    memberApproved: "Member approved!",
+    memberApprovedNotif: "You've been accepted into the group \"{name}\"",
+    requestRejected: "Request rejected",
+    requestRejectedNotif: "Your request for the group \"{name}\" was not accepted",
+    roleUpdatedTo: "Role updated to",
+    memberRemoved: "Member removed",
+    ownerRole: "Owner",
+    adminRole: "Admin",
+    memberRole: "Member",
+    makeOwner: "Make owner",
+    makeAdmin: "Make admin",
+    removeRole: "Remove role",
+    removeFromGroup: "Remove from group",
+    creatorLabel: "Creator",
+    pendingRequest: "Pending request",
+    groupNameRequired: "Group name is required",
+    settingsSaved: "Settings saved!",
+    groupNameLabel: "Group name",
+    groupNameInputPlaceholder: "Group name",
+    describeYourGroup: "Describe your group...",
+    saveSettings: "Save settings",
+    tapToChangePhoto: "Tap to change photo",
+    groupNotFound: "Group not found",
+    backToGroups: "Back to groups",
+    noPermissionManage: "You don't have permission to manage this group",
+    backToGroup: "Back to group",
+
+    // SpotCreator
+    newSpot: "New spot",
+    spotNameLabel: "Spot name *",
+    spotNamePlaceholder: "E.g. Punta Crena",
+    environmentType: "Environment type",
+    searchAddress: "Search address",
+    searchAddressPlaceholder: "Via Roma, Genova...",
+    searchButton: "Search",
+    orClickOnMap: "Or click on the map",
+    locationLabel: "Location",
+    saveSpot: "Save spot",
+    spotCreated: "Spot created!",
+    spotCreatedDesc: "You can now select it for your session",
+    insertSpotName: "Enter a name for the spot",
+    insertLocationSpot: "Enter a location",
+    noResult: "No results",
+    noResultDesc: "Address not found. Try another term.",
+    cannotSearchAddress: "Cannot search address",
+    cannotCreateSpot: "Cannot create spot",
+
+    // CertificationForm
+    submitCertificationTitle: "Submit certification",
+    willBeVerified: "It will be verified by our team",
+    certAgencyLabel: "Certification agency *",
+    certLevelLabel: "Certification level *",
+    certLevelPlaceholder: "e.g. AIDA 2, SSI Level 1",
+    certIdLabel: "Certification ID (optional)",
+    certIdPlaceholder: "e.g. AIDA-12345",
+    documentOptional: "Document (optional)",
+    uploadCertificateBtn: "Upload certificate",
+    formats: "Formats: image or PDF (max 5MB)",
+    requiredFields: "Required fields",
+    requiredFieldsDesc: "Select agency and certification level",
+    mustBeAuthenticated: "You must be authenticated",
+    certificationAdded: "Certification added",
+    nowCertifiedFreediver: "You are now a certified freediver",
+    cannotSubmitCert: "Cannot submit certification",
+    sendRequest: "Send request",
+
+    // Community page specific
+    resultsFor: "Results for",
+    noSessionNearby: "No sessions within {radius}km. Disable filter to see all.",
+    showAll: "Show all",
+    noSessionsAvailable: "No sessions available.",
+    createASession: "Create a session",
+    alreadyJoined: "Already joined",
+    alreadyJoinedDesc: "You're already enrolled in this session",
+    cannotJoinSession: "Cannot join session",
+    alreadyMember: "Already a member",
+    alreadyMemberDesc: "You're already a member of this group",
+    cannotJoinGroup: "Cannot join group",
+    requestSentCommunity: "Request sent",
+    adminWillEvaluate: "The group admin will evaluate your request",
+    subscribedGroup: "Joined!",
+    joinedGroupDesc: "You joined the group",
+    noOtherGroups: "No other groups to join.",
+    noGroupsAvailable: "No groups available.",
+    createAGroup: "Create a group",
+
+    // DiscoverFreedivers
+    followed: "Following",
+    follow: "Follow",
+    cannotCompleteAction: "Cannot complete action",
+
+    // Misc
+    communityGroupType: "Spontaneous group",
+    schoolClubGroupType: "School/Club",
    },
 };
 
@@ -815,4 +1501,63 @@ export const t = (key: TranslationKey): string => {
 
 export const useTranslation = () => {
   return { t, language: currentLanguage, setLanguage, getLanguage };
+};
+
+// Helper functions for translated arrays
+export const getSessionTypes = () => [
+  { value: "sea_trip", label: t("seaTrip") },
+  { value: "pool_session", label: t("poolSession") },
+  { value: "deep_pool_session", label: t("deepPoolSession") },
+  { value: "lake_trip", label: t("lakeTrip") },
+  { value: "training", label: t("trainingSession") },
+  { value: "spearfishing", label: t("spearfishing") },
+];
+
+export const getLevels = () => [
+  { value: "all_levels", label: t("allLevels") },
+  { value: "beginner", label: t("levelBeginner") },
+  { value: "intermediate", label: t("levelIntermediate") },
+  { value: "advanced", label: t("levelAdvanced") },
+];
+
+export const getEventTypes = () => [
+  { value: "stage", label: t("eventTypeStage") },
+  { value: "competition", label: t("eventTypeCompetition") },
+  { value: "trip", label: t("eventTypeTrip") },
+];
+
+export const getCourseTypes = () => [
+  { value: "beginner", label: t("courseTypeBeginner") },
+  { value: "advanced", label: t("courseTypeAdvanced") },
+  { value: "instructor", label: t("courseTypeInstructor") },
+  { value: "specialty", label: t("courseTypeSpecialty") },
+];
+
+export const getEnvironmentTypes = () => [
+  { value: "sea", label: t("sea") },
+  { value: "pool", label: t("pool") },
+  { value: "deep_pool", label: t("deepPoolSession") },
+  { value: "lake", label: t("lake") },
+];
+
+export const mapLevel = (level: string): string => {
+  switch (level) {
+    case "beginner": return t("levelBeginner");
+    case "intermediate": return t("levelIntermediate");
+    case "advanced": return t("levelAdvanced");
+    case "all_levels": return t("allLevels");
+    default: return level;
+  }
+};
+
+export const mapSessionType = (type: string): string => {
+  switch (type) {
+    case "sea_trip": return t("seaTrip");
+    case "pool_session": return t("poolSession");
+    case "deep_pool_session": return t("deepPoolSession");
+    case "lake_trip": return t("lakeTrip");
+    case "training": return t("trainingSession");
+    case "spearfishing": return t("spearfishing");
+    default: return type;
+  }
 };
