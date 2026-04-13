@@ -9,7 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass, MessageCircle } from "lucide-react";
+import { getOrCreateEventConversation } from "@/hooks/useConversations";
 
 interface EventScheduleItem {
   id: string;
@@ -180,6 +181,22 @@ const EventDetails = () => {
         {userStatus === "confirmed" && (
           <Button onClick={handleLeave} disabled={joining} variant="outline" className="flex-1 gap-2">
             <UserMinus className="w-4 h-4" /> Annulla iscrizione
+          </Button>
+        )}
+        {user && (userStatus === "confirmed" || user.id === event.creator_id) && (
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={async () => {
+              try {
+                const convId = await getOrCreateEventConversation(event.id, user.id);
+                navigate(`/messages/${convId}`);
+              } catch {
+                toast({ title: "Errore", description: "Impossibile aprire la chat", variant: "destructive" });
+              }
+            }}
+          >
+            <MessageCircle className="w-4 h-4" /> Chat
           </Button>
         )}
       </div>

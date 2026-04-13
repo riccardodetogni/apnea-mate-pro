@@ -4,8 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface ConversationListItem {
   id: string;
-  type: "session" | "group" | "dm";
+  type: "session" | "group" | "dm" | "event";
   session_id: string | null;
+  event_id: string | null;
   group_id: string | null;
   created_at: string;
   // Derived
@@ -94,6 +95,14 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
       name = group?.name || "Gruppo";
       avatarInitial = name.charAt(0).toUpperCase();
       avatarUrl = group?.avatar_url || null;
+    } else if (conv.type === "event" && conv.event_id) {
+      const { data: evt } = await supabase
+        .from("events")
+        .select("title")
+        .eq("id", conv.event_id)
+        .single();
+      name = evt?.title || "Evento";
+      avatarInitial = name.charAt(0).toUpperCase();
     } else if (conv.type === "dm") {
       // Find the other participant
       const { data: otherParticipants } = await supabase
@@ -116,8 +125,9 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
 
     results.push({
       id: conv.id,
-      type: conv.type as "session" | "group" | "dm",
+      type: conv.type as "session" | "group" | "dm" | "event",
       session_id: conv.session_id,
+      event_id: conv.event_id,
       group_id: conv.group_id,
       created_at: conv.created_at,
       name,
@@ -275,6 +285,45 @@ export const getOrCreateDMConversation = async (currentUserId: string, otherUser
     { conversation_id: convId, user_id: currentUserId },
     { conversation_id: convId, user_id: otherUserId },
   ]);
+
+  return convId;
+};
+
+// Helper: get or create a conversation for an event
+export const getOrCreateEventConversation = async (eventId: string, userId: string): Promise<string> => {
+  const { data: existingId } = await supabase.rpc('find_conversation_by_event', { _event_id: eventId });
+
+  if (existingId) {
+    await supabase.from("conversation_participants").insert({
+      conversation_id: existingId,
+      user_id: userId,
+    });
+    return existingId;
+  }
+
+  const convId = crypto.randomUUID();
+
+  const { error } = await supabase
+    .from("conversations")
+    .insert({ id: convId, type: "event", event_id: eventId });
+
+  if (error) {
+    const { data: retryId } = await supabase.rpc('find_conversation_by_event', { _event_id: eventId });
+
+    if (retryId) {
+      await supabase.from("conversation_participants").insert({
+        conversation_id: retryId,
+        user_id: userId,
+      });
+      return retryId;
+    }
+    throw new Error("Failed to create event conversation");
+  }
+
+  await supabase.from("conversation_participants").insert({
+    conversation_id: convId,
+    user_id: userId,
+  });
 
   return convId;
 };

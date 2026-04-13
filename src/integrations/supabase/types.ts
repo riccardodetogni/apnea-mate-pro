@@ -94,6 +94,7 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string
+          event_id: string | null
           group_id: string | null
           id: string
           session_id: string | null
@@ -101,6 +102,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          event_id?: string | null
           group_id?: string | null
           id?: string
           session_id?: string | null
@@ -108,12 +110,20 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          event_id?: string | null
           group_id?: string | null
           id?: string
           session_id?: string | null
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_group_id_fkey"
             columns: ["group_id"]
@@ -1086,6 +1096,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      find_conversation_by_event: {
+        Args: { _event_id: string }
+        Returns: string
       }
       find_conversation_by_group: {
         Args: { _group_id: string }
