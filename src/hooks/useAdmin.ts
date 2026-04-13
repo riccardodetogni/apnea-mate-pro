@@ -8,6 +8,7 @@ export interface AdminGroup {
   location: string;
   group_type: string;
   verified: boolean;
+  verification_requested: boolean;
   created_at: string;
   member_count: number;
 }
@@ -51,7 +52,7 @@ export const useAdmin = () => {
 
     const { data: groups, error } = await supabase
       .from("groups")
-      .select("id, name, location, group_type, verified, created_at")
+      .select("id, name, location, group_type, verified, verification_requested, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {

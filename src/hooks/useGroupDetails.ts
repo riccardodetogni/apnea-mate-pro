@@ -38,6 +38,7 @@ export interface GroupDetails {
   requires_approval: boolean;
   group_type: string;
   verified: boolean;
+  verification_requested: boolean;
   created_by: string;
   created_at: string;
   tags: string[];
