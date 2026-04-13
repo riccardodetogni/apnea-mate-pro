@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { t } from "@/lib/i18n";
-import { Calendar, Users, BarChart3, ChevronLeft } from "lucide-react";
+import { Calendar, Users, BarChart3, ChevronLeft, Ticket, GraduationCap } from "lucide-react";
 
 const createOptions = [
   { 
@@ -10,6 +10,20 @@ const createOptions = [
     label: "createSession",
     description: "Organizza un allenamento o uscita",
     iconClass: "bg-[hsl(185,57%,52%)]/20 text-[hsl(185,57%,52%)]",
+  },
+  { 
+    id: "event", 
+    icon: Ticket, 
+    label: "createEvent",
+    description: "Stage, gare o trip multi-giorno",
+    iconClass: "bg-purple-500/20 text-purple-400",
+  },
+  { 
+    id: "course", 
+    icon: GraduationCap, 
+    label: "createCourse",
+    description: "Corso di apnea per la tua scuola",
+    iconClass: "bg-emerald-500/20 text-emerald-400",
   },
   { 
     id: "group", 
@@ -34,6 +48,12 @@ const Create = () => {
     switch (id) {
       case "session":
         navigate("/create/session");
+        break;
+      case "event":
+        navigate("/create/event");
+        break;
+      case "course":
+        navigate("/create/course");
         break;
       case "group":
         navigate("/create/group");
