@@ -21,7 +21,8 @@ import {
   MoreVertical,
   UserMinus,
   Save,
-  Settings
+  Settings,
+  BadgeCheck,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -56,6 +57,7 @@ const GroupManage = () => {
   const [groupDescription, setGroupDescription] = useState(group?.description || "");
   const [groupAvatarUrl, setGroupAvatarUrl] = useState(group?.avatar_url || null);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [requestingVerification, setRequestingVerification] = useState(false);
 
   // Sync group settings when loaded
   useState(() => {
@@ -483,6 +485,27 @@ const GroupManage = () => {
                 )}
                 {t("saveSettings")}
               </Button>
+
+              {/* Request Verification for scuola_club */}
+              {group?.group_type === 'scuola_club' && !group?.verified && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2"
+                    disabled={group?.verification_requested || requestingVerification}
+                    onClick={handleRequestVerification}
+                  >
+                    {requestingVerification ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : group?.verification_requested ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <BadgeCheck className="w-4 h-4" />
+                    )}
+                    {group?.verification_requested ? t("verificationRequested") : t("requestVerification")}
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
