@@ -1,71 +1,35 @@
 
 
-# Fix Chat nelle Sessioni (e Gruppi)
+# Aggiungere annunci vocali a 1 min, 1:30, 2 min, 2:30 + fix visibilità timer
 
-## Problema principale
+## Problema 1: Timer non visibile all'avvio
+Scroll-to-top all'avvio del timer + nascondere BottomNav durante il training.
 
-La RLS policy sulla tabella `conversations` per SELECT richiede `is_conversation_participant(auth.uid(), id)`. Quando un utente clicca "Chat" per la prima volta:
-
-1. `getOrCreateSessionConversation` fa una SELECT per cercare la conversazione esistente
-2. La conversazione **esiste** (creata dal primo utente), ma la RLS **nasconde** il risultato perché l'utente corrente non è ancora un participant
-3. Il codice pensa che la conversazione non esista → tenta di crearne una nuova
-4. L'INSERT fallisce per il vincolo `conversations_unique_session`
-5. Il retry SELECT fallisce per lo stesso motivo RLS
-6. → Errore "Failed to create session conversation"
-
-Lo stesso problema affligge `getOrCreateGroupConversation`.
-
-## Soluzione
-
-Creare una funzione database `SECURITY DEFINER` che cerca la conversazione per `session_id` (o `group_id`) bypassando la RLS, e la chiama dal client tramite RPC.
+## Problema 2: Annunci vocali per fasi lunghe
+Attualmente gli annunci arrivano solo a 30, 20, 10, 5, 3, 2, 1 secondi dalla fine. Per fasi lunghe (es. 2 minuti di hold) servono annunci anche a 2:30, 2:00, 1:30, 1:00.
 
 ## Modifiche
 
-### 1. Migrazione database — funzione RPC `find_conversation_by_session`
+### 1. `src/hooks/useTrainingTimer.ts` — aggiungere threshold per minuti
+In `getCountdownThresholds`, per fasi > 60s aggiungere 150, 120, 90, 60 ai threshold esistenti:
+- `phaseDuration > 150` → `[150, 120, 90, 60, 30, 20, 10, 5, 3, 2, 1]`
+- `phaseDuration > 120` → `[120, 90, 60, 30, 20, 10, 5, 3, 2, 1]`
+- `phaseDuration > 90` → `[90, 60, 30, 20, 10, 5, 3, 2, 1]`
+- `phaseDuration > 60` → `[60, 30, 20, 10, 5, 3, 2, 1]`
+- Per quadratic: solo `[3, 2, 1]` (invariato)
 
-```sql
-CREATE OR REPLACE FUNCTION public.find_conversation_by_session(_session_id uuid)
-RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
-AS $$
-  SELECT id FROM conversations
-  WHERE session_id = _session_id AND type = 'session'
-  LIMIT 1;
-$$;
+### 2. `src/hooks/useTrainingAudio.ts` — aggiungere frasi per minuti
+In `speakCountdown`, aggiungere casi per 150, 120, 90, 60:
+- 150 → "2 minuti e 30" / "2 minutes 30"
+- 120 → "2 minuti" / "2 minutes"
+- 90 → "1 minuto e 30" / "1 minute 30"
+- 60 → "1 minuto" / "1 minute"
 
-CREATE OR REPLACE FUNCTION public.find_conversation_by_group(_group_id uuid)
-RETURNS uuid
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
-AS $$
-  SELECT id FROM conversations
-  WHERE group_id = _group_id AND type = 'group'
-  LIMIT 1;
-$$;
-```
+### 3. `src/components/training/TrainingTimer.tsx` — scroll to top
+Aggiungere `window.scrollTo(0, 0)` nel useEffect di auto-start.
 
-### 2. `src/hooks/useConversations.ts`
+### 4. `src/pages/Training.tsx` + `src/components/layout/AppLayout.tsx` — nascondere BottomNav
+Passare prop `hideNav` ad AppLayout quando si è nella schermata timer.
 
-Modificare `getOrCreateSessionConversation`:
-- Sostituire la SELECT diretta con `supabase.rpc('find_conversation_by_session', { _session_id: sessionId })`
-- Se ritorna un ID, fare upsert del participant corrente e ritornare l'ID
-- Se ritorna null, creare conversazione + participant
-- Stessa cosa nel retry dopo errore INSERT
-
-Modificare `getOrCreateGroupConversation`:
-- Stessa logica con `supabase.rpc('find_conversation_by_group', { _group_id: groupId })`
-
-### 3. `src/pages/SessionDetails.tsx` — pulizia
-
-- Nella onClick del bottone Chat (riga 463-472), passare `user!.id` come secondo parametro invece di `session.creator_id`, dato che la funzione helper già gestisce l'upsert del participant
-- Rimuovere il secondo upsert duplicato (righe 467-470) che è già fatto dentro la helper function
-
-## File coinvolti
-- 1 migrazione SQL (2 funzioni)
-- `src/hooks/useConversations.ts` — usare RPC invece di SELECT diretta
-- `src/pages/SessionDetails.tsx` — pulizia chiamata
-
-## Note tecniche
-- Le funzioni SECURITY DEFINER bypassano la RLS, quindi qualsiasi utente autenticato può trovare una conversazione per session/group ID
-- Questo è sicuro perché l'utente viene comunque aggiunto come participant prima di poter leggere i messaggi (la RLS sui messages resta invariata)
-- Nessun impatto sulle DM (che usano un approccio diverso basato sui participant dell'utente corrente)
+4 file, modifiche semplici.
 
