@@ -49,7 +49,8 @@ const GroupManage = () => {
     rejectMember, 
     promoteMember, 
     removeMember,
-    updateGroup
+    updateGroup,
+    refetch,
   } = useGroupDetails(id);
 
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
