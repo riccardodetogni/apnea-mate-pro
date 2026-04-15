@@ -1523,7 +1523,6 @@ export const getSessionTypes = () => [
   { value: "pool_session", label: t("poolSession") },
   { value: "deep_pool_session", label: t("deepPoolSession") },
   { value: "lake_trip", label: t("lakeTrip") },
-  { value: "training", label: t("trainingSession") },
   { value: "spearfishing", label: t("spearfishing") },
 ];
 
@@ -1570,7 +1569,6 @@ export const mapSessionType = (type: string): string => {
     case "pool_session": return t("poolSession");
     case "deep_pool_session": return t("deepPoolSession");
     case "lake_trip": return t("lakeTrip");
-    case "training": return t("trainingSession");
     case "spearfishing": return t("spearfishing");
     default: return type;
   }

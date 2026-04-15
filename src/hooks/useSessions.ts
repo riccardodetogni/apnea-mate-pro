@@ -104,7 +104,6 @@ const mapSessionType = (type: string): string => {
     case "pool_session": return "Piscina";
     case "deep_pool_session": return "Piscina profonda";
     case "lake_trip": return "Uscita lago";
-    case "training": return "Allenamento";
     case "spearfishing": return "Pesca subacquea";
     default: return type;
   }
