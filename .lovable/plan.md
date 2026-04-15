@@ -1,16 +1,17 @@
 
 
-# Fix bottom navigation overflow on small screens
+# Fix group membership UI not updating after join/leave
 
 ## Problem
-The bottom nav uses `gap-10` (40px) between 5 items with `px-5` padding. On iPhone 13 (390px wide), this totals more than the screen width, cutting off the Training tab.
+After joining or leaving a group, the UI doesn't reflect the change until manual page reload. The `joinGroup` and `leaveGroup` functions in `useGroups.ts` insert/delete from the database but don't invalidate the React Query cache afterward. The realtime subscription exists but can be delayed.
 
 ## Solution
-Replace the fixed `gap-10` with responsive spacing that adapts to screen width.
+Add `queryClient.invalidateQueries` calls after successful join/leave operations in `useGroups.ts`. Same fix needed in `useGroupDetails.ts` (already does `fetchGroupDetails()` — looks fine there).
 
-### `src/index.css` — `.bottom-nav-inner`
-- Change `gap-10` to `gap-5` (20px) — sufficient spacing for 5 items on 375px+ screens
-- Alternatively use `justify-between` with a `min-w` or `w-full max-w-md` approach
+### `src/hooks/useGroups.ts`
+- After successful `joinGroup` (no error): call `queryClient.invalidateQueries({ queryKey: ["groups"] })`
+- After successful `leaveGroup` (no error): call `queryClient.invalidateQueries({ queryKey: ["groups"] })`
+- This ensures the groups list immediately re-fetches with updated membership status
 
-The simplest fix: reduce gap from `gap-10` to `gap-6` and add `max-w-[calc(100vw-32px)]` to prevent overflow.
+Single-file, two-line fix.
 
