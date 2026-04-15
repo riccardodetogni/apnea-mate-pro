@@ -222,7 +222,8 @@ const Auth = () => {
   // Email Confirmation Sent View
   if (confirmationSent) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12 relative">
+        <LanguageToggle />
         <div className="w-full max-w-[380px] animate-fade-in text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
             <Mail className="w-8 h-8 text-primary" />
@@ -261,7 +262,7 @@ const Auth = () => {
   if (mode === "forgotPassword") {
     if (resetEmailSent) {
       return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12 relative">
           <div className="w-full max-w-[380px] animate-fade-in text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-primary" />
@@ -290,7 +291,8 @@ const Auth = () => {
     }
 
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12 relative">
+        <LanguageToggle />
         <div className="w-full max-w-[380px] animate-fade-in">
           {/* Logo and title */}
           <div className="text-center mb-8">
@@ -353,7 +355,8 @@ const Auth = () => {
 
   // Login/Register View
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 py-12 relative">
+      <LanguageToggle />
       <div className="w-full max-w-[380px] animate-fade-in">
         {/* Logo and title */}
         <div className="text-center mb-8">
