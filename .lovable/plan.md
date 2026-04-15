@@ -1,16 +1,16 @@
 
 
-# Add language toggle to Auth page
+# Fix bottom navigation overflow on small screens
 
-Add a small IT/EN toggle button to the login/registration page so users can switch language before signing up.
+## Problem
+The bottom nav uses `gap-10` (40px) between 5 items with `px-5` padding. On iPhone 13 (390px wide), this totals more than the screen width, cutting off the Training tab.
 
-## Changes
+## Solution
+Replace the fixed `gap-10` with responsive spacing that adapts to screen width.
 
-### `src/pages/Auth.tsx`
-- Import `useLanguage` from `@/contexts/LanguageContext`
-- Add a small `IT | EN` toggle button in the top-right corner of the page (absolute positioned)
-- Toggle calls `setLanguage("it")` or `setLanguage("en")`
-- Style: subtle, pill-shaped, matching existing theme
+### `src/index.css` — `.bottom-nav-inner`
+- Change `gap-10` to `gap-5` (20px) — sufficient spacing for 5 items on 375px+ screens
+- Alternatively use `justify-between` with a `min-w` or `w-full max-w-md` approach
 
-This is a single-file change. All `t()` calls in Auth.tsx already exist, so switching language will immediately update all visible strings.
+The simplest fix: reduce gap from `gap-10` to `gap-6` and add `max-w-[calc(100vw-32px)]` to prevent overflow.
 
