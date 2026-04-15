@@ -146,6 +146,7 @@ export const useGroups = () => {
       .from("group_members")
       .insert({ group_id: groupId, user_id: user.id, role: "member", status });
 
+    if (!error) queryClient.invalidateQueries({ queryKey: ["groups"] });
     return { error, isPending: status === 'pending' };
   };
 
