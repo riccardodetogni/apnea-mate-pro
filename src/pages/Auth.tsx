@@ -5,11 +5,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Waves, Mail, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type AuthMode = "login" | "register" | "forgotPassword";
+
+const LanguageToggle = () => {
+  const { language, setLanguage } = useLanguage();
+  return (
+    <div className="absolute top-4 right-4 z-10">
+      <button
+        type="button"
+        onClick={() => setLanguage(language === "it" ? "en" : "it")}
+        className="flex items-center gap-1 rounded-full border border-border bg-card/80 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <span className={language === "it" ? "text-foreground font-semibold" : ""}>IT</span>
+        <span className="text-border">|</span>
+        <span className={language === "en" ? "text-foreground font-semibold" : ""}>EN</span>
+      </button>
+    </div>
+  );
+};
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
