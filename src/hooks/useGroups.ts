@@ -157,6 +157,7 @@ export const useGroups = () => {
       .delete()
       .eq("group_id", groupId)
       .eq("user_id", user.id);
+    if (!error) queryClient.invalidateQueries({ queryKey: ["groups"] });
     return { error };
   };
 
