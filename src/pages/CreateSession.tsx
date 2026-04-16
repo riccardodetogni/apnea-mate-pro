@@ -317,7 +317,7 @@ const CreateSession = () => {
                 selectedSpotId={form.spot_id}
                 onSelect={(spotId) => setForm({ ...form, spot_id: spotId })}
                 loading={spotsLoading}
-                onSpotCreated={refetchSpots}
+                onSpotCreated={() => {}}
               />
             </div>
 
