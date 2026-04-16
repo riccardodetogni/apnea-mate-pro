@@ -50,7 +50,7 @@ const CreateSession = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isCertified, isInstructor, loading: profileLoading } = useProfile();
-  const { spots, loading: spotsLoading, refetch: refetchSpots } = useSpots();
+  const { spots, loading: spotsLoading } = useSpots();
   const { groups: myGroups, loading: groupsLoading } = useMyGroups();
   const { toast } = useToast();
 

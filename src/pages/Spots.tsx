@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/layout/BottomNav";
-import SpotFiltersSheet from "@/components/spots/SpotFiltersSheet";
+import SpotFiltersSheet, { SpotFilters } from "@/components/spots/SpotFiltersSheet";
 import SpotBubble from "@/components/spots/SpotBubble";
-import { useSpots } from "@/hooks/useSpots";
+import { useSpots, SpotSession } from "@/hooks/useSpots";
 import { useSpotFavorites } from "@/hooks/useSpotFavorites";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Search, SlidersHorizontal, Heart } from "lucide-react";
@@ -12,51 +12,63 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import SpotMap from "@/components/spots/SpotMap";
 
-type QuickFilterType = "all" | "sea" | "lake" | "pool" | "deep_pool" | "favorites";
+type QuickFilterType = "all" | "favorites";
 
-const initialFilters = {
-  waterTypes: [] as string[],
-  depthRanges: [] as string[],
-  accessTypes: [] as string[],
-  safetyFeatures: [] as string[],
-  amenities: [] as string[],
+const initialFilters: SpotFilters = {
+  activities: [],
+  levels: [],
+  dateFrom: undefined,
+  dateTo: undefined,
 };
 
 const filterOptions: { id: QuickFilterType; label: string; icon?: React.ReactNode }[] = [
   { id: "all", label: "filterAll" },
-  { id: "sea", label: "filterSea" },
-  { id: "lake", label: "filterLake" },
-  { id: "pool", label: "filterPool" },
-  { id: "deep_pool", label: "filterDeepPool" },
   { id: "favorites", label: "filterFavorites", icon: <Heart className="w-3.5 h-3.5" /> },
 ];
+
+function sessionsMatchFilters(
+  sessions: SpotSession[] | undefined,
+  filters: SpotFilters
+): boolean {
+  if (!sessions || sessions.length === 0) return false;
+
+  return sessions.some((s) => {
+    const activityMatch =
+      filters.activities.length === 0 || filters.activities.includes(s.session_type);
+    const levelMatch =
+      filters.levels.length === 0 || filters.levels.includes(s.level);
+    const dateMatch =
+      (!filters.dateFrom || s.date_time >= filters.dateFrom) &&
+      (!filters.dateTo || s.date_time <= filters.dateTo);
+    return activityMatch && levelMatch && dateMatch;
+  });
+}
+
+const hasActiveFilters = (f: SpotFilters) =>
+  f.activities.length > 0 || f.levels.length > 0 || !!f.dateFrom || !!f.dateTo;
 
 const Spots = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { spots, loading, error } = useSpots();
+  const { spots, spotSessions, loading, error } = useSpots();
   const { favoriteIds, toggleFavorite, isFavorite } = useSpotFavorites();
 
-  // State
   const [selectedSpotId, setSelectedSpotId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
   const [showFiltersSheet, setShowFiltersSheet] = useState(false);
-  const [advancedFilters, setAdvancedFilters] = useState(initialFilters);
+  const [advancedFilters, setAdvancedFilters] = useState<SpotFilters>(initialFilters);
 
-  // Filter spots
   const filteredSpots = useMemo(() => {
     let result = spots;
 
     if (quickFilter === "favorites") {
       result = result.filter((spot) => favoriteIds.includes(spot.id));
-    } else if (quickFilter !== "all") {
-      result = result.filter((spot) => spot.environment_type === quickFilter);
     }
 
-    if (quickFilter === "all" && advancedFilters.waterTypes.length > 0) {
+    if (hasActiveFilters(advancedFilters)) {
       result = result.filter((spot) =>
-        advancedFilters.waterTypes.includes(spot.environment_type)
+        sessionsMatchFilters(spotSessions[spot.id], advancedFilters)
       );
     }
 
@@ -70,15 +82,13 @@ const Spots = () => {
     }
 
     return result;
-  }, [spots, quickFilter, advancedFilters.waterTypes, searchQuery, favoriteIds]);
+  }, [spots, quickFilter, advancedFilters, searchQuery, favoriteIds, spotSessions]);
 
-  // Current selected spot
   const currentSpot = useMemo(() => {
     if (!selectedSpotId) return undefined;
     return filteredSpots.find((s) => s.id === selectedSpotId);
   }, [filteredSpots, selectedSpotId]);
 
-  // Handlers
   const handleSelectSpot = useCallback((spotId: string) => {
     setSelectedSpotId(spotId);
   }, []);
@@ -90,9 +100,6 @@ const Spots = () => {
   const handleQuickFilterChange = useCallback((filter: QuickFilterType) => {
     setQuickFilter(filter);
     setSelectedSpotId(undefined);
-    if (filter !== "all") {
-      setAdvancedFilters((prev) => ({ ...prev, waterTypes: [] }));
-    }
   }, []);
 
   const handleResetFilters = useCallback(() => {
@@ -100,10 +107,8 @@ const Spots = () => {
   }, []);
 
   const handleApplyFilters = useCallback(() => {
-    if (advancedFilters.waterTypes.length > 0) {
-      setQuickFilter("all");
-    }
-  }, [advancedFilters.waterTypes]);
+    // filters already applied via state
+  }, []);
 
   const handleToggleFavorite = useCallback(() => {
     if (!user) {
@@ -117,7 +122,6 @@ const Spots = () => {
     }
   }, [currentSpot, user, toggleFavorite, isFavorite]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -126,7 +130,6 @@ const Spots = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-background">
@@ -143,7 +146,6 @@ const Spots = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col">
-      {/* Map fills everything */}
       <div className="flex-1 relative">
         <SpotMap
           spots={filteredSpots}
@@ -153,10 +155,8 @@ const Spots = () => {
           className="h-full w-full"
         />
 
-        {/* Floating search + filters overlay */}
         <div className="absolute top-0 left-0 right-0 z-[1000] p-4 pt-[max(1rem,env(safe-area-inset-top))] pointer-events-none">
           <div className="pointer-events-auto max-w-[430px] mx-auto space-y-2">
-            {/* Search bar */}
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
@@ -170,13 +170,15 @@ const Spots = () => {
               </div>
               <button
                 onClick={() => setShowFiltersSheet(true)}
-                className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-md border shadow-sm flex items-center justify-center hover:bg-white transition-colors"
+                className="relative w-11 h-11 rounded-full bg-white/90 backdrop-blur-md border shadow-sm flex items-center justify-center hover:bg-white transition-colors"
               >
                 <SlidersHorizontal className="w-4 h-4 text-foreground" />
+                {hasActiveFilters(advancedFilters) && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-primary rounded-full" />
+                )}
               </button>
             </div>
 
-            {/* Filter chips */}
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {filterOptions.map((filter) => {
                 const isActive = quickFilter === filter.id;
@@ -200,10 +202,8 @@ const Spots = () => {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Spot bubble overlay - outside map container for z-index */}
       {currentSpot && (
         <SpotBubble
           spot={currentSpot}
@@ -215,7 +215,6 @@ const Spots = () => {
 
       <BottomNav />
 
-      {/* Filters sheet */}
       <SpotFiltersSheet
         open={showFiltersSheet}
         onOpenChange={setShowFiltersSheet}
