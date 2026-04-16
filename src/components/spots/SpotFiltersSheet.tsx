@@ -1,4 +1,9 @@
+import { useState } from "react";
+import { format, startOfDay, endOfDay, addDays, endOfWeek, startOfWeek } from "date-fns";
+import { it } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { getSessionTypes, getLevels } from "@/lib/i18n";
 import {
   Sheet,
   SheetContent,
@@ -7,67 +12,44 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+export interface SpotFilters {
+  activities: string[];
+  levels: string[];
+  dateFrom?: string;
+  dateTo?: string;
+}
 
 interface SpotFiltersSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  filters: {
-    waterTypes: string[];
-    depthRanges: string[];
-    accessTypes: string[];
-    safetyFeatures: string[];
-    amenities: string[];
-  };
-  onFiltersChange: (filters: SpotFiltersSheetProps["filters"]) => void;
+  filters: SpotFilters;
+  onFiltersChange: (filters: SpotFilters) => void;
   onReset: () => void;
   onApply: () => void;
 }
 
-const waterTypeOptions = [
-  { id: "sea", label: "sea" },
-  { id: "lake", label: "lake" },
-  { id: "pool", label: "pool" },
-  { id: "deep_pool", label: "deepPool" },
-];
+type DateQuick = "all" | "today" | "tomorrow" | "thisWeek";
 
-const depthOptions = [
-  { id: "0-20", label: "depth0to20" },
-  { id: "20-40", label: "depth20to40" },
-  { id: "40+", label: "depth40plus" },
-];
-
-const accessOptions = [
-  { id: "easy", label: "accessEasy" },
-  { id: "boat", label: "accessBoatOnly" },
-];
-
-const safetyOptions = [
-  { id: "buoy", label: "buoyPresent" },
-  { id: "staff", label: "safetyStaff" },
-];
-
-const amenityOptions = [
-  { id: "parking", label: "parkingNearby" },
-  { id: "showers", label: "showersAvailable" },
-];
-
-const FilterSection = ({
+const ChipSelect = ({
   title,
-  subtitle,
   options,
   selected,
   onChange,
-  disabled = false,
 }: {
   title: string;
-  subtitle?: string;
-  options: { id: string; label: string }[];
+  options: { value: string; label: string }[];
   selected: string[];
   onChange: (values: string[]) => void;
-  disabled?: boolean;
 }) => {
-  const toggleOption = (id: string) => {
+  const toggle = (id: string) => {
     if (selected.includes(id)) {
       onChange(selected.filter((s) => s !== id));
     } else {
@@ -76,39 +58,27 @@ const FilterSection = ({
   };
 
   return (
-    <div className={`space-y-2 ${disabled ? "opacity-50" : ""}`}>
-      <div>
-        <h4 className="font-medium text-foreground text-sm">{title}</h4>
-        {subtitle && (
-          <p className="text-xs text-muted">{subtitle}</p>
-        )}
-      </div>
+    <div className="space-y-2">
+      <h4 className="font-medium text-foreground text-sm">{title}</h4>
       <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const isSelected = selected.includes(option.id);
+        {options.map((opt) => {
+          const isSelected = selected.includes(opt.value);
           return (
             <button
-              key={option.id}
-              onClick={() => !disabled && toggleOption(option.id)}
-              disabled={disabled}
-              className={`
-                px-3 py-1.5 rounded-full text-sm border transition-colors
-                ${disabled
-                  ? "bg-muted/20 text-muted border-border/50 cursor-not-allowed"
-                  : isSelected
-                    ? "bg-card text-card-foreground border-card"
-                    : "bg-secondary text-secondary-foreground border-border hover:border-card/50 cursor-pointer"
-                }
-              `}
+              key={opt.value}
+              onClick={() => toggle(opt.value)}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-sm border transition-colors",
+                isSelected
+                  ? "bg-card text-card-foreground border-card"
+                  : "bg-secondary text-secondary-foreground border-border hover:border-card/50 cursor-pointer"
+              )}
             >
-              {t(option.label as any)}
+              {opt.label}
             </button>
           );
         })}
       </div>
-      {disabled && (
-        <p className="text-xs text-muted italic">{t("comingSoon")}</p>
-      )}
     </div>
   );
 };
@@ -121,14 +91,37 @@ const SpotFiltersSheet = ({
   onReset,
   onApply,
 }: SpotFiltersSheetProps) => {
-  const updateFilter = (key: keyof typeof filters, values: string[]) => {
-    onFiltersChange({ ...filters, [key]: values });
+  const [dateQuick, setDateQuick] = useState<DateQuick>("all");
+
+  const sessionTypes = getSessionTypes();
+  const levels = getLevels();
+
+  const updateFilter = <K extends keyof SpotFilters>(key: K, value: SpotFilters[K]) => {
+    onFiltersChange({ ...filters, [key]: value });
   };
+
+  const handleDateQuick = (q: DateQuick) => {
+    setDateQuick(q);
+    const now = new Date();
+    if (q === "all") {
+      updateFilter("dateFrom", undefined);
+      onFiltersChange({ ...filters, dateFrom: undefined, dateTo: undefined });
+    } else if (q === "today") {
+      onFiltersChange({ ...filters, dateFrom: startOfDay(now).toISOString(), dateTo: endOfDay(now).toISOString() });
+    } else if (q === "tomorrow") {
+      const tom = addDays(now, 1);
+      onFiltersChange({ ...filters, dateFrom: startOfDay(tom).toISOString(), dateTo: endOfDay(tom).toISOString() });
+    } else if (q === "thisWeek") {
+      onFiltersChange({ ...filters, dateFrom: startOfDay(now).toISOString(), dateTo: endOfWeek(now, { weekStartsOn: 1 }).toISOString() });
+    }
+  };
+
+  const dateFromDate = filters.dateFrom ? new Date(filters.dateFrom) : undefined;
+  const dateToDate = filters.dateTo ? new Date(filters.dateTo) : undefined;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-[24px] max-h-[80vh] overflow-y-auto">
-        {/* Handle bar */}
         <div className="w-12 h-1.5 bg-muted/30 rounded-full mx-auto mb-4" />
 
         <SheetHeader className="text-left mb-6">
@@ -139,51 +132,113 @@ const SpotFiltersSheet = ({
         </SheetHeader>
 
         <div className="space-y-6">
-          {/* Water Type - Functional */}
-          <FilterSection
-            title={t("waterType")}
-            subtitle={t("waterTypeHelp")}
-            options={waterTypeOptions}
-            selected={filters.waterTypes}
-            onChange={(values) => updateFilter("waterTypes", values)}
+          {/* Activity */}
+          <ChipSelect
+            title={t("filterActivity")}
+            options={sessionTypes}
+            selected={filters.activities}
+            onChange={(v) => updateFilter("activities", v)}
           />
 
-          {/* Max Depth - Coming Soon */}
-          <FilterSection
-            title={t("maxDepth")}
-            subtitle={t("maxDepthHelp")}
-            options={depthOptions}
-            selected={filters.depthRanges}
-            onChange={(values) => updateFilter("depthRanges", values)}
-            disabled
+          {/* Level */}
+          <ChipSelect
+            title={t("filterLevel")}
+            options={levels}
+            selected={filters.levels}
+            onChange={(v) => updateFilter("levels", v)}
           />
 
-          {/* Access Type - Coming Soon */}
-          <FilterSection
-            title={t("accessType")}
-            options={accessOptions}
-            selected={filters.accessTypes}
-            onChange={(values) => updateFilter("accessTypes", values)}
-            disabled
-          />
+          {/* Date */}
+          <div className="space-y-2">
+            <h4 className="font-medium text-foreground text-sm">{t("filterDate")}</h4>
+            {/* Quick chips */}
+            <div className="flex flex-wrap gap-2">
+              {([
+                { id: "all" as DateQuick, label: t("filterAllDates") },
+                { id: "today" as DateQuick, label: t("filterToday") },
+                { id: "tomorrow" as DateQuick, label: t("filterTomorrow") },
+                { id: "thisWeek" as DateQuick, label: t("filterThisWeek") },
+              ]).map((chip) => (
+                <button
+                  key={chip.id}
+                  onClick={() => handleDateQuick(chip.id)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-sm border transition-colors",
+                    dateQuick === chip.id
+                      ? "bg-card text-card-foreground border-card"
+                      : "bg-secondary text-secondary-foreground border-border hover:border-card/50 cursor-pointer"
+                  )}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
 
-          {/* Safety - Coming Soon */}
-          <FilterSection
-            title={t("safety")}
-            options={safetyOptions}
-            selected={filters.safetyFeatures}
-            onChange={(values) => updateFilter("safetyFeatures", values)}
-            disabled
-          />
+            {/* From/To pickers */}
+            <div className="flex gap-3 mt-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "flex-1 justify-start text-left font-normal text-sm h-10",
+                      !dateFromDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFromDate ? format(dateFromDate, "dd MMM", { locale: it }) : t("dateFrom")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateFromDate}
+                    onSelect={(d) => {
+                      setDateQuick("all");
+                      onFiltersChange({
+                        ...filters,
+                        dateFrom: d ? startOfDay(d).toISOString() : undefined,
+                      });
+                    }}
+                    disabled={(d) => d < startOfDay(new Date())}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
 
-          {/* Amenities - Coming Soon */}
-          <FilterSection
-            title={t("amenities")}
-            options={amenityOptions}
-            selected={filters.amenities}
-            onChange={(values) => updateFilter("amenities", values)}
-            disabled
-          />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "flex-1 justify-start text-left font-normal text-sm h-10",
+                      !dateToDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateToDate ? format(dateToDate, "dd MMM", { locale: it }) : t("dateTo")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dateToDate}
+                    onSelect={(d) => {
+                      setDateQuick("all");
+                      onFiltersChange({
+                        ...filters,
+                        dateTo: d ? endOfDay(d).toISOString() : undefined,
+                      });
+                    }}
+                    disabled={(d) => d < startOfDay(dateFromDate || new Date())}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
         </div>
 
         {/* Action buttons */}
@@ -191,7 +246,10 @@ const SpotFiltersSheet = ({
           <Button
             variant="outline"
             className="flex-1 rounded-full"
-            onClick={onReset}
+            onClick={() => {
+              setDateQuick("all");
+              onReset();
+            }}
           >
             {t("resetFilters")}
           </Button>
