@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { MapPin, Search, Map, List, Plus } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +35,7 @@ const SpotSelector = ({
   loading = false,
   onSpotCreated,
 }: SpotSelectorProps) => {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [showCreator, setShowCreator] = useState(false);
@@ -60,7 +62,10 @@ const SpotSelector = ({
     setShowMap(false);
   };
 
-  const handleSpotCreated = (spotId: string) => {
+  const handleSpotCreated = async (spotId: string) => {
+    // Refresh the spots cache so the newly created spot appears in the list
+    // and the selector can display its name/location immediately.
+    await queryClient.invalidateQueries({ queryKey: ["spots"] });
     onSelect(spotId);
     setShowCreator(false);
     onSpotCreated?.();
