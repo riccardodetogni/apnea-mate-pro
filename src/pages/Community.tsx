@@ -41,6 +41,10 @@ const Community = () => {
     getDistanceKm,
   } = useCommunityContext();
 
+  const { canCreateEventsOrCourses } = useVerifiedGroups();
+  const { isAdmin } = useProfile();
+  const canCreateEvents = canCreateEventsOrCourses || isAdmin;
+
   // Data hooks
   const { 
     sessions, 
