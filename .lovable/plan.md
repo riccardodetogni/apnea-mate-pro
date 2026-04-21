@@ -1,27 +1,33 @@
 
 
-# Hide "Create event/course" CTAs from non-eligible users
+# Auto-select & auto-refresh new spot in Create Session
 
 ## Problem
-On the Community page, when the **Upcoming Events** or **Available Courses** sections are empty, the `EmptyCard` shows a "Create event" / "Create course" button to **every user** — even regular (non-certified) users without a verified group, who are not allowed to create events or courses.
+When creating a new spot from inside the spot selector during session creation:
+1. The new spot does not appear in the spot list (cached) — user must refresh the page to see it.
+2. Even though the spot ID is technically set on the form, the selector button still shows "Seleziona uno spot" because the spot is missing from the local `spots` array — making the user click it again from the dropdown.
 
-The `Create` page (`/create`) already gates these options correctly using `useVerifiedGroups().canCreateEventsOrCourses || isAdmin`, but the Community empty-state cards bypass that check and link directly to `/create/event` and `/create/course`.
+## Root cause
+- `useSpots` (React Query, key `["spots"]`) caches the spots list. After `SpotCreator` inserts a new row into the `spots` table, nothing invalidates this query.
+- `SpotSelector` displays the selected spot by looking it up in the cached `spots` array. If the newly created spot isn't in that array, the button falls back to the empty placeholder.
+- In `CreateSession.tsx`, `SpotSelector`'s `onSpotCreated` prop is a no-op (`() => {}`), so no refresh is triggered.
 
 ## Fix
-In `src/pages/Community.tsx`:
 
-1. Import `useVerifiedGroups` and `useProfile` (for `isAdmin`).
-2. Compute `canCreateEventsOrCourses || isAdmin` once.
-3. For the **Upcoming Events** empty state (lines ~494–500):
-   - If user is eligible → keep current "Create event" CTA.
-   - If not eligible → show `EmptyCard` with just the message (`noEvents`) and **no action button** (omit `actionLabel` / `onAction`).
-4. Same treatment for the **Available Courses** empty state (lines ~525–531).
+**1. `src/components/spots/SpotSelector.tsx`** — invalidate the spots query right after creation, so the parent form sees the new spot in the list:
+- Import `useQueryClient` from `@tanstack/react-query`.
+- In `handleSpotCreated`, before calling `onSelect(spotId)` and `onSpotCreated?.()`, call `queryClient.invalidateQueries({ queryKey: ["spots"] })` and `await` it (or use `refetchQueries`) so the new spot is loaded into the cache before the selector re-renders.
+- This guarantees the selector immediately renders the new spot's name + location in its trigger button (no "phantom" empty state).
 
-## Verify EmptyCard supports no-action mode
-Quickly check `src/components/community/EmptyCard.tsx` to confirm `actionLabel`/`onAction` are optional. If they aren't, make them optional and render the button conditionally.
+**2. `src/pages/CreateSession.tsx`** — no functional changes needed; once the cache is refreshed and `form.spot_id` is already set by `onSelect`, the selector will display correctly. The empty `onSpotCreated={() => {}}` can stay or be removed (kept for backward-compat).
+
+**3. Apply the same fix to other forms using `SpotSelector`** for consistency:
+- `src/pages/EditSession.tsx` (verify it uses SpotSelector and apply same flow if needed).
+
+Since the fix lives in `SpotSelector` itself, all consumers (CreateSession, EditSession, and any future ones) benefit automatically — no per-page changes required.
 
 ## Out of scope
-- No changes to events/courses lists themselves.
-- No changes to the `/create` page (already gated correctly).
-- No backend / RLS changes — server-side creation is already restricted.
+- No DB / RLS changes (insertion already works).
+- No realtime subscription on spots — invalidation on the creating client is sufficient for this UX.
+- No changes to `SpotCreator`'s internal logic.
 
