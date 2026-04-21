@@ -1,48 +1,60 @@
 
 
-# Redesign Spot filters: Activity, Level, Date
+# Add "Years freediving" field to profile
 
 ## Overview
-Replace the current spot filters (water type, depth, access, safety, amenities) with three session-based filters: **Activity** (session type), **Level**, and **Date**. Spots will be shown only if they have upcoming sessions matching the selected filters.
+Add a new optional field `freediving_since` to user profiles capturing when the user started freediving. The UI displays it as "X anni di apnea" / "X years freediving" (computed from the year). Editable inline from the profile page, optional during onboarding, visible on public profiles.
 
-## Data flow
-The current approach filters spots by `environment_type` (a spot property). The new approach filters spots by their **associated sessions**. This requires fetching sessions data alongside spots.
+## Data model
+Add one column to `profiles`:
+- `freediving_since` — `integer` nullable — stores the **year** the user started (e.g., `2018`). Storing a year (not a duration) keeps the displayed value accurate over time without periodic updates.
 
-```text
-User selects filters → filter sessions by activity/level/date
-                      → get set of spot_ids from matching sessions
-                      → show only those spots on the map
-                      (if no filters active → show all spots)
+Validation: year between 1950 and current year (enforced client-side; no DB constraint to avoid mutability issues).
+
+## UI changes
+
+### 1. Profile page (`src/pages/Profile.tsx`)
+- Below the location/bio block, add a tappable row showing "🌊 X anni di apnea (dal YYYY)" or, if empty, an "+ Aggiungi anni di apnea" button (mirroring the location/bio pattern).
+- Tapping opens the edit dialog.
+
+### 2. Profile edit dialog (`src/components/profile/ProfileEditDialog.tsx`)
+- Add new field type `freediving_since` with a numeric year input (4 digits, min 1950, max current year).
+- Label: "Anno di inizio apnea" / "Year you started freediving".
+- Helper text under the input: live preview "X anni di esperienza" / "X years of experience".
+
+### 3. Onboarding (`src/pages/Onboarding.tsx`)
+- In Step 1 (profile info), add an optional "Da quanto fai apnea?" field: a year input next to bio, with placeholder "es. 2018".
+- Save it in `handleComplete` alongside other profile fields.
+
+### 4. Public profile (`src/pages/UserProfile.tsx` + `src/hooks/useUserProfile.ts`)
+- Fetch and display `freediving_since` as "X anni di apnea" near the bio/location.
+- Only show when value exists.
+
+### 5. Hooks
+- `src/hooks/useProfile.ts`: add `freediving_since` to the `Profile` interface and to the `updateProfile` allowed keys.
+- `src/hooks/useUserProfile.ts`: include `freediving_since` in the select and `UserProfileData` interface.
+
+### 6. Translations (`src/lib/i18n.ts`)
+Add IT/EN keys:
+- `freedivingSince` → "Da quanto fai apnea?" / "How long have you been freediving?"
+- `freedivingSinceYear` → "Anno di inizio" / "Starting year"
+- `yearsFreediving` → "{n} anni di apnea" / "{n} years freediving"
+- `addFreedivingYears` → "Aggiungi anni di apnea" / "Add freediving years"
+- `freedivingYearPlaceholder` → "es. 2018" / "e.g. 2018"
+
+## Helper utility
+Small helper `getYearsFreediving(year: number): number` → `new Date().getFullYear() - year`. Inlined where used (no separate file needed).
+
+## Database migration
+```sql
+ALTER TABLE public.profiles
+ADD COLUMN freediving_since integer;
 ```
 
-## Changes
+No RLS changes required — existing `profiles` policies cover the new column.
 
-### 1. `src/hooks/useSpots.ts` — Fetch sessions with spot data
-- Already fetches active sessions to mark `hasActiveSessions`
-- Expand session fetch to include `session_type`, `level`, `date_time` fields
-- Return sessions grouped by `spot_id` so filtering can happen client-side
-- New return: `spotSessions: Record<string, { session_type: string; level: string; date_time: string }[]>`
-
-### 2. `src/components/spots/SpotFiltersSheet.tsx` — Replace filter sections
-- Remove: waterTypes, depthRanges, accessTypes, safetyFeatures, amenities
-- Add three filter sections:
-  - **Attività**: chips for `sea_trip`, `pool_session`, `deep_pool_session`, `lake_trip`, `spearfishing` (using existing `getSessionTypes()`)
-  - **Livello**: chips for `all_levels`, `beginner`, `intermediate`, `advanced` (using existing `getLevels()`)
-  - **Data**: date picker (from/to) using Calendar popover, plus quick chips (Oggi, Domani, Questa settimana)
-- Update filter interface to `{ activities: string[]; levels: string[]; dateFrom?: string; dateTo?: string }`
-
-### 3. `src/pages/Spots.tsx` — Update filter logic and quick filter chips
-- Replace `initialFilters` shape to match new `{ activities, levels, dateFrom, dateTo }`
-- Update quick filter chips: keep `All`, `Favorites`; replace water-type chips with activity chips (`Mare`, `Piscina`, `Pesca sub.`)
-- In `filteredSpots` memo: when activity/level/date filters are active, filter spots by checking if any of their sessions match all active criteria
-- Pass `spotSessions` from `useSpots` into the filtering logic
-
-### 4. `src/lib/i18n.ts` — Add missing translation keys
-- Add Italian/English keys for: `filterSpearfishing`, `filterDate`, `filterLevel`, `filterActivity`, `dateFrom`, `dateTo`, `today`, `tomorrow`, `thisWeek`
-
-## Technical notes
-- The `spearfishing` session type already exists in `getSessionTypes()`
-- Sessions data is already partially fetched in `useSpots` — just needs more fields
-- Date filtering compares `date_time` against selected range
-- When no filters are active, all spots are shown (current behavior preserved)
+## Out of scope
+- No badges/levels based on years of experience.
+- No filtering/sorting by experience in discovery.
+- No backfill of existing users (column nullable, defaults to empty state).
 
