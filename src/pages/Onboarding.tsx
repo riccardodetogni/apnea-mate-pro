@@ -52,6 +52,7 @@ const Onboarding = () => {
   const [locationLoading, setLocationLoading] = useState(false);
   const [hasInsurance, setHasInsurance] = useState(false);
   const [insuranceProvider, setInsuranceProvider] = useState("");
+  const [freedivingSince, setFreedivingSince] = useState("");
   const [certDisclaimerAccepted, setCertDisclaimerAccepted] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
   
@@ -204,6 +205,7 @@ const Onboarding = () => {
           bio: bio.trim() || null,
           has_insurance: hasInsurance,
           insurance_provider: hasInsurance ? (insuranceProvider.trim() || null) : null,
+          freediving_since: freedivingSince.trim() ? parseInt(freedivingSince, 10) : null,
         })
         .eq("user_id", user.id);
 
@@ -340,6 +342,25 @@ const Onboarding = () => {
                   className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none h-24"
                 />
                 <p className="text-xs text-muted text-right">{bio.length}/300</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="freedivingSince">{t("freedivingSince")}</Label>
+                <Input
+                  id="freedivingSince"
+                  type="number"
+                  min={1950}
+                  max={new Date().getFullYear()}
+                  value={freedivingSince}
+                  onChange={(e) => setFreedivingSince(e.target.value)}
+                  placeholder={t("freedivingYearPlaceholder")}
+                  className="rounded-xl h-12"
+                />
+                {freedivingSince && !isNaN(parseInt(freedivingSince, 10)) && (
+                  <p className="text-xs text-muted">
+                    {Math.max(0, new Date().getFullYear() - parseInt(freedivingSince, 10))} {t("yearsFreediving")}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
