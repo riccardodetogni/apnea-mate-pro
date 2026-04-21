@@ -17,6 +17,8 @@ import { useEvents } from "@/hooks/useEvents";
 import { useCourses } from "@/hooks/useCourses";
 import { useSearch } from "@/hooks/useSearch";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
+import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
+import { useProfile } from "@/hooks/useProfile";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,6 +40,10 @@ const Community = () => {
     isWithinRadius,
     getDistanceKm,
   } = useCommunityContext();
+
+  const { canCreateEventsOrCourses } = useVerifiedGroups();
+  const { isAdmin } = useProfile();
+  const canCreateEvents = canCreateEventsOrCourses || isAdmin;
 
   // Data hooks
   const { 
@@ -494,8 +500,8 @@ const Community = () => {
           ) : (
             <EmptyCard
               message={t("noEvents")}
-              actionLabel={t("createEvent")}
-              onAction={() => navigate("/create/event")}
+              actionLabel={canCreateEvents ? t("createEvent") : undefined}
+              onAction={canCreateEvents ? () => navigate("/create/event") : undefined}
             />
           )}
         </div>
@@ -525,8 +531,8 @@ const Community = () => {
           ) : (
             <EmptyCard
               message={t("noCourses")}
-              actionLabel={t("createCourse")}
-              onAction={() => navigate("/create/course")}
+              actionLabel={canCreateEvents ? t("createCourse") : undefined}
+              onAction={canCreateEvents ? () => navigate("/create/course") : undefined}
             />
           )}
         </div>
