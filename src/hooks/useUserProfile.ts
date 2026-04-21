@@ -12,6 +12,7 @@ export interface UserProfileData {
   search_visibility: boolean;
   has_insurance: boolean;
   insurance_provider: string | null;
+  freediving_since: number | null;
 }
 
 export interface UserSession {
@@ -54,7 +55,7 @@ export const useUserProfile = (userId: string | undefined) => {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id, user_id, name, avatar_url, location, bio, search_visibility")
+        .select("id, user_id, name, avatar_url, location, bio, search_visibility, has_insurance, insurance_provider, freediving_since")
         .eq("user_id", userId)
         .maybeSingle();
 
