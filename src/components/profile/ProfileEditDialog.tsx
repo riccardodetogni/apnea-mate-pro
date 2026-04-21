@@ -86,6 +86,11 @@ export const ProfileEditDialog = ({
 
   const handleSave = async () => {
     if (config.required && !value.trim()) return;
+    if (field === "freediving_since" && value.trim()) {
+      const yr = parseInt(value, 10);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(yr) || yr < 1950 || yr > currentYear) return;
+    }
     setSaving(true);
     await onSave(value.trim());
     setSaving(false);
@@ -126,8 +131,18 @@ export const ProfileEditDialog = ({
               onChange={(e) => setValue(e.target.value)}
               placeholder={language === "it" ? config.placeholderIt : config.placeholderEn}
               maxLength={config.maxLength}
+              type={field === "freediving_since" ? "number" : "text"}
+              min={field === "freediving_since" ? 1950 : undefined}
+              max={field === "freediving_since" ? new Date().getFullYear() : undefined}
               autoFocus
             />
+          )}
+
+          {field === "freediving_since" && value && !isNaN(parseInt(value, 10)) && (
+            <p className="text-xs text-muted-foreground">
+              {Math.max(0, new Date().getFullYear() - parseInt(value, 10))}{" "}
+              {language === "it" ? "anni di esperienza" : "years of experience"}
+            </p>
           )}
 
           <div className="flex gap-2 pt-2">
