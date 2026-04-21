@@ -17,6 +17,8 @@ import { useEvents } from "@/hooks/useEvents";
 import { useCourses } from "@/hooks/useCourses";
 import { useSearch } from "@/hooks/useSearch";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
+import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
+import { useProfile } from "@/hooks/useProfile";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
