@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type FieldType = "name" | "bio" | "location" | "insurance_provider";
+type FieldType = "name" | "bio" | "location" | "insurance_provider" | "freediving_since";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -53,6 +53,14 @@ const fieldConfig = {
     placeholderIt: "es. DAN, FIAS, ecc.",
     placeholderEn: "e.g. DAN, FIAS, etc.",
     maxLength: 100,
+    required: false,
+  },
+  freediving_since: {
+    labelIt: "Anno di inizio apnea",
+    labelEn: "Year you started freediving",
+    placeholderIt: "es. 2018",
+    placeholderEn: "e.g. 2018",
+    maxLength: 4,
     required: false,
   },
 };
