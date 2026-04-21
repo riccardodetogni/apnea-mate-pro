@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useSessionDetails } from "@/hooks/useSessionDetails";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ const EditSession = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isInstructor } = useProfile();
   const { session, loading, error } = useSessionDetails(id);
   const { toast } = useToast();
 
@@ -165,7 +167,7 @@ const EditSession = () => {
           date_time: dateTime.toISOString(),
           duration_minutes: form.duration_minutes,
           max_participants: form.max_participants,
-          is_paid: form.is_paid,
+          is_paid: isInstructor ? form.is_paid : false,
         })
         .eq("id", id);
 
@@ -375,28 +377,30 @@ const EditSession = () => {
             </p>
           )}
 
-          {/* Paid session */}
-          <div className="flex items-center space-x-3 py-2">
-            <Checkbox
-              id="isPaid"
-              checked={form.is_paid}
-              onCheckedChange={(checked) => setForm({ ...form, is_paid: checked === true })}
-            />
-            <label
-              htmlFor="isPaid"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              {t("paidSession")}
-            </label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-[300px] text-xs">
-                {t("paidSessionDisclaimer")}
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          {/* Paid session - only for instructors and admins */}
+          {isInstructor && (
+            <div className="flex items-center space-x-3 py-2">
+              <Checkbox
+                id="isPaid"
+                checked={form.is_paid}
+                onCheckedChange={(checked) => setForm({ ...form, is_paid: checked === true })}
+              />
+              <label
+                htmlFor="isPaid"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {t("paidSession")}
+              </label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[300px] text-xs">
+                  {t("paidSessionDisclaimer")}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
 
           {/* Submit */}
           <Button type="submit" variant="primaryGradient" className="w-full" disabled={submitting}>

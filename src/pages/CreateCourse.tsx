@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { t, getCourseTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
+import { useProfile } from "@/hooks/useProfile";
 
 const CreateCourse = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const CreateCourse = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const { verifiedGroups, loading: groupsLoading } = useVerifiedGroups();
+  const { isInstructor } = useProfile();
 
   const courseTypes = getCourseTypes();
 
@@ -63,7 +65,7 @@ const CreateCourse = () => {
           end_date: form.end_date,
           location: form.location || null,
           max_participants: form.max_participants,
-          is_paid: form.is_paid,
+          is_paid: isInstructor ? form.is_paid : false,
           is_public: form.is_public,
           creator_id: user.id,
           contact_email: form.contact_email || null,
@@ -163,10 +165,12 @@ const CreateCourse = () => {
           <Input type="number" min={0} value={form.max_participants} onChange={e => setForm(f => ({ ...f, max_participants: parseInt(e.target.value) || 0 }))} />
         </div>
 
-        <div className="flex items-center justify-between">
-          <Label>{t("paidSession")}</Label>
-          <Switch checked={form.is_paid} onCheckedChange={v => setForm(f => ({ ...f, is_paid: v }))} />
-        </div>
+        {isInstructor && (
+          <div className="flex items-center justify-between">
+            <Label>{t("paidSession")}</Label>
+            <Switch checked={form.is_paid} onCheckedChange={v => setForm(f => ({ ...f, is_paid: v }))} />
+          </div>
+        )}
 
         {/* Contacts */}
         <div className="space-y-3 pt-2 border-t border-border">
