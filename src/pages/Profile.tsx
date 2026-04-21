@@ -53,7 +53,7 @@ const Profile = () => {
   const [certDialogOpen, setCertDialogOpen] = useState(false);
 
   // Inline edit state
-  const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | null>(null);
+  const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | "freediving_since" | null>(null);
   
 
 
@@ -73,6 +73,10 @@ const Profile = () => {
     else if (editField === "bio") update.bio = value || null;
     else if (editField === "location") update.location = value || null;
     else if (editField === "insurance_provider") update.insurance_provider = value || null;
+    else if (editField === "freediving_since") {
+      const yr = parseInt(value, 10);
+      update.freediving_since = !isNaN(yr) ? yr : null;
+    }
     await updateProfile(update);
   };
 
@@ -164,6 +168,27 @@ const Profile = () => {
             >
               <Plus className="w-3.5 h-3.5" />
               {language === "it" ? "Aggiungi bio" : "Add bio"}
+            </button>
+          )}
+
+          {/* Freediving since */}
+          {profile.freediving_since ? (
+            <button
+              onClick={() => setEditField("freediving_since")}
+              className="flex items-center justify-center gap-1 mt-2 group mx-auto"
+            >
+              <span className="text-sm text-[hsl(var(--card-muted))]">
+                🌊 {Math.max(0, new Date().getFullYear() - profile.freediving_since)} {t("yearsFreediving")} ({language === "it" ? "dal" : "since"} {profile.freediving_since})
+              </span>
+              <Pencil className="w-3 h-3 text-[hsl(var(--card-muted))] opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setEditField("freediving_since")}
+              className="flex items-center justify-center gap-1 mt-2 text-sm text-primary mx-auto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {t("addFreedivingYears")}
             </button>
           )}
 
@@ -323,7 +348,8 @@ const Profile = () => {
           editField === "name" ? profile.name :
           editField === "bio" ? (profile.bio || "") :
           editField === "location" ? (profile.location || "") :
-          editField === "insurance_provider" ? (profile.insurance_provider || "") : ""
+          editField === "insurance_provider" ? (profile.insurance_provider || "") :
+          editField === "freediving_since" ? (profile.freediving_since?.toString() || "") : ""
         }
         onSave={handleFieldSave}
       />

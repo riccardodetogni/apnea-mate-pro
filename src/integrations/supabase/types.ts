@@ -738,6 +738,7 @@ export type Database = {
           bio: string | null
           created_at: string
           email: string
+          freediving_since: number | null
           has_insurance: boolean
           id: string
           insurance_provider: string | null
@@ -752,6 +753,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email: string
+          freediving_since?: number | null
           has_insurance?: boolean
           id?: string
           insurance_provider?: string | null
@@ -766,6 +768,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email?: string
+          freediving_since?: number | null
           has_insurance?: boolean
           id?: string
           insurance_provider?: string | null

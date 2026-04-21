@@ -152,6 +152,12 @@ const UserProfile = () => {
             <p className="text-sm text-[hsl(var(--card-muted))] mt-3 leading-relaxed">{profile.bio}</p>
           )}
 
+          {profile.freediving_since && (
+            <p className="text-sm text-[hsl(var(--card-muted))] mt-2">
+              🌊 {Math.max(0, new Date().getFullYear() - profile.freediving_since)} {t("yearsFreediving")}
+            </p>
+          )}
+
           <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
             {isCertified && <CertificationBadge certified={true} />}
             {profile.has_insurance && (
