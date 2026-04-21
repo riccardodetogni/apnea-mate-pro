@@ -500,8 +500,8 @@ const Community = () => {
           ) : (
             <EmptyCard
               message={t("noEvents")}
-              actionLabel={t("createEvent")}
-              onAction={() => navigate("/create/event")}
+              actionLabel={canCreateEvents ? t("createEvent") : undefined}
+              onAction={canCreateEvents ? () => navigate("/create/event") : undefined}
             />
           )}
         </div>
@@ -531,8 +531,8 @@ const Community = () => {
           ) : (
             <EmptyCard
               message={t("noCourses")}
-              actionLabel={t("createCourse")}
-              onAction={() => navigate("/create/course")}
+              actionLabel={canCreateEvents ? t("createCourse") : undefined}
+              onAction={canCreateEvents ? () => navigate("/create/course") : undefined}
             />
           )}
         </div>
