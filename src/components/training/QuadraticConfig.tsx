@@ -119,28 +119,28 @@ export const QuadraticConfig = ({ onStart, onBack }: QuadraticConfigProps) => {
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("inhale")}: {config.inhaleSeconds}s
           </label>
-          <Slider value={[config.inhaleSeconds]} onValueChange={([v]) => handleSliderChange({ inhaleSeconds: v })} min={1} max={20} step={1} />
+          <Slider value={[config.inhaleSeconds]} onValueChange={([v]) => handleSliderChange({ inhaleSeconds: v })} min={1} max={90} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("hold")} 1: {config.hold1Seconds}s
           </label>
-          <Slider value={[config.hold1Seconds]} onValueChange={([v]) => handleSliderChange({ hold1Seconds: v })} min={1} max={20} step={1} />
+          <Slider value={[config.hold1Seconds]} onValueChange={([v]) => handleSliderChange({ hold1Seconds: v })} min={1} max={90} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("exhale")}: {config.exhaleSeconds}s
           </label>
-          <Slider value={[config.exhaleSeconds]} onValueChange={([v]) => handleSliderChange({ exhaleSeconds: v })} min={1} max={20} step={1} />
+          <Slider value={[config.exhaleSeconds]} onValueChange={([v]) => handleSliderChange({ exhaleSeconds: v })} min={1} max={90} step={1} />
         </div>
 
         <div>
           <label className="text-sm text-muted-foreground mb-2 block">
             {t("hold")} 2: {config.hold2Seconds}s
           </label>
-          <Slider value={[config.hold2Seconds]} onValueChange={([v]) => handleSliderChange({ hold2Seconds: v })} min={1} max={20} step={1} />
+          <Slider value={[config.hold2Seconds]} onValueChange={([v]) => handleSliderChange({ hold2Seconds: v })} min={1} max={90} step={1} />
         </div>
 
         <div>
