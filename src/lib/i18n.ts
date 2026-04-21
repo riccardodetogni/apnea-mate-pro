@@ -565,6 +565,11 @@ const translations = {
     // Onboarding
     namePlaceholder: "Mario Rossi",
     bioPlaceholder: "Racconta qualcosa di te...",
+    freedivingSince: "Da quanto fai apnea?",
+    freedivingSinceYear: "Anno di inizio apnea",
+    freedivingYearPlaceholder: "es. 2018",
+    yearsFreediving: "anni di apnea",
+    addFreedivingYears: "Aggiungi anni di apnea",
     uploadDocument: "Carica documento",
     other: "Altro",
     locationDetected: "Posizione rilevata",
@@ -1298,6 +1303,11 @@ const translations = {
     // Onboarding
     namePlaceholder: "John Doe",
     bioPlaceholder: "Tell us about yourself...",
+    freedivingSince: "How long have you been freediving?",
+    freedivingSinceYear: "Year you started freediving",
+    freedivingYearPlaceholder: "e.g. 2018",
+    yearsFreediving: "years freediving",
+    addFreedivingYears: "Add freediving years",
     uploadDocument: "Upload document",
     other: "Other",
     locationDetected: "Location detected",
