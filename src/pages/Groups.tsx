@@ -49,7 +49,7 @@ const Groups = () => {
 
     switch (filter) {
       case "schools":
-        result = result.filter(g => g.isInstructorLed);
+        result = result.filter(g => g.groupType === 'scuola_club');
         break;
       case "myGroups":
         result = result.filter(g => g.isMember);
