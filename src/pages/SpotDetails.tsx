@@ -299,10 +299,16 @@ const SpotDetails = () => {
                       <h4 className="font-medium text-card-foreground mb-1.5 truncate">{session.title}</h4>
                       <div className="flex items-center gap-3 text-xs text-[hsl(var(--card-muted))]">
                         <span className="badge-level">{t(session.level as any)}</span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {session.current_participants}/{session.max_participants}
-                        </span>
+                        {isFull ? (
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-destructive/15 text-destructive">
+                            {t("fullShort")}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {session.current_participants}/{session.max_participants}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
