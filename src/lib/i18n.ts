@@ -262,6 +262,8 @@ const translations = {
     totalTime: "Tempo totale",
     cyclePreview: "Anteprima ciclo",
     selectMode: "Scegli il tipo di training",
+    co2InvalidConfigTitle: "Configurazione non valida",
+    co2InvalidConfigBody: "Con questa diminuzione, solo i primi cicli sono completi. I successivi resteranno fissi al minimo (15s). Aumenta il tempo di respiro o riduci la diminuzione.",
     
     // Create
     createSession: "Crea sessione",
@@ -1000,6 +1002,8 @@ const translations = {
     totalTime: "Total time",
     cyclePreview: "Cycle preview",
     selectMode: "Choose training type",
+    co2InvalidConfigTitle: "Invalid setup",
+    co2InvalidConfigBody: "With this decrease, only the first rounds are complete. The remaining ones will stay at the minimum (15s). Increase the breath time or reduce the decrease step.",
     
     // Create
     createSession: "Create session",
