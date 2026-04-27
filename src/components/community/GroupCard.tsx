@@ -102,12 +102,12 @@ export const GroupCard = ({
       <div className="flex gap-2 mt-1.5" onClick={e => e.stopPropagation()}>
         {isMember ? (
           <Button variant="ghost" size="sm" disabled className="border border-white/15 bg-white/10 text-white/60 rounded-md">
-            Membro
+            {t("memberBadge")}
           </Button>
         ) : isPending ? (
           <Button variant="ghost" size="sm" disabled className="gap-1.5 border border-white/15 bg-white/10 text-white/60 rounded-md">
             <Clock className="w-3.5 h-3.5" />
-            In attesa
+            {t("waitingBadge")}
           </Button>
         ) : onJoin ? (
           <Button variant="pill" size="sm" onClick={onJoin}>

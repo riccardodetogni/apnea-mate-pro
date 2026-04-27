@@ -325,7 +325,7 @@ const SpotDetails = () => {
                           onClick={() => navigate(`/sessions/${session.id}`, { state: { from: `/spots/${id}` } })}
                         >
                           <Clock className="w-3.5 h-3.5" />
-                          In attesa
+                          {t("waitingBadge")}
                         </Button>
                       ) : canShow ? (
                         <Button
