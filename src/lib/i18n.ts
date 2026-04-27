@@ -636,7 +636,6 @@ const translations = {
     waitingBadge: "In attesa",
     confirmedBadge: "Confermato",
     joinedBadge: "Iscritto",
-    memberBadge: "Membro",
 
     // Groups page
     mustLoginToJoin: "Devi accedere per unirti",
@@ -1378,7 +1377,6 @@ const translations = {
     waitingBadge: "Pending",
     confirmedBadge: "Confirmed",
     joinedBadge: "Joined",
-    memberBadge: "Member",
 
     // Groups page
     mustLoginToJoin: "You must log in to join",
