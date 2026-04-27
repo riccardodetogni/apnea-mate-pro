@@ -425,8 +425,11 @@ const GroupManage = () => {
 
       <div className="px-4 py-4 max-w-[430px] mx-auto">
         <Tabs defaultValue={pendingMembers.length > 0 ? "pending" : "members"}>
-          <TabsList className="w-full grid grid-cols-3 mb-4">
-            <TabsTrigger value="pending" className="relative">
+          <TabsList className="w-full grid grid-cols-3 mb-4 bg-white/10 border border-white/15">
+            <TabsTrigger
+              value="pending"
+              className="relative text-white/70 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
+            >
               {t("requests")}
               {pendingMembers.length > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-warning text-warning-foreground rounded-full">
@@ -434,10 +437,16 @@ const GroupManage = () => {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="members">
+            <TabsTrigger
+              value="members"
+              className="text-white/70 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
+            >
               {t("members")} ({approvedMembers.length})
             </TabsTrigger>
-            <TabsTrigger value="settings">
+            <TabsTrigger
+              value="settings"
+              className="text-white/70 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
+            >
               <Settings className="w-4 h-4 mr-1" />
               {t("settingsTab")}
             </TabsTrigger>
