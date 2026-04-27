@@ -18,9 +18,11 @@ const corsHeaders = {
 };
 
 interface GroupNotificationRequest {
-  type: "request_approved" | "request_rejected";
+  type: "request_approved" | "request_rejected" | "request_received";
   groupId: string;
-  userId: string;
+  userId?: string;
+  ownerId?: string;
+  requesterId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -34,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { type, groupId, userId }: GroupNotificationRequest = await req.json();
+    const { type, groupId, userId, ownerId, requesterId }: GroupNotificationRequest = await req.json();
 
     // Fetch group details
     const { data: group, error: groupError } = await supabase
@@ -51,11 +53,21 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Fetch user profile
+    // Recipient is the owner for request_received, otherwise the requester (userId)
+    const recipientUserId = type === "request_received" ? ownerId : userId;
+
+    if (!recipientUserId) {
+      return new Response(
+        JSON.stringify({ error: "Missing recipient user id" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Fetch recipient profile
     const { data: userProfile } = await supabase
       .from("profiles")
       .select("email, name")
-      .eq("user_id", userId)
+      .eq("user_id", recipientUserId)
       .single();
 
     if (!userProfile?.email) {
@@ -82,6 +94,33 @@ const handler = async (req: Request): Promise<Response> => {
           <p>Ora puoi vedere le sessioni del gruppo e partecipare alle attività!</p>
           ${ctaButton(`${APP_URL}/groups/${groupId}`, "Vai al gruppo")}
           <p style="color: #64748b; font-size: 14px;">Buone immersioni! 🌊<br/>— Il team Apnea Mate</p>
+        </div>
+      `;
+    } else if (type === "request_received") {
+      // Fetch requester profile for the email body
+      let requesterName = "Un freediver";
+      if (requesterId) {
+        const { data: requesterProfile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("user_id", requesterId)
+          .single();
+        if (requesterProfile?.name) requesterName = requesterProfile.name;
+      }
+
+      subject = `Nuova richiesta di adesione a "${group.name}"`;
+      htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #3f66e8;">Nuova richiesta di adesione 🤿</h2>
+          <p>Ciao ${userProfile.name},</p>
+          <p><strong>${requesterName}</strong> ha richiesto di unirsi al tuo gruppo:</p>
+          <div style="background: #eff6ff; border-radius: 12px; padding: 16px; margin: 16px 0; border-left: 4px solid #3f66e8;">
+            <h3 style="margin: 0 0 8px; color: #1e3a8a;">${group.name}</h3>
+            <p style="margin: 0; color: #64748b;">📍 ${group.location}</p>
+          </div>
+          <p>Vai al gruppo per approvare o rifiutare la richiesta.</p>
+          ${ctaButton(`${APP_URL}/groups/${groupId}/manage`, "Gestisci richieste")}
+          <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
         </div>
       `;
     } else if (type === "request_rejected") {
