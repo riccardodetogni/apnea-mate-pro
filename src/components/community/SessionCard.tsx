@@ -73,7 +73,7 @@ export const SessionCard = ({
       return (
         <>
           <Clock className="w-3.5 h-3.5" />
-          In attesa
+          {t("waitingBadge")}
         </>
       );
     }
@@ -81,7 +81,7 @@ export const SessionCard = ({
       return (
         <>
           <Check className="w-3.5 h-3.5" />
-          Iscritto
+          {t("joinedBadge")}
         </>
       );
     }
