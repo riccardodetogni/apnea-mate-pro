@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { MapPin, Calendar, Users, Ticket, Trophy, Compass } from "lucide-react";
 import type { EventWithDetails } from "@/hooks/useEvents";
+import { t } from "@/lib/i18n";
 
 const eventTypeConfig: Record<string, { label: string; icon: typeof Ticket; color: string }> = {
   stage: { label: "Stage", icon: Ticket, color: "bg-purple-500/20 text-purple-300" },
@@ -82,7 +83,7 @@ export const EventCard = ({ event, onClick }: EventCardProps) => {
           </div>
           <span className="text-xs text-[hsl(var(--card-soft))]">
             {event.creator_name}
-            {event.creator_is_instructor && " · Istruttore"}
+            {event.creator_is_instructor && ` · ${t("roleInstructor")}`}
           </span>
         </div>
         <span className="text-xs text-[hsl(var(--card-soft))] underline">Dettagli</span>
