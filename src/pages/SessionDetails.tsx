@@ -84,6 +84,15 @@ const SessionDetails = () => {
 
   const handleJoinRequest = () => {
     if (!session) return;
+    const reserved = session.confirmedCount + session.pendingCount;
+    if (reserved >= session.max_participants) {
+      toast({
+        title: t("sessionFull"),
+        description: t("sessionFullDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
     const { requiresWarning } = canJoinSession(session.level);
     // Always show safety modal
     setSafetyModalOpen(true);
@@ -91,6 +100,16 @@ const SessionDetails = () => {
 
   const confirmJoin = async () => {
     if (!session || !user) return;
+    const reserved = session.confirmedCount + session.pendingCount;
+    if (reserved >= session.max_participants) {
+      setSafetyModalOpen(false);
+      toast({
+        title: t("sessionFull"),
+        description: t("sessionFullDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
 
     setJoining(true);
     setSafetyModalOpen(false);
