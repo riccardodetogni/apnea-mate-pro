@@ -128,6 +128,14 @@ const translations = {
     safetyMessage: "L'apnea comporta rischi. Alcune sessioni potrebbero richiedere certificazione. Ti consigliamo di allenarti sempre con un buddy o un istruttore.",
     safetyDisclaimer: "Partecipando, accetti di rispettare le norme di sicurezza e di informare l'organizzatore del tuo livello di esperienza.",
     iUnderstand: "Ho capito",
+    safetyAboutToJoin: "Stai per unirti a",
+    safetyConfirmJoin: "Capisco, iscrivimi",
+    safetyJoining: "Iscrizione...",
+    safetyExpertTitle: "Sessione per apneisti esperti",
+    safetyLevelIntermediate: "intermedio",
+    safetyLevelAdvanced: "avanzato",
+    safetyExpertBody: "è una sessione di livello",
+    safetyExpertAdvice: "Come apneista non certificato, ti consigliamo di verificare di avere l'esperienza necessaria prima di partecipare.",
     
     // Profile
     certifiedFreediver: "Apneista certificato",
@@ -869,6 +877,14 @@ const translations = {
     safetyMessage: "Freediving involves risks. Some sessions may require certification. We recommend always training with a buddy or instructor.",
     safetyDisclaimer: "By participating, you agree to follow safety guidelines and inform the organizer of your experience level.",
     iUnderstand: "I understand",
+    safetyAboutToJoin: "You're about to join",
+    safetyConfirmJoin: "I understand, sign me up",
+    safetyJoining: "Joining...",
+    safetyExpertTitle: "Session for experienced freedivers",
+    safetyLevelIntermediate: "intermediate",
+    safetyLevelAdvanced: "advanced",
+    safetyExpertBody: "is a",
+    safetyExpertAdvice: "As a non-certified freediver, we recommend confirming you have the required experience before joining.",
     
     // Profile
     certifiedFreediver: "Certified freediver",
