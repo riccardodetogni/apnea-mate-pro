@@ -474,7 +474,7 @@ const GroupManage = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-4">
-            <div className="bg-card rounded-xl border border-white/8 p-4">
+            <div className="card-group p-4">
               {/* Group Avatar Upload */}
               <div className="flex flex-col items-center gap-2 mb-4">
                 <AvatarUpload
@@ -492,7 +492,7 @@ const GroupManage = () => {
 
               {/* Group Name */}
               <div className="space-y-2 mb-4">
-                <Label htmlFor="groupName">{t("groupNameLabel")}</Label>
+                <Label htmlFor="groupName" className="text-card-foreground">{t("groupNameLabel")}</Label>
                 <Input
                   id="groupName"
                   value={groupName}
@@ -503,7 +503,7 @@ const GroupManage = () => {
 
               {/* Group Description */}
               <div className="space-y-2 mb-4">
-                <Label htmlFor="groupDesc">{t("descriptionLabel")}</Label>
+                <Label htmlFor="groupDesc" className="text-card-foreground">{t("descriptionLabel")}</Label>
                 <Textarea
                   id="groupDesc"
                   value={groupDescription}
@@ -514,7 +514,7 @@ const GroupManage = () => {
               </div>
 
               <Button
-                className="w-full gap-2"
+                className="w-full gap-2 btn-primary-gradient"
                 onClick={handleSaveSettings}
                 disabled={savingSettings}
               >
@@ -531,7 +531,7 @@ const GroupManage = () => {
                 <div className="mt-4 pt-4 border-t border-white/10">
                   <Button
                     variant="outline"
-                    className="w-full gap-2"
+                    className="w-full gap-2 bg-white/10 text-card-foreground border-white/20 hover:bg-white/15"
                     disabled={group?.verification_requested || requestingVerification}
                     onClick={handleRequestVerification}
                   >
