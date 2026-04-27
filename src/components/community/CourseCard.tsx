@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { MapPin, Calendar, Users, GraduationCap, Mail } from "lucide-react";
 import type { CourseWithDetails } from "@/hooks/useCourses";
+import { t } from "@/lib/i18n";
 
 const courseTypeLabels: Record<string, string> = {
   beginner: "Base",
@@ -83,7 +84,7 @@ export const CourseCard = ({ course, onClick }: CourseCardProps) => {
           </div>
           <span className="text-xs text-[hsl(var(--card-soft))]">
             {course.creator_name}
-            {course.creator_is_instructor && " · Istruttore"}
+            {course.creator_is_instructor && ` · ${t("roleInstructor")}`}
           </span>
         </div>
         <span className="text-xs text-[hsl(var(--card-soft))] underline">Dettagli</span>

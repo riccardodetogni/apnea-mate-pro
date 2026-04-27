@@ -474,10 +474,10 @@ const SessionDetails = () => {
               {session.creatorRole === "instructor" && (
                 <>
                   <Award className="w-3.5 h-3.5 text-primary" />
-                  <span>Istruttore</span>
+                  <span>{t("roleInstructor")}</span>
                 </>
               )}
-              {session.creatorRole === "user" && "Apneista"}
+              {session.creatorRole === "user" && t("freediver")}
             </p>
           </div>
           </div>
