@@ -1,41 +1,37 @@
-ns
+Confermo: l’immagine è una sessione, non un evento. Il problema va quindi gestito anche sulle sessioni.
 
-# Fix CO2 table: warn when decrease step exceeds breath time
+Ho verificato il codice: nelle card della Community viene mostrato `6/6 posti`, ma il pulsante resta comunque cliccabile perché oggi, quando una sessione è piena, il click viene trasformato in “dettagli” invece di mostrare chiaramente uno stato non iscrivibile. Inoltre in alcuni conteggi della Community vengono considerati solo i confermati, mentre la capienza reale dovrebbe riservare anche le richieste in attesa.
 
-## Bug
-In the CO2 table config, the breath time per round is computed as:
-`Math.max(15, startBreathSeconds - i * decreaseStep)`
+Piano di intervento:
 
-With `startBreathSeconds=45`, `decreaseStep=30`, `rounds=5`:
-- Round 1: 45s
-- Round 2: 15s (would be 15, clamped — OK)
-- Round 3: 15s (would be -15, clamped)
-- Round 4: 15s (clamped)
-- Round 5: 15s (clamped)
+1. Bloccare le sessioni piene nella Community
+   - Considerare pieni i posti quando `confermati + in attesa >= max_participants`.
+   - Cambiare la card da `6/6 posti` a uno stato più chiaro tipo `Al completo`.
+   - Disabilitare/neutralizzare il pulsante di iscrizione e mostrarlo come `Al completo`, con colore/variant non primaria.
+   - Evitare che il click sul pulsante apra il popup di warning quando la sessione è piena.
 
-So from round 3 onward, breath time is "stuck" at the 15s floor — the user's intended progression is silently broken and the table effectively doesn't honor the configuration.
+2. Rafforzare la pagina dettaglio sessione
+   - Mantenere il bottone disabilitato quando la sessione è piena.
+   - Aggiungere un controllo preventivo in `handleJoinRequest` e `confirmJoin`, così anche se i dati cambiano nel frattempo non si procede con il popup o con l’invio richiesta.
+   - Mostrare toast localizzato: “Sessione al completo / Non ci sono più posti disponibili”.
 
-## Fix
+3. Allineare Spot Details
+   - Nella lista sessioni dentro la pagina spot, mostrare chiaramente `Al completo` quando `current_participants >= max_participants`.
+   - Non mostrare il bottone `Iscriviti` per sessioni piene.
+   - Usare le chiavi i18n invece di stringhe hardcoded dove possibile.
 
-In `src/components/training/Co2TableConfig.tsx`:
+4. Sistemare i testi e le traduzioni IT/EN
+   - Aggiungere/riusare chiavi come `fullShort`, `sessionFullButton`, `spotsLeftText`.
+   - Sostituire testi hardcoded ancora in italiano nella pagina dettaglio sessione, inclusi `confermati`, messaggi stato personale e “posti rimasti”.
 
-1. **Detect the invalid configuration** — compute the last round whose natural (non-clamped) breath time is still ≥ 15s:
-   `maxValidRounds = Math.floor((startBreathSeconds - 15) / decreaseStep) + 1`
-   If `config.rounds > maxValidRounds`, the configuration produces clamped (meaningless) rounds.
+5. Eventi e corsi: coerenza UX
+   - Applicare lo stesso pattern anche a eventi/corsi dove c’è un `max_participants`.
+   - Se pieni: bottone non cliccabile o messaggio “Evento al completo” / “Corso al completo”.
+   - Le card mostreranno `Al completo` invece di “0 posti”.
 
-2. **Show an inline warning banner** above the preview table (using the existing `Alert` component or a styled `card-session` with warning colors) when the condition is true. Message (IT / EN via `t()`):
-   - IT: "Configurazione non valida: con un decremento di {decreaseStep}s a partire da {startBreath}s, solo i primi {N} cicli sono completi. I cicli successivi restano fissi al minimo (15s)."
-   - EN: "Invalid setup: with a {decreaseStep}s decrease from {startBreath}s, only the first {N} rounds are complete. The remaining rounds stay at the minimum (15s)."
+6. Backend safety
+   - Le sessioni hanno già un trigger backend di capienza, ma il bug principale è lato UX/conteggi.
+   - Per eventi/corsi, se non esiste ancora una protezione equivalente, aggiungerò una migrazione con controllo capienza per evitare race condition e iscrizioni oltre limite anche se qualcuno bypassa la UI.
 
-3. **Disable the "Start training" button** while the warning is active, to prevent starting a broken session. (The bookmark/save button stays enabled so users can still save partial work.)
-
-   Alternatively, keep Start enabled but require confirmation. Recommend disabling — it's clearer and matches the user's request that the setup "doesn't make sense".
-
-4. **Skip the warning when the user has manually edited the table** (`customRows !== null`) — in that case the user has explicit control and the auto-decrease formula no longer drives the values.
-
-5. Add the two new i18n keys (`co2InvalidConfig` for IT/EN) in `src/lib/i18n.ts`.
-
-## Out of scope
-- No change to the timer logic itself.
-- No change to the `generateCo2Steps` floor (kept at 15s as a safety net).
-- O2 table uses an *increasing* hold time so it does not have the same issue — no changes there.
+Nota su lista d’attesa:
+- La lista d’attesa è una buona evoluzione futura, ma la terrei separata da questo fix. Prima blocchiamo correttamente i “posti al completo”; poi possiamo progettare una waitlist con stato dedicato e notifiche.
