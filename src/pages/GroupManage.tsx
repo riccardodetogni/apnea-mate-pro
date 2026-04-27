@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGroupDetails, GroupMember } from "@/hooks/useGroupDetails";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,13 +61,13 @@ const GroupManage = () => {
   const [requestingVerification, setRequestingVerification] = useState(false);
 
   // Sync group settings when loaded
-  useState(() => {
+  useEffect(() => {
     if (group) {
       setGroupName(group.name);
       setGroupDescription(group.description || "");
       setGroupAvatarUrl(group.avatar_url);
     }
-  });
+  }, [group]);
 
   const pendingMembers = members.filter(m => m.status === 'pending');
   const approvedMembers = members.filter(m => m.status === 'approved');
