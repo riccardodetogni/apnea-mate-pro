@@ -27,6 +27,7 @@ const CourseDetails = () => {
   const [course, setCourse] = useState<any>(null);
   const [creatorProfile, setCreatorProfile] = useState<any>(null);
   const [participantCount, setParticipantCount] = useState(0);
+  const [reservedCount, setReservedCount] = useState(0);
   const [userStatus, setUserStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -46,6 +47,7 @@ const CourseDetails = () => {
 
       setCreatorProfile(profileRes.data);
       setParticipantCount(participantsRes.data?.filter(p => p.status === "confirmed").length || 0);
+      setReservedCount(participantsRes.data?.length || 0);
       setUserStatus(participantsRes.data?.find(p => p.user_id === user?.id)?.status || null);
       setLoading(false);
     };
@@ -54,12 +56,21 @@ const CourseDetails = () => {
 
   const handleJoin = async () => {
     if (!user || !id) return;
+    if (course?.max_participants > 0 && reservedCount >= course.max_participants) {
+      toast({ title: t("courseFull"), description: t("courseFullDesc"), variant: "destructive" });
+      return;
+    }
     setJoining(true);
     const { error } = await supabase.from("course_participants").insert({ course_id: id, user_id: user.id, status: "pending" });
     if (error) {
-      toast({ title: t("error"), description: error.message, variant: "destructive" });
+      if (error.message?.includes("course_full")) {
+        toast({ title: t("courseFull"), description: t("courseFullDesc"), variant: "destructive" });
+      } else {
+        toast({ title: t("error"), description: error.message, variant: "destructive" });
+      }
     } else {
       setUserStatus("pending");
+      setReservedCount(c => c + 1);
       toast({ title: t("requestSent") });
     }
     setJoining(false);
@@ -150,12 +161,15 @@ const CourseDetails = () => {
 
       {/* Actions */}
       <div className="flex gap-3 mb-4">
-        {user && !userStatus && (
-          <Button onClick={handleJoin} disabled={joining} className="flex-1 gap-2">
-            {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-            {t("requestRegistration")}
-          </Button>
-        )}
+        {user && !userStatus && (() => {
+          const isFull = course.max_participants > 0 && reservedCount >= course.max_participants;
+          return (
+            <Button onClick={handleJoin} disabled={joining || isFull} className="flex-1 gap-2">
+              {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+              {isFull ? t("courseFull") : t("requestRegistration")}
+            </Button>
+          );
+        })()}
         {userStatus === "pending" && (
           <Button onClick={handleLeave} disabled={joining} variant="outline" className="flex-1 gap-2">
             <Clock className="w-4 h-4" /> {t("cancelRequest")}

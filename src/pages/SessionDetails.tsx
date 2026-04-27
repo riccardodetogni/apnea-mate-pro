@@ -84,6 +84,15 @@ const SessionDetails = () => {
 
   const handleJoinRequest = () => {
     if (!session) return;
+    const reserved = session.confirmedCount + session.pendingCount;
+    if (reserved >= session.max_participants) {
+      toast({
+        title: t("sessionFull"),
+        description: t("sessionFullDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
     const { requiresWarning } = canJoinSession(session.level);
     // Always show safety modal
     setSafetyModalOpen(true);
@@ -91,6 +100,16 @@ const SessionDetails = () => {
 
   const confirmJoin = async () => {
     if (!session || !user) return;
+    const reserved = session.confirmedCount + session.pendingCount;
+    if (reserved >= session.max_participants) {
+      setSafetyModalOpen(false);
+      toast({
+        title: t("sessionFull"),
+        description: t("sessionFullDesc"),
+        variant: "destructive",
+      });
+      return;
+    }
 
     setJoining(true);
     setSafetyModalOpen(false);
@@ -423,7 +442,7 @@ const SessionDetails = () => {
             </div>
             <div className="flex items-center gap-2 text-sm text-[hsl(var(--card-soft))]">
               <Users className="w-4 h-4 text-primary" />
-              <span>{session.confirmedCount}/{session.max_participants} confermati</span>
+              <span>{session.confirmedCount}/{session.max_participants} {t("confirmedShort")}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-[hsl(var(--card-muted))]">
               <span>{mapSessionType(session.session_type)}</span>
@@ -495,13 +514,13 @@ const SessionDetails = () => {
               <div>
                 <p className="font-medium">
                   {session.myParticipation.status === "confirmed" 
-                    ? "✓ Sei iscritto!" 
-                    : "⏳ In attesa di approvazione"}
+                    ? t("enrolledYes")
+                    : t("waitingApproval")}
                 </p>
                 <p className="text-sm text-muted">
                   {session.myParticipation.status === "confirmed" 
-                    ? "La tua partecipazione è confermata"
-                    : "L'organizzatore deve approvare la tua richiesta"}
+                    ? t("participationConfirmed")
+                    : t("organizerMustApprove")}
                 </p>
               </div>
               <Button 
@@ -663,7 +682,10 @@ const SessionDetails = () => {
               </Button>
               {spotsLeft > 0 && spotsLeft <= 3 && (
                 <p className="text-center text-sm text-warning mt-2">
-                  Solo {spotsLeft} {spotsLeft === 1 ? "posto" : "posti"} rimast{spotsLeft === 1 ? "o" : "i"}!
+                  {t("spotsLeftText")
+                    .replace("{count}", String(spotsLeft))
+                    .replace("{spots}", spotsLeft === 1 ? t("spot" as any) : t("spots"))
+                    .replace("{suffix}", spotsLeft === 1 ? "" : "s")}
                 </p>
               )}
             </div>

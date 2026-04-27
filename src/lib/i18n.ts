@@ -135,6 +135,7 @@ const translations = {
     safetyLevelIntermediate: "intermedio",
     safetyLevelAdvanced: "avanzato",
     safetyExpertBody: "è una sessione di livello",
+    safetyExpertSentence: "è una sessione di livello {level}.",
     safetyExpertAdvice: "Come apneista non certificato, ti consigliamo di verificare di avere l'esperienza necessaria prima di partecipare.",
     
     // Profile
@@ -537,6 +538,13 @@ const translations = {
     waitingApproval: "⏳ In attesa di approvazione",
     participationConfirmed: "La tua partecipazione è confermata",
     organizerMustApprove: "L'organizzatore deve approvare la tua richiesta",
+    fullShort: "Al completo",
+    eventFull: "Evento al completo",
+    eventFullDesc: "Non ci sono più posti disponibili",
+    courseFull: "Corso al completo",
+    courseFullDesc: "Non ci sono più posti disponibili",
+    confirmedShort: "confermati",
+    spotsLeftShort: "Solo {count} {posti} rimast{suffix}!",
 
     // EventDetails
     eventNotFound: "Evento non trovato",
@@ -1286,6 +1294,13 @@ const translations = {
     waitingApproval: "⏳ Waiting for approval",
     participationConfirmed: "Your participation is confirmed",
     organizerMustApprove: "The organizer must approve your request",
+    fullShort: "Full",
+    eventFull: "Event full",
+    eventFullDesc: "No more spots available",
+    courseFull: "Course full",
+    courseFullDesc: "No more spots available",
+    confirmedShort: "confirmed",
+    spotsLeftShort: "Only {count} spot{suffix} left!",
 
     // EventDetails
     eventNotFound: "Event not found",

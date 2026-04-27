@@ -86,7 +86,7 @@ export const SessionCard = ({
       );
     }
     if (isFull) {
-      return t("details");
+      return t("fullShort");
     }
     if (showJoinButton) {
       return t("join");
@@ -121,7 +121,9 @@ export const SessionCard = ({
       {/* Badges */}
       <div className="flex gap-1.5 flex-wrap mt-0.5">
         <span className="badge-level">{t(levelLabels[level])}</span>
-        <span className="badge-spots">{spotsAvailable}/{spotsTotal} {t("spots")}</span>
+        <span className={`badge-spots ${isFull ? "!bg-destructive/15 !text-destructive" : ""}`}>
+          {isFull ? t("fullShort") : `${spotsAvailable}/${spotsTotal} ${t("spots")}`}
+        </span>
         {isPaid && (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400">
             <DollarSign className="w-3 h-3" />
@@ -146,7 +148,8 @@ export const SessionCard = ({
           variant={getButtonVariant()} 
           size="pill"
           onClick={handleButtonClick}
-          className={`flex-shrink-0 text-xs ${isPending ? "bg-warning/20 text-warning border-warning/30" : isJoined ? "bg-success/20 text-success border-success/30" : ""}`}
+          disabled={isFull && !isJoined && !isPending}
+          className={`flex-shrink-0 text-xs ${isPending ? "bg-warning/20 text-warning border-warning/30" : isJoined ? "bg-success/20 text-success border-success/30" : isFull ? "opacity-60 cursor-not-allowed" : ""}`}
         >
           {getButtonContent()}
         </Button>
