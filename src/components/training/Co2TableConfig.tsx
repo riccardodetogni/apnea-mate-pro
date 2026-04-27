@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { t } from "@/lib/i18n";
 import { Co2TableConfig as Co2Config, formatTime } from "@/types/training";
-import { Play, ArrowLeft, Bookmark, Trash2 } from "lucide-react";
+import { Play, ArrowLeft, Bookmark, Trash2, AlertTriangle } from "lucide-react";
 import { useTrainingPresets } from "@/hooks/useTrainingPresets";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,14 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
 
   const rows = customRows ?? computeRows(config);
   const totalSeconds = rows.reduce((acc, r) => acc + r.breathe + r.hold, 0);
+
+  // Detect invalid config: when decrease step would push breath time below the 15s floor
+  // before reaching the configured number of rounds. Skip when user manually edited rows.
+  const maxValidRounds =
+    config.decreaseStep > 0
+      ? Math.floor((config.startBreathSeconds - 15) / config.decreaseStep) + 1
+      : config.rounds;
+  const isInvalidConfig = !customRows && config.rounds > maxValidRounds;
 
   const updateConfig = (patch: Partial<Co2Config>) => {
     setConfig(c => ({ ...c, ...patch }));
@@ -251,8 +259,18 @@ export const Co2TableConfig = ({ onStart, onBack }: Co2TableConfigProps) => {
         </div>
       </div>
 
+      {isInvalidConfig && (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+          <div className="text-xs text-destructive-foreground/90">
+            <div className="font-semibold text-destructive mb-0.5">{t("co2InvalidConfigTitle")}</div>
+            <div className="text-[hsl(var(--card-soft))]">{t("co2InvalidConfigBody")}</div>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3">
-        <Button variant="primaryGradient" size="lg" className="flex-1 rounded-full" onClick={handleStart}>
+        <Button variant="primaryGradient" size="lg" className="flex-1 rounded-full" onClick={handleStart} disabled={isInvalidConfig}>
           <Play className="w-4 h-4" />
           {t("startTraining")}
         </Button>
