@@ -36,12 +36,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const roleLabels = {
-  regular: "Utente",
-  certified: "Apneista Certificato",
-  instructor: "Istruttore",
-  admin: "Admin",
-};
+const roleLabelKey = {
+  regular: "roleRegular",
+  certified: "roleCertified",
+  instructor: "roleInstructor",
+  admin: "roleAdmin",
+} as const;
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -195,7 +195,7 @@ const Profile = () => {
           <div className="flex items-center justify-center gap-2 mt-3">
             {isCertified && <CertificationBadge certified={true} />}
             <span className="text-xs text-[hsl(var(--card-muted))] bg-[hsl(var(--badge-blue-bg))] px-2 py-1 rounded-full">
-              {roleLabels[role]}
+              {t(roleLabelKey[role])}
             </span>
           </div>
 
