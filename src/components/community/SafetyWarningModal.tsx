@@ -47,7 +47,7 @@ export const SafetyWarningModal = ({
           <DialogDescription className="text-center">
             {isHighRisk && !userCertified ? (
               <>
-                <span className="font-semibold text-foreground">{sessionTitle}</span> {t("safetyExpertBody")} {sessionLevel === "intermediate" ? t("safetyLevelIntermediate") : t("safetyLevelAdvanced")}.
+                <span className="font-semibold text-foreground">{sessionTitle}</span> {t("safetyExpertSentence").replace("{level}", sessionLevel === "intermediate" ? t("safetyLevelIntermediate") : t("safetyLevelAdvanced"))}
                 <br /><br />
                 {t("safetyExpertAdvice")}
               </>
