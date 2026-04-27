@@ -1,33 +1,41 @@
+ns
 
+# Fix CO2 table: warn when decrease step exceeds breath time
 
-# Auto-select & auto-refresh new spot in Create Session
+## Bug
+In the CO2 table config, the breath time per round is computed as:
+`Math.max(15, startBreathSeconds - i * decreaseStep)`
 
-## Problem
-When creating a new spot from inside the spot selector during session creation:
-1. The new spot does not appear in the spot list (cached) — user must refresh the page to see it.
-2. Even though the spot ID is technically set on the form, the selector button still shows "Seleziona uno spot" because the spot is missing from the local `spots` array — making the user click it again from the dropdown.
+With `startBreathSeconds=45`, `decreaseStep=30`, `rounds=5`:
+- Round 1: 45s
+- Round 2: 15s (would be 15, clamped — OK)
+- Round 3: 15s (would be -15, clamped)
+- Round 4: 15s (clamped)
+- Round 5: 15s (clamped)
 
-## Root cause
-- `useSpots` (React Query, key `["spots"]`) caches the spots list. After `SpotCreator` inserts a new row into the `spots` table, nothing invalidates this query.
-- `SpotSelector` displays the selected spot by looking it up in the cached `spots` array. If the newly created spot isn't in that array, the button falls back to the empty placeholder.
-- In `CreateSession.tsx`, `SpotSelector`'s `onSpotCreated` prop is a no-op (`() => {}`), so no refresh is triggered.
+So from round 3 onward, breath time is "stuck" at the 15s floor — the user's intended progression is silently broken and the table effectively doesn't honor the configuration.
 
 ## Fix
 
-**1. `src/components/spots/SpotSelector.tsx`** — invalidate the spots query right after creation, so the parent form sees the new spot in the list:
-- Import `useQueryClient` from `@tanstack/react-query`.
-- In `handleSpotCreated`, before calling `onSelect(spotId)` and `onSpotCreated?.()`, call `queryClient.invalidateQueries({ queryKey: ["spots"] })` and `await` it (or use `refetchQueries`) so the new spot is loaded into the cache before the selector re-renders.
-- This guarantees the selector immediately renders the new spot's name + location in its trigger button (no "phantom" empty state).
+In `src/components/training/Co2TableConfig.tsx`:
 
-**2. `src/pages/CreateSession.tsx`** — no functional changes needed; once the cache is refreshed and `form.spot_id` is already set by `onSelect`, the selector will display correctly. The empty `onSpotCreated={() => {}}` can stay or be removed (kept for backward-compat).
+1. **Detect the invalid configuration** — compute the last round whose natural (non-clamped) breath time is still ≥ 15s:
+   `maxValidRounds = Math.floor((startBreathSeconds - 15) / decreaseStep) + 1`
+   If `config.rounds > maxValidRounds`, the configuration produces clamped (meaningless) rounds.
 
-**3. Apply the same fix to other forms using `SpotSelector`** for consistency:
-- `src/pages/EditSession.tsx` (verify it uses SpotSelector and apply same flow if needed).
+2. **Show an inline warning banner** above the preview table (using the existing `Alert` component or a styled `card-session` with warning colors) when the condition is true. Message (IT / EN via `t()`):
+   - IT: "Configurazione non valida: con un decremento di {decreaseStep}s a partire da {startBreath}s, solo i primi {N} cicli sono completi. I cicli successivi restano fissi al minimo (15s)."
+   - EN: "Invalid setup: with a {decreaseStep}s decrease from {startBreath}s, only the first {N} rounds are complete. The remaining rounds stay at the minimum (15s)."
 
-Since the fix lives in `SpotSelector` itself, all consumers (CreateSession, EditSession, and any future ones) benefit automatically — no per-page changes required.
+3. **Disable the "Start training" button** while the warning is active, to prevent starting a broken session. (The bookmark/save button stays enabled so users can still save partial work.)
+
+   Alternatively, keep Start enabled but require confirmation. Recommend disabling — it's clearer and matches the user's request that the setup "doesn't make sense".
+
+4. **Skip the warning when the user has manually edited the table** (`customRows !== null`) — in that case the user has explicit control and the auto-decrease formula no longer drives the values.
+
+5. Add the two new i18n keys (`co2InvalidConfig` for IT/EN) in `src/lib/i18n.ts`.
 
 ## Out of scope
-- No DB / RLS changes (insertion already works).
-- No realtime subscription on spots — invalidation on the creating client is sufficient for this UX.
-- No changes to `SpotCreator`'s internal logic.
-
+- No change to the timer logic itself.
+- No change to the `generateCo2Steps` floor (kept at 15s as a safety net).
+- O2 table uses an *increasing* hold time so it does not have the same issue — no changes there.
