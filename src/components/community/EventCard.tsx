@@ -61,10 +61,16 @@ export const EventCard = ({ event, onClick }: EventCardProps) => {
           🏊 {event.days_count} {event.days_count === 1 ? "giorno" : "giorni"}
         </span>
         {event.max_participants > 0 && (
-          <span className="chip-session flex items-center gap-1">
-            <Users className="w-3 h-3" />
-            {event.max_participants - event.participant_count} posti
-          </span>
+          (() => {
+            const left = event.max_participants - event.participant_count;
+            const isFull = left <= 0;
+            return (
+              <span className={`chip-session flex items-center gap-1 ${isFull ? "!bg-destructive/15 !text-destructive" : ""}`}>
+                <Users className="w-3 h-3" />
+                {isFull ? t("fullShort") : `${left} ${t("spots")}`}
+              </span>
+            );
+          })()
         )}
         {event.is_paid && (
           <span className="chip-session">💰</span>

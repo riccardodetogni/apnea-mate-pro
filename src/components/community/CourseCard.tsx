@@ -56,10 +56,16 @@ export const CourseCard = ({ course, onClick }: CourseCardProps) => {
       {/* Info chips */}
       <div className="flex items-center gap-2 flex-wrap">
         {course.max_participants > 0 && (
-          <span className="chip-session flex items-center gap-1">
-            <Users className="w-3 h-3" />
-            {course.max_participants - course.participant_count} posti
-          </span>
+          (() => {
+            const left = course.max_participants - course.participant_count;
+            const isFull = left <= 0;
+            return (
+              <span className={`chip-session flex items-center gap-1 ${isFull ? "!bg-destructive/15 !text-destructive" : ""}`}>
+                <Users className="w-3 h-3" />
+                {isFull ? t("fullShort") : `${left} ${t("spots")}`}
+              </span>
+            );
+          })()
         )}
         {course.contact_email && (
           <span className="chip-session flex items-center gap-1">
