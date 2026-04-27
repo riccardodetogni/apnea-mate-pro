@@ -147,6 +147,69 @@ export const useGroups = () => {
       .insert({ group_id: groupId, user_id: user.id, role: "member", status });
 
     if (!error) queryClient.invalidateQueries({ queryKey: ["groups"] });
+
+    // Notify group owners/admins when a join request needs approval
+    if (!error && status === 'pending') {
+      try {
+        const { createNotification } = await import("@/lib/notifications");
+
+        // Fetch group + requester profile in parallel
+        const [{ data: groupRow }, { data: requesterProfile }] = await Promise.all([
+          supabase.from("groups").select("id, name, created_by").eq("id", groupId).single(),
+          supabase.from("profiles").select("name").eq("user_id", user.id).single(),
+        ]);
+
+        // Collect all owner/admin user_ids (approved owners/admins + group.created_by fallback)
+        const { data: owners } = await supabase
+          .from("group_members")
+          .select("user_id")
+          .eq("group_id", groupId)
+          .in("role", ["owner", "admin"])
+          .eq("status", "approved");
+
+        const ownerIds = new Set<string>();
+        (owners || []).forEach((o: any) => o.user_id && ownerIds.add(o.user_id));
+        if (groupRow?.created_by) ownerIds.add(groupRow.created_by);
+        ownerIds.delete(user.id); // never notify the requester
+
+        const groupName = groupRow?.name || "your group";
+        const requesterName = requesterProfile?.name || "Someone";
+
+        await Promise.all(
+          Array.from(ownerIds).map(async (ownerId) => {
+            await createNotification({
+              userId: ownerId,
+              type: "group_join_request",
+              title: "Nuova richiesta di adesione",
+              message: `${requesterName} ha chiesto di unirsi a "${groupName}"`,
+              metadata: {
+                group_id: groupId,
+                group_name: groupName,
+                user_id: user.id,
+                user_name: requesterName,
+              },
+            });
+
+            // Best-effort email
+            try {
+              await supabase.functions.invoke("send-group-notification", {
+                body: {
+                  type: "request_received",
+                  groupId,
+                  ownerId,
+                  requesterId: user.id,
+                },
+              });
+            } catch (e) {
+              console.error("send-group-notification failed:", e);
+            }
+          })
+        );
+      } catch (e) {
+        console.error("Failed to notify group owners of join request:", e);
+      }
+    }
+
     return { error, isPending: status === 'pending' };
   };
 
