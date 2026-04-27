@@ -62,7 +62,7 @@ const SessionDetails = () => {
   const { toast } = useToast();
   const { isCertified, canJoinSession } = useCommunityContext();
 
-  const { session, loading, approveParticipant, rejectParticipant, cancelSession } = useSessionDetails(id);
+  const { session, loading, approveParticipant, rejectParticipant, cancelSession, refetch } = useSessionDetails(id);
 
   const [joining, setJoining] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -300,6 +300,7 @@ const SessionDetails = () => {
       toast({ title: t("error"), description: t("cannotCancelParticipation"), variant: "destructive" });
     } else {
       toast({ title: t("participationCancelled"), description: t("participationCancelledDesc") });
+      await refetch();
 
       // Notify creator that a participant left
       const { data: userProfile } = await supabase
