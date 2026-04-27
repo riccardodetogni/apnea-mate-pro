@@ -881,9 +881,9 @@ const translations = {
     safetyConfirmJoin: "I understand, sign me up",
     safetyJoining: "Joining...",
     safetyExpertTitle: "Session for experienced freedivers",
-    safetyLevelIntermediate: "intermediate",
-    safetyLevelAdvanced: "advanced",
-    safetyExpertBody: "is a",
+    safetyLevelIntermediate: "intermediate-level session",
+    safetyLevelAdvanced: "advanced-level session",
+    safetyExpertBody: "is an",
     safetyExpertAdvice: "As a non-certified freediver, we recommend confirming you have the required experience before joining.",
     
     // Profile
