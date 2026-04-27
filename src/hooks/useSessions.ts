@@ -190,6 +190,7 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
 
   const sessionIds = sessionsData?.map(s => s.id) || [];
   let participantCounts: Record<string, number> = {};
+  let reservedCounts: Record<string, number> = {};
   let userParticipations: Map<string, "pending" | "confirmed"> = new Map();
 
   if (sessionIds.length > 0) {
@@ -203,6 +204,10 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
       participantsData.forEach(p => {
         if (p.status === "confirmed") {
           participantCounts[p.session_id] = (participantCounts[p.session_id] || 0) + 1;
+        }
+        // pending + confirmed = reserved capacity (matches DB trigger logic)
+        if (p.status === "pending" || p.status === "confirmed") {
+          reservedCounts[p.session_id] = (reservedCounts[p.session_id] || 0) + 1;
         }
         if (user && p.user_id === user.id) {
           userParticipations.set(p.session_id, p.status as "pending" | "confirmed");
@@ -223,6 +228,7 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
       creator: creatorProfiles[session.creator_id] || null,
       creatorRole,
       participants_count: participantCounts[session.id] || 0,
+      reserved_count: reservedCounts[session.id] || 0,
       is_joined: participationStatus === "confirmed",
       is_pending: participationStatus === "pending",
     };
@@ -354,7 +360,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     creatorId: session.creator_id,
     isJoined: session.is_joined || false,
     isPending: (session as any).is_pending || false,
-    isFull: (session.participants_count || 0) >= session.max_participants,
+    isFull: ((session as any).reserved_count || 0) >= session.max_participants,
     isPaid: (session as any).is_paid || false,
     distanceKm: session.distance_km || null,
     rawLevel: session.level,
