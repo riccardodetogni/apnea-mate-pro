@@ -1002,6 +1002,8 @@ const translations = {
     totalTime: "Total time",
     cyclePreview: "Cycle preview",
     selectMode: "Choose training type",
+    co2InvalidConfigTitle: "Invalid setup",
+    co2InvalidConfigBody: "With this decrease, only the first rounds are complete. The remaining ones will stay at the minimum (15s). Increase the breath time or reduce the decrease step.",
     
     // Create
     createSession: "Create session",
