@@ -40,20 +40,20 @@ export const SafetyWarningModal = ({
           </div>
           <DialogTitle className="text-center">
             {isHighRisk && !userCertified 
-              ? "Sessione per apneisti esperti" 
+              ? t("safetyExpertTitle")
               : t("safetyTitle")
             }
           </DialogTitle>
           <DialogDescription className="text-center">
             {isHighRisk && !userCertified ? (
               <>
-                <span className="font-semibold text-foreground">{sessionTitle}</span> è una sessione di livello {sessionLevel === "intermediate" ? "intermedio" : "avanzato"}.
+                <span className="font-semibold text-foreground">{sessionTitle}</span> {t("safetyExpertBody")} {sessionLevel === "intermediate" ? t("safetyLevelIntermediate") : t("safetyLevelAdvanced")}.
                 <br /><br />
-                Come apneista non certificato, ti consigliamo di verificare di avere l'esperienza necessaria prima di partecipare.
+                {t("safetyExpertAdvice")}
               </>
             ) : (
               <>
-                Stai per unirti a <span className="font-semibold text-foreground">{sessionTitle}</span>.
+                {t("safetyAboutToJoin")} <span className="font-semibold text-foreground">{sessionTitle}</span>.
                 <br /><br />
                 {t("safetyMessage")}
               </>
@@ -72,7 +72,7 @@ export const SafetyWarningModal = ({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? "Iscrizione..." : "Capisco, iscrivimi"}
+            {loading ? t("safetyJoining") : t("safetyConfirmJoin")}
           </Button>
           <Button
             variant="ghost"
@@ -80,7 +80,7 @@ export const SafetyWarningModal = ({
             onClick={onClose}
             disabled={loading}
           >
-            Annulla
+            {t("cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>
