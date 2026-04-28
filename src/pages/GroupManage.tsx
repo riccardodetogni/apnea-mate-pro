@@ -298,7 +298,7 @@ const GroupManage = () => {
     const isCreator = member.user_id === group.created_by;
     
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-white/8">
+      <div className="flex items-center gap-3 p-3 rounded-lg card-group border border-white/10">
         <Avatar className="w-10 h-10">
           <AvatarImage src={member.profile?.avatar_url || undefined} />
           <AvatarFallback className="bg-white/10 text-primary">
@@ -369,7 +369,7 @@ const GroupManage = () => {
     const isProcessing = processingIds.has(member.user_id);
     
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-warning/30">
+      <div className="flex items-center gap-3 p-3 rounded-lg card-group border border-warning/40">
         <Avatar className="w-10 h-10">
           <AvatarImage src={member.profile?.avatar_url || undefined} />
           <AvatarFallback className="bg-warning/10 text-warning">
@@ -425,10 +425,10 @@ const GroupManage = () => {
 
       <div className="px-4 py-4 max-w-[430px] mx-auto">
         <Tabs defaultValue={pendingMembers.length > 0 ? "pending" : "members"}>
-          <TabsList className="w-full grid grid-cols-3 mb-4 bg-white/10 border border-white/15">
+          <TabsList className="w-full grid grid-cols-3 mb-4 bg-white/15 border border-white/15">
             <TabsTrigger
               value="pending"
-              className="relative text-white/70 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
+              className="relative text-white/90 font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
             >
               {t("requests")}
               {pendingMembers.length > 0 && (
@@ -439,13 +439,13 @@ const GroupManage = () => {
             </TabsTrigger>
             <TabsTrigger
               value="members"
-              className="text-white/70 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
+              className="text-white/90 font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
             >
               {t("members")} ({approvedMembers.length})
             </TabsTrigger>
             <TabsTrigger
               value="settings"
-              className="text-white/70 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
+              className="text-white/90 font-medium data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-md"
             >
               <Settings className="w-4 h-4 mr-1" />
               {t("settingsTab")}
