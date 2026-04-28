@@ -78,22 +78,22 @@ export const GroupMembersSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl bg-card">
+      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl card-group border-t border-white/10">
         <SheetHeader className="pb-4">
-          <SheetTitle className="text-left">
+          <SheetTitle className="text-left text-card-foreground">
             {t("groupMembersTitle")} ({totalCount})
           </SheetTitle>
         </SheetHeader>
 
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
           <Input
             type="text"
             placeholder={t("searchMembers")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-4 h-10 rounded-full"
+            className="pl-9 pr-4 h-10 rounded-full bg-white/10 border-white/15 text-card-foreground placeholder:text-white/40"
           />
         </div>
 
