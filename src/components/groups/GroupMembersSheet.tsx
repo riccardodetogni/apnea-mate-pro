@@ -78,7 +78,11 @@ export const GroupMembersSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl card-group border-t border-white/10">
+      <SheetContent
+        side="bottom"
+        className="h-[80vh] rounded-t-3xl card-group border-t border-white/10"
+        style={{ background: "hsl(221 51% 20%)" }}
+      >
         <SheetHeader className="pb-4">
           <SheetTitle className="text-left text-card-foreground">
             {t("groupMembersTitle")} ({totalCount})
@@ -109,7 +113,7 @@ export const GroupMembersSheet = ({
                 <div
                   key={member.id}
                   onClick={() => handleMemberClick(member.user_id)}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/8 cursor-pointer hover:border-primary/30 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white/10 border border-white/15 cursor-pointer hover:border-primary/40 transition-colors"
                 >
                   {/* Avatar */}
                   <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-sm font-medium text-card-foreground overflow-hidden flex-shrink-0">
