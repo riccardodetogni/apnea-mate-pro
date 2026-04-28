@@ -298,7 +298,7 @@ const GroupManage = () => {
     const isCreator = member.user_id === group.created_by;
     
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg card-group border border-white/10">
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-white/10" style={{ background: "hsl(221 51% 20%)" }}>
         <Avatar className="w-10 h-10">
           <AvatarImage src={member.profile?.avatar_url || undefined} />
           <AvatarFallback className="bg-white/10 text-primary">
@@ -369,7 +369,7 @@ const GroupManage = () => {
     const isProcessing = processingIds.has(member.user_id);
     
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg card-group border border-warning/40">
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-warning/40" style={{ background: "hsl(221 51% 20%)" }}>
         <Avatar className="w-10 h-10">
           <AvatarImage src={member.profile?.avatar_url || undefined} />
           <AvatarFallback className="bg-warning/10 text-warning">
@@ -408,9 +408,9 @@ const GroupManage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-6">
+    <div className="min-h-screen pb-6" style={{ background: "hsl(222 47% 6%)" }}>
       {/* Header */}
-      <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-4 py-3 flex items-center gap-3 z-10">
+      <header className="sticky top-0 backdrop-blur-sm border-b border-white/10 px-4 py-3 flex items-center gap-3 z-10" style={{ background: "hsl(222 47% 6% / 0.85)" }}>
         <button 
           onClick={() => navigate(`/groups/${id}`)} 
           className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center"
@@ -418,8 +418,8 @@ const GroupManage = () => {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div>
-          <h1 className="font-semibold text-lg">{t("manageGroupTitle")}</h1>
-          <p className="text-xs text-muted">{group.name}</p>
+          <h1 className="font-semibold text-lg text-white">{t("manageGroupTitle")}</h1>
+          <p className="text-xs text-white/60">{group.name}</p>
         </div>
       </header>
 
