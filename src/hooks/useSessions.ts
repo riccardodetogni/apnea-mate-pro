@@ -99,13 +99,6 @@ const mapLevelToType = (level: string): "beginner" | "intermediate" | "advanced"
   }
 };
 
-    case "lake": return "Lago";
-    case "pool": return "Piscina";
-    case "deep_pool": return "Deep pool";
-    default: return type;
-  }
-};
-
 interface UseSessionsOptions {
   excludeJoined?: boolean;
   filterByFollowing?: boolean;
