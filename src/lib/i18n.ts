@@ -1600,3 +1600,13 @@ export const mapSessionType = (type: string): string => {
     default: return type;
   }
 };
+
+export const mapEnvironmentType = (type: string): string => {
+  switch (type) {
+    case "sea": return t("sea");
+    case "pool": return t("pool");
+    case "deep_pool": return t("deepPoolSession");
+    case "lake": return t("lake");
+    default: return type;
+  }
+};
