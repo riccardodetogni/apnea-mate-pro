@@ -122,7 +122,7 @@ export const SessionCard = ({
       <div className="flex gap-1.5 flex-wrap mt-0.5">
         <span className="badge-level">{t(levelLabels[level])}</span>
         <span className={`badge-spots ${isFull ? "!bg-destructive/15 !text-destructive" : ""}`}>
-          {isFull ? t("fullShort") : `${spotsAvailable}/${spotsTotal} ${t("spots")}`}
+          {isFull ? t("fullShort") : `${spotsAvailable} ${t("spotsFree")}`}
         </span>
         {isPaid && (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400">
