@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { mapSessionType, mapEnvironmentType } from "@/lib/i18n";
 
 export interface Session {
   id: string;
@@ -98,20 +99,6 @@ const mapLevelToType = (level: string): "beginner" | "intermediate" | "advanced"
   }
 };
 
-const mapSessionType = (type: string): string => {
-  switch (type) {
-    case "sea_trip": return "Uscita mare";
-    case "pool_session": return "Piscina";
-    case "deep_pool_session": return "Piscina profonda";
-    case "lake_trip": return "Uscita lago";
-    case "spearfishing": return "Pesca subacquea";
-    default: return type;
-  }
-};
-
-const mapEnvironmentType = (type: string): string => {
-  switch (type) {
-    case "sea": return "Mare";
     case "lake": return "Lago";
     case "pool": return "Piscina";
     case "deep_pool": return "Deep pool";
