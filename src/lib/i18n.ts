@@ -332,6 +332,11 @@ const translations = {
     share: "Condividi",
     close: "Chiudi",
     create: "Crea",
+    cancelRequest: "Annulla richiesta",
+    requestEnrollment: "Richiedi iscrizione",
+    leaveGroup: "Lascia gruppo",
+    pendingApprovalNotice: "richieste in attesa di approvazione",
+    activityMixed: "Misto",
     
     // Notifications
     notifications: "Notifiche",
@@ -1089,6 +1094,11 @@ const translations = {
     share: "Share",
     close: "Close",
     create: "Create",
+    cancelRequest: "Cancel request",
+    requestEnrollment: "Request enrollment",
+    leaveGroup: "Leave group",
+    pendingApprovalNotice: "pending approval requests",
+    activityMixed: "Mixed",
     
     // Notifications
     notifications: "Notifications",

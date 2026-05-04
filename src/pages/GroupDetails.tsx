@@ -9,7 +9,7 @@ import { GroupSessionsList } from "@/components/groups/GroupSessionsList";
 import { EventCard } from "@/components/community/EventCard";
 import { CourseCard } from "@/components/community/CourseCard";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
+import { t, mapActivityType } from "@/lib/i18n";
 import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle, List, CalendarDays } from "lucide-react";
 import { SessionCalendar, CalendarSession } from "@/components/sessions/SessionCalendar";
 import { useToast } from "@/hooks/use-toast";
@@ -150,6 +150,7 @@ const GroupDetails = () => {
         location={group.location}
         memberCount={group.member_count}
         activityType={group.activity_type}
+        // will be translated in GroupHeroCard
         avatarUrl={group.avatar_url}
         isVerified={group.verified}
         isInstructorLed={group.creator_is_instructor}
@@ -161,17 +162,17 @@ const GroupDetails = () => {
         {user && !group.is_member && !group.is_pending ? (
           <Button onClick={handleJoin} className="flex-1 gap-2">
             <UserPlus className="w-4 h-4" />
-            {group.requires_approval ? "Richiedi iscrizione" : t("join")}
+            {group.requires_approval ? t("requestEnrollment") : t("join")}
           </Button>
         ) : user && group.is_pending ? (
           <Button onClick={handleLeave} variant="outline" className="flex-1 gap-2">
             <Clock className="w-4 h-4" />
-            Annulla richiesta
+            {t("cancelRequest")}
           </Button>
         ) : user && group.is_member && !group.is_owner ? (
           <Button onClick={handleLeave} variant="outline" className="flex-1 gap-2">
             <UserMinus className="w-4 h-4" />
-            Lascia gruppo
+            {t("leaveGroup")}
           </Button>
         ) : null}
         {user && group.is_member && (
@@ -191,7 +192,7 @@ const GroupDetails = () => {
         )}
         <Button variant="outline" onClick={handleShare} className="gap-2">
           <Share2 className="w-4 h-4" />
-          Condividi
+          {t("share")}
         </Button>
       </div>
 
@@ -202,7 +203,7 @@ const GroupDetails = () => {
           className="mt-4 p-3 rounded-lg bg-warning/10 border border-warning/30 cursor-pointer hover:bg-warning/20 transition-colors"
         >
           <p className="text-sm text-warning font-medium">
-            {group.pending_count} richieste in attesa di approvazione
+            {group.pending_count} {t("pendingApprovalNotice")}
           </p>
         </div>
       )}
