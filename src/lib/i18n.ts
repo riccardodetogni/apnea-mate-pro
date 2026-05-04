@@ -332,6 +332,11 @@ const translations = {
     share: "Condividi",
     close: "Chiudi",
     create: "Crea",
+    cancelRequest: "Annulla richiesta",
+    requestEnrollment: "Richiedi iscrizione",
+    leaveGroup: "Lascia gruppo",
+    pendingApprovalNotice: "richieste in attesa di approvazione",
+    activityMixed: "Misto",
     
     // Notifications
     notifications: "Notifiche",
@@ -550,7 +555,6 @@ const translations = {
     // EventDetails
     eventNotFound: "Evento non trovato",
     requestRegistration: "Richiedi iscrizione",
-    cancelRequest: "Annulla richiesta",
     cancelRegistration: "Annulla iscrizione",
     registrationCancelled: "Iscrizione annullata",
     cannotOpenChat: "Impossibile aprire la chat",
@@ -1089,6 +1093,11 @@ const translations = {
     share: "Share",
     close: "Close",
     create: "Create",
+    cancelRequest: "Cancel request",
+    requestEnrollment: "Request enrollment",
+    leaveGroup: "Leave group",
+    pendingApprovalNotice: "pending approval requests",
+    activityMixed: "Mixed",
     
     // Notifications
     notifications: "Notifications",
@@ -1307,7 +1316,6 @@ const translations = {
     // EventDetails
     eventNotFound: "Event not found",
     requestRegistration: "Request registration",
-    cancelRequest: "Cancel request",
     cancelRegistration: "Cancel registration",
     registrationCancelled: "Registration cancelled",
     cannotOpenChat: "Cannot open chat",
@@ -1599,6 +1607,13 @@ export const mapSessionType = (type: string): string => {
     case "deep_pool_session": return t("deepPoolSession");
     case "lake_trip": return t("lakeTrip");
     case "spearfishing": return t("spearfishing");
+    default: return type;
+  }
+};
+
+export const mapActivityType = (type: string): string => {
+  switch (type) {
+    case "Misto": return t("activityMixed");
     default: return type;
   }
 };
