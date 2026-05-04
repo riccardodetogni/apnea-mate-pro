@@ -149,8 +149,7 @@ const GroupDetails = () => {
         name={group.name}
         location={group.location}
         memberCount={group.member_count}
-        activityType={group.activity_type}
-        // will be translated in GroupHeroCard
+        activityType={mapActivityType(group.activity_type)}
         avatarUrl={group.avatar_url}
         isVerified={group.verified}
         isInstructorLed={group.creator_is_instructor}
