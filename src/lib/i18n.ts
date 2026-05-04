@@ -555,7 +555,6 @@ const translations = {
     // EventDetails
     eventNotFound: "Evento non trovato",
     requestRegistration: "Richiedi iscrizione",
-    cancelRequest: "Annulla richiesta",
     cancelRegistration: "Annulla iscrizione",
     registrationCancelled: "Iscrizione annullata",
     cannotOpenChat: "Impossibile aprire la chat",
@@ -1317,7 +1316,6 @@ const translations = {
     // EventDetails
     eventNotFound: "Event not found",
     requestRegistration: "Request registration",
-    cancelRequest: "Cancel request",
     cancelRegistration: "Cancel registration",
     registrationCancelled: "Registration cancelled",
     cannotOpenChat: "Cannot open chat",
@@ -1609,6 +1607,13 @@ export const mapSessionType = (type: string): string => {
     case "deep_pool_session": return t("deepPoolSession");
     case "lake_trip": return t("lakeTrip");
     case "spearfishing": return t("spearfishing");
+    default: return type;
+  }
+};
+
+export const mapActivityType = (type: string): string => {
+  switch (type) {
+    case "Misto": return t("activityMixed");
     default: return type;
   }
 };
