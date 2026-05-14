@@ -38,6 +38,7 @@ const CreateEvent = lazy(() => import("./pages/CreateEvent"));
 const CreateCourse = lazy(() => import("./pages/CreateCourse"));
 const EventDetails = lazy(() => import("./pages/EventDetails"));
 const CourseDetails = lazy(() => import("./pages/CourseDetails"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/" element={<Navigate to="/community" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
                 <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
                 <Route path="/spots" element={<RequireAuth><Spots /></RequireAuth>} />
