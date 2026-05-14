@@ -9,9 +9,21 @@ interface CreateDisclaimerModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  title?: string;
+  checkboxText?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
 }
 
-export const CreateDisclaimerModal = ({ open, onClose, onConfirm }: CreateDisclaimerModalProps) => {
+export const CreateDisclaimerModal = ({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  checkboxText,
+  confirmLabel,
+  cancelLabel,
+}: CreateDisclaimerModalProps) => {
   const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
@@ -28,7 +40,7 @@ export const CreateDisclaimerModal = ({ open, onClose, onConfirm }: CreateDiscla
           <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-warning/10 flex items-center justify-center">
             <ShieldAlert className="w-6 h-6 text-warning" />
           </div>
-          <SheetTitle className="text-center">{t("createDisclaimerTitle")}</SheetTitle>
+          <SheetTitle className="text-center">{title ?? t("createDisclaimerTitle")}</SheetTitle>
         </SheetHeader>
 
         <div className="px-5 py-3 overflow-y-auto flex-1">
@@ -39,7 +51,7 @@ export const CreateDisclaimerModal = ({ open, onClose, onConfirm }: CreateDiscla
               className="mt-0.5"
             />
             <span className="text-xs leading-relaxed text-foreground">
-              {t("createDisclaimerCheckbox")}
+              {checkboxText ?? t("createDisclaimerCheckbox")}
             </span>
           </label>
         </div>
@@ -51,10 +63,10 @@ export const CreateDisclaimerModal = ({ open, onClose, onConfirm }: CreateDiscla
             disabled={!accepted}
             onClick={onConfirm}
           >
-            {t("createDisclaimerContinue")}
+            {confirmLabel ?? t("createDisclaimerContinue")}
           </Button>
           <Button variant="ghost" className="w-full" onClick={onClose}>
-            {t("createDisclaimerCancel")}
+            {cancelLabel ?? t("createDisclaimerCancel")}
           </Button>
         </div>
       </SheetContent>
