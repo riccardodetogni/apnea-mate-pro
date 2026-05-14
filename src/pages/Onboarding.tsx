@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
@@ -24,9 +24,12 @@ import {
   Loader2,
   Navigation,
   Trophy,
+  Lock,
 } from "lucide-react";
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+
+const PRIVACY_POLICY_PATH = "/privacy";
 
 const certificationAgencies = [
   "AIDA",
@@ -56,6 +59,14 @@ const Onboarding = () => {
   const [certDisclaimerAccepted, setCertDisclaimerAccepted] = useState(false);
   const [safetyDisclaimerAccepted, setSafetyDisclaimerAccepted] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
+  // Step 6 — Privacy
+  const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState(false);
+  const [privacyPurpose1, setPrivacyPurpose1] = useState(false);
+  const [privacyPurpose2, setPrivacyPurpose2] = useState(false);
+  const [privacyMarketing, setPrivacyMarketing] = useState(false);
+  const [privacyCompliance, setPrivacyCompliance] = useState(false);
+  const privacyComplete =
+    privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance;
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
@@ -171,7 +182,11 @@ const Onboarding = () => {
       }
     }
 
-    if (step < 5) {
+    if (step === 5 && !safetyDisclaimerAccepted) {
+      return;
+    }
+
+    if (step < 6) {
       if (step === 2 && isCertified === false) {
         setStep(4);
       } else if (step === 2 && isCertified === true) {
@@ -183,7 +198,9 @@ const Onboarding = () => {
   };
 
   const handleBack = () => {
-    if (step === 5 && isCertified === false) {
+    if (step === 6) {
+      setStep(5);
+    } else if (step === 5 && isCertified === false) {
       setStep(4);
     } else if (step === 4 && isCertified === false) {
       setStep(2);
@@ -207,6 +224,7 @@ const Onboarding = () => {
           has_insurance: hasInsurance,
           insurance_provider: hasInsurance ? (insuranceProvider.trim() || null) : null,
           freediving_since: freedivingSince.trim() ? parseInt(freedivingSince, 10) : null,
+          marketing_consent: privacyMarketing,
         })
         .eq("user_id", user.id);
 
@@ -283,17 +301,18 @@ const Onboarding = () => {
     3: Award,
     4: Trophy,
     5: Shield,
+    6: Lock,
   };
 
   const StepIcon = stepIcons[step];
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 py-8">
       <div className="w-full max-w-[380px] mx-auto flex-1 flex flex-col">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
-          {[1, 2, 3, 4, 5].map((s) => (
+          {[1, 2, 3, 4, 5, 6].map((s) => (
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-colors ${
@@ -314,6 +333,7 @@ const Onboarding = () => {
             {step === 3 && t("onboardingStep3")}
             {step === 4 && t("onboardingStepPB")}
             {step === 5 && t("onboardingStep4")}
+            {step === 6 && t("onboardingStep6")}
           </h1>
         </div>
 
@@ -620,6 +640,111 @@ const Onboarding = () => {
               </div>
             </div>
           )}
+
+          {step === 6 && (
+            <div className="space-y-4">
+              <div className="p-5 rounded-2xl bg-warning-light border border-warning/20">
+                <div className="flex gap-3">
+                  <AlertTriangle className="w-6 h-6 text-warning flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-warning-foreground mb-1">
+                      {t("privacyImportantTitle")}
+                    </h3>
+                    <p className="text-sm text-warning-foreground/80">
+                      {t("privacyImportantDesc")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Checkbox A — mandatory, with link */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privA"
+                  checked={privacyPolicyAccepted}
+                  onChange={(e) => setPrivacyPolicyAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privA" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxA_part1")}{" "}
+                  <Link
+                    to={PRIVACY_POLICY_PATH}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t("privacyPolicyLinkLabel")}
+                  </Link>
+                  {t("privacyCheckboxA_part2")}
+                </label>
+              </div>
+
+              <p className="text-sm text-foreground font-medium pt-2">
+                {t("privacyConsentIntro")}
+              </p>
+
+              {/* Checkbox B */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privB"
+                  checked={privacyPurpose1}
+                  onChange={(e) => setPrivacyPurpose1(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privB" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxB")}
+                </label>
+              </div>
+
+              {/* Checkbox C */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privC"
+                  checked={privacyPurpose2}
+                  onChange={(e) => setPrivacyPurpose2(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privC" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxC")}
+                </label>
+              </div>
+
+              {/* Checkbox D — optional */}
+              <div className="relative flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privD"
+                  checked={privacyMarketing}
+                  onChange={(e) => setPrivacyMarketing(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privD" className="text-sm text-foreground leading-relaxed cursor-pointer pr-16">
+                  {t("privacyCheckboxD")}
+                </label>
+                <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-muted/20 text-muted">
+                  {t("optional")}
+                </span>
+              </div>
+
+              {/* Checkbox E */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privE"
+                  checked={privacyCompliance}
+                  onChange={(e) => setPrivacyCompliance(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privE" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxE")}
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation buttons */}
@@ -637,12 +762,13 @@ const Onboarding = () => {
             </Button>
           )}
 
-          {step < 5 ? (
+          {step < 6 ? (
             <Button
               variant="primaryGradient"
               size="lg"
               onClick={handleNext}
               className="flex-1 h-12 rounded-xl"
+              disabled={step === 5 && !safetyDisclaimerAccepted}
             >
               {step === 4 ? (t("skip")) : t("next")}
               <ChevronRight className="w-5 h-5" />
@@ -653,7 +779,7 @@ const Onboarding = () => {
               size="lg"
               onClick={handleComplete}
               className="flex-1 h-12 rounded-xl"
-              disabled={saving || !safetyDisclaimerAccepted}
+              disabled={saving || !privacyComplete}
             >
               {saving ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
