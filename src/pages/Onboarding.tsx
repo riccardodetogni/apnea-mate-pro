@@ -54,6 +54,7 @@ const Onboarding = () => {
   const [insuranceProvider, setInsuranceProvider] = useState("");
   const [freedivingSince, setFreedivingSince] = useState("");
   const [certDisclaimerAccepted, setCertDisclaimerAccepted] = useState(false);
+  const [safetyDisclaimerAccepted, setSafetyDisclaimerAccepted] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
   
   const { user } = useAuth();
@@ -599,6 +600,24 @@ const Onboarding = () => {
                   {t("safetyDisclaimer")}
                 </p>
               </div>
+
+              <div className="space-y-3">
+                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-muted leading-relaxed">
+                  {t("platformLiabilityDisclaimer")}
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                  <input
+                    type="checkbox"
+                    id="safetyDisclaimer"
+                    checked={safetyDisclaimerAccepted}
+                    onChange={(e) => setSafetyDisclaimerAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                  />
+                  <label htmlFor="safetyDisclaimer" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                    {t("platformLiabilityAccept")}
+                  </label>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -634,7 +653,7 @@ const Onboarding = () => {
               size="lg"
               onClick={handleComplete}
               className="flex-1 h-12 rounded-xl"
-              disabled={saving}
+              disabled={saving || !safetyDisclaimerAccepted}
             >
               {saving ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
