@@ -768,7 +768,10 @@ const Onboarding = () => {
               size="lg"
               onClick={handleNext}
               className="flex-1 h-12 rounded-xl"
-              disabled={step === 5 && !safetyDisclaimerAccepted}
+              disabled={
+                (step === 3 && isCertified === true && !certDisclaimerAccepted) ||
+                (step === 5 && !safetyDisclaimerAccepted)
+              }
             >
               {step === 4 ? (t("skip")) : t("next")}
               <ChevronRight className="w-5 h-5" />
