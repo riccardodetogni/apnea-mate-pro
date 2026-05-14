@@ -918,6 +918,11 @@ const translations = {
     platformLiabilityDisclaimer: "I declare that I have read and understood that Apnea Mate S.r.l. is exclusively a digital platform for connection and sharing among users and does not organize, manage, supervise, control, or guarantee activities, group sessions, training, content, or interactions between users. I understand and accept that any use of the app, including participation in or organization of sessions, training, use of informational content, and interaction with other users, takes place under my sole responsibility. I therefore accept that Apnea Mate S.r.l. and its operators disclaim any liability for accidents, injuries, illness, damages, losses, user conduct, or any consequence arising directly or indirectly from the use of the platform and the services connected to it.",
     platformLiabilityAccept: "I have read and accept",
     iUnderstand: "I understand",
+    // Create disclaimer modal (Community "+ Crea")
+    createDisclaimerTitle: "Before continuing",
+    createDisclaimerCheckbox: "I declare that I am aware that freediving is a sport that involves intrinsic risks, including serious ones, and that it requires adequate technical preparation, suitable equipment, awareness of one's own psychophysical limits, and respect for fundamental safety rules, and must in no case be practiced alone. I further declare that I am aware that the creation of and participation in group sessions organized through Apnea Mate S.r.l. takes place under my sole responsibility. I understand and accept that Apnea Mate S.r.l. is exclusively a platform that connects users for freediving sessions and does not organize, manage, supervise, or guarantee the performance of the activities proposed by users. I therefore accept that Apnea Mate S.r.l. disclaims any liability for accidents, injuries, illness, damages, losses, or user behavior occurring before, during, or after the activities organized through the platform.",
+    createDisclaimerContinue: "Continue",
+    createDisclaimerCancel: "Cancel",
     // Privacy (onboarding step 6)
     onboardingStep6: "Privacy",
     optional: "Optional",
