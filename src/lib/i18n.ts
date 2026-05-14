@@ -893,6 +893,8 @@ const translations = {
     safetyTitle: "Your safety matters",
     safetyMessage: "Freediving involves risks. Some sessions may require certification. We recommend always training with a buddy or instructor.",
     safetyDisclaimer: "By participating, you agree to follow safety guidelines and inform the organizer of your experience level.",
+    platformLiabilityDisclaimer: "I declare that I have read and understood that Apnea Mate S.r.l. is exclusively a digital platform for connection and sharing among users and does not organize, manage, supervise, control, or guarantee activities, group sessions, training, content, or interactions between users. I understand and accept that any use of the app, including participation in or organization of sessions, training, use of informational content, and interaction with other users, takes place under my sole responsibility. I therefore accept that Apnea Mate S.r.l. and its operators disclaim any liability for accidents, injuries, illness, damages, losses, user conduct, or any consequence arising directly or indirectly from the use of the platform and the services connected to it.",
+    platformLiabilityAccept: "I have read and accept",
     iUnderstand: "I understand",
     safetyAboutToJoin: "You're about to join",
     safetyConfirmJoin: "I understand, sign me up",
