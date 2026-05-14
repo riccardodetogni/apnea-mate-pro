@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocationAutocomplete } from "@/components/ui/LocationAutocomplete";
@@ -24,9 +24,12 @@ import {
   Loader2,
   Navigation,
   Trophy,
+  Lock,
 } from "lucide-react";
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
+
+const PRIVACY_POLICY_PATH = "/privacy";
 
 const certificationAgencies = [
   "AIDA",
@@ -56,6 +59,14 @@ const Onboarding = () => {
   const [certDisclaimerAccepted, setCertDisclaimerAccepted] = useState(false);
   const [safetyDisclaimerAccepted, setSafetyDisclaimerAccepted] = useState(false);
   const [isInstructor, setIsInstructor] = useState(false);
+  // Step 6 — Privacy
+  const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState(false);
+  const [privacyPurpose1, setPrivacyPurpose1] = useState(false);
+  const [privacyPurpose2, setPrivacyPurpose2] = useState(false);
+  const [privacyMarketing, setPrivacyMarketing] = useState(false);
+  const [privacyCompliance, setPrivacyCompliance] = useState(false);
+  const privacyComplete =
+    privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance;
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
@@ -171,7 +182,11 @@ const Onboarding = () => {
       }
     }
 
-    if (step < 5) {
+    if (step === 5 && !safetyDisclaimerAccepted) {
+      return;
+    }
+
+    if (step < 6) {
       if (step === 2 && isCertified === false) {
         setStep(4);
       } else if (step === 2 && isCertified === true) {
@@ -183,7 +198,9 @@ const Onboarding = () => {
   };
 
   const handleBack = () => {
-    if (step === 5 && isCertified === false) {
+    if (step === 6) {
+      setStep(5);
+    } else if (step === 5 && isCertified === false) {
       setStep(4);
     } else if (step === 4 && isCertified === false) {
       setStep(2);
@@ -207,6 +224,7 @@ const Onboarding = () => {
           has_insurance: hasInsurance,
           insurance_provider: hasInsurance ? (insuranceProvider.trim() || null) : null,
           freediving_since: freedivingSince.trim() ? parseInt(freedivingSince, 10) : null,
+          marketing_consent: privacyMarketing,
         })
         .eq("user_id", user.id);
 
@@ -283,17 +301,18 @@ const Onboarding = () => {
     3: Award,
     4: Trophy,
     5: Shield,
+    6: Lock,
   };
 
   const StepIcon = stepIcons[step];
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   return (
     <div className="min-h-screen bg-background flex flex-col px-6 py-8">
       <div className="w-full max-w-[380px] mx-auto flex-1 flex flex-col">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
-          {[1, 2, 3, 4, 5].map((s) => (
+          {[1, 2, 3, 4, 5, 6].map((s) => (
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-colors ${
@@ -314,6 +333,7 @@ const Onboarding = () => {
             {step === 3 && t("onboardingStep3")}
             {step === 4 && t("onboardingStepPB")}
             {step === 5 && t("onboardingStep4")}
+            {step === 6 && t("onboardingStep6")}
           </h1>
         </div>
 
