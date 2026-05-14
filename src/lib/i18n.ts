@@ -128,6 +128,8 @@ const translations = {
     safetyTitle: "La tua sicurezza è importante",
     safetyMessage: "L'apnea comporta rischi. Alcune sessioni potrebbero richiedere certificazione. Ti consigliamo di allenarti sempre con un buddy o un istruttore.",
     safetyDisclaimer: "Partecipando, accetti di rispettare le norme di sicurezza e di informare l'organizzatore del tuo livello di esperienza.",
+    platformLiabilityDisclaimer: "Dichiaro di aver letto e compreso che Apnea Mate S.r.l. è esclusivamente una piattaforma digitale di connessione e condivisione tra utenti e che non organizza, gestisce, supervisiona, controlla o garantisce le attività, le sessioni di gruppo, gli allenamenti, i contenuti o le interazioni tra gli utenti. Comprendo e accetto che ogni utilizzo dell'app, inclusa la partecipazione o organizzazione di sessioni, lo svolgimento di allenamenti, l'utilizzo di contenuti informativi e l'interazione con altri utenti, avviene sotto la mia esclusiva responsabilità. Accetto pertanto che Apnea Mate S.r.l. e i relativi gestori declinano ogni responsabilità per incidenti, infortuni, malori, danni, perdite, condotte degli utenti o qualsiasi conseguenza derivante direttamente o indirettamente dall'utilizzo della piattaforma e dei servizi ad essa collegati.",
+    platformLiabilityAccept: "Ho letto e accetto",
     iUnderstand: "Ho capito",
     safetyAboutToJoin: "Stai per unirti a",
     safetyConfirmJoin: "Capisco, iscrivimi",
