@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,11 +7,13 @@ import { useNavigate } from "react-router-dom";
 import { Calendar, Plus } from "lucide-react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CreateDisclaimerModal } from "./CreateDisclaimerModal";
 
 export const CommunityHeader = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   
   const userName = profile?.name || user?.email || "U";
   const userInitial = userName.charAt(0).toUpperCase();
@@ -63,13 +66,21 @@ export const CommunityHeader = () => {
         <Button 
           variant="primaryGradient" 
           size="sm"
-          onClick={() => navigate("/create")}
+          onClick={() => setDisclaimerOpen(true)}
           className="rounded-full px-3.5 h-9 gap-1.5 text-xs font-semibold"
         >
           <Plus className="w-3.5 h-3.5" />
           {t("navCreate")}
         </Button>
       </div>
+      <CreateDisclaimerModal
+        open={disclaimerOpen}
+        onClose={() => setDisclaimerOpen(false)}
+        onConfirm={() => {
+          setDisclaimerOpen(false);
+          navigate("/create");
+        }}
+      />
     </header>
   );
 };
