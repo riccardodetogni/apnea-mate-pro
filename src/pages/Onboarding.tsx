@@ -538,18 +538,23 @@ const Onboarding = () => {
                 </label>
               </div>
 
-              {/* Certification disclaimer checkbox */}
-              <div className="flex items-start gap-3 mt-4 p-4 rounded-2xl border border-border">
-                <input
-                  type="checkbox"
-                  id="certDisclaimer"
-                  checked={certDisclaimerAccepted}
-                  onChange={(e) => setCertDisclaimerAccepted(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
-                />
-                <label htmlFor="certDisclaimer" className="text-xs text-muted leading-relaxed cursor-pointer">
+              {/* Certification disclaimer */}
+              <div className="mt-4 space-y-3">
+                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-muted leading-relaxed">
                   {t("certDisclaimer")}
-                </label>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                  <input
+                    type="checkbox"
+                    id="certDisclaimer"
+                    checked={certDisclaimerAccepted}
+                    onChange={(e) => setCertDisclaimerAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                  />
+                  <label htmlFor="certDisclaimer" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                    {t("certDisclaimerAccept")}
+                  </label>
+                </div>
               </div>
             </div>
           )}
