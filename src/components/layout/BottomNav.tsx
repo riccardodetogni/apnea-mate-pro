@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Globe, MapPin, MessageCircle, Users, BarChart3 } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useConversations } from "@/hooks/useConversations";
+import { CreateDisclaimerModal } from "@/components/community/CreateDisclaimerModal";
 
 const navItems = [
   { path: "/community", icon: Globe, labelKey: "navCommunity" as const },
@@ -17,6 +19,7 @@ export const BottomNav = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { totalUnread } = useConversations();
+  const [trainingDisclaimerOpen, setTrainingDisclaimerOpen] = useState(false);
 
   return (
     <div className="bottom-nav-container safe-area-bottom">
@@ -29,7 +32,13 @@ export const BottomNav = () => {
           return (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              onClick={() => {
+                if (path === "/training") {
+                  setTrainingDisclaimerOpen(true);
+                } else {
+                  navigate(path);
+                }
+              }}
               className={`nav-item ${isActive ? "active" : ""}`}
             >
               <div className="relative">
@@ -45,6 +54,15 @@ export const BottomNav = () => {
           );
         })}
       </div>
+      <CreateDisclaimerModal
+        open={trainingDisclaimerOpen}
+        onClose={() => setTrainingDisclaimerOpen(false)}
+        onConfirm={() => {
+          setTrainingDisclaimerOpen(false);
+          navigate("/training");
+        }}
+        checkboxText={t("trainingDisclaimerCheckbox")}
+      />
     </div>
   );
 };
