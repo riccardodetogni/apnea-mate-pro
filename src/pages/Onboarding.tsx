@@ -640,6 +640,111 @@ const Onboarding = () => {
               </div>
             </div>
           )}
+
+          {step === 6 && (
+            <div className="space-y-4">
+              <div className="p-5 rounded-2xl bg-warning-light border border-warning/20">
+                <div className="flex gap-3">
+                  <AlertTriangle className="w-6 h-6 text-warning flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-warning-foreground mb-1">
+                      {t("privacyImportantTitle")}
+                    </h3>
+                    <p className="text-sm text-warning-foreground/80">
+                      {t("privacyImportantDesc")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Checkbox A — mandatory, with link */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privA"
+                  checked={privacyPolicyAccepted}
+                  onChange={(e) => setPrivacyPolicyAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privA" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxA_part1")}{" "}
+                  <Link
+                    to={PRIVACY_POLICY_PATH}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t("privacyPolicyLinkLabel")}
+                  </Link>
+                  {t("privacyCheckboxA_part2")}
+                </label>
+              </div>
+
+              <p className="text-sm text-foreground font-medium pt-2">
+                {t("privacyConsentIntro")}
+              </p>
+
+              {/* Checkbox B */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privB"
+                  checked={privacyPurpose1}
+                  onChange={(e) => setPrivacyPurpose1(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privB" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxB")}
+                </label>
+              </div>
+
+              {/* Checkbox C */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privC"
+                  checked={privacyPurpose2}
+                  onChange={(e) => setPrivacyPurpose2(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privC" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxC")}
+                </label>
+              </div>
+
+              {/* Checkbox D — optional */}
+              <div className="relative flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privD"
+                  checked={privacyMarketing}
+                  onChange={(e) => setPrivacyMarketing(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privD" className="text-sm text-foreground leading-relaxed cursor-pointer pr-16">
+                  {t("privacyCheckboxD")}
+                </label>
+                <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-muted/20 text-muted">
+                  {t("optional")}
+                </span>
+              </div>
+
+              {/* Checkbox E */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privE"
+                  checked={privacyCompliance}
+                  onChange={(e) => setPrivacyCompliance(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privE" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCheckboxE")}
+                </label>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation buttons */}
@@ -657,12 +762,13 @@ const Onboarding = () => {
             </Button>
           )}
 
-          {step < 5 ? (
+          {step < 6 ? (
             <Button
               variant="primaryGradient"
               size="lg"
               onClick={handleNext}
               className="flex-1 h-12 rounded-xl"
+              disabled={step === 5 && !safetyDisclaimerAccepted}
             >
               {step === 4 ? (t("skip")) : t("next")}
               <ChevronRight className="w-5 h-5" />
@@ -673,7 +779,7 @@ const Onboarding = () => {
               size="lg"
               onClick={handleComplete}
               className="flex-1 h-12 rounded-xl"
-              disabled={saving || !safetyDisclaimerAccepted}
+              disabled={saving || !privacyComplete}
             >
               {saving ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
