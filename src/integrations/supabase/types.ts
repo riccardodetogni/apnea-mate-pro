@@ -743,6 +743,7 @@ export type Database = {
           id: string
           insurance_provider: string | null
           location: string | null
+          marketing_consent: boolean
           name: string
           search_visibility: boolean
           updated_at: string
@@ -758,6 +759,7 @@ export type Database = {
           id?: string
           insurance_provider?: string | null
           location?: string | null
+          marketing_consent?: boolean
           name: string
           search_visibility?: boolean
           updated_at?: string
@@ -773,6 +775,7 @@ export type Database = {
           id?: string
           insurance_provider?: string | null
           location?: string | null
+          marketing_consent?: boolean
           name?: string
           search_visibility?: boolean
           updated_at?: string
