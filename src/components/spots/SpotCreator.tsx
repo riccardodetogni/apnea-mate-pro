@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { t, getEnvironmentTypes } from "@/lib/i18n";
 import "leaflet/dist/leaflet.css";
 
@@ -35,6 +36,7 @@ interface SpotCreatorProps {
 
 const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -183,6 +185,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
           environment_type: form.environment_type,
           latitude: coordinates?.lat || null,
           longitude: coordinates?.lng || null,
+          created_by: user?.id ?? null,
         })
         .select("id")
         .single();
