@@ -120,12 +120,9 @@ const ComingSoon = () => {
       <main className="relative w-full max-w-3xl flex flex-col items-center text-center">
         <Logo variant="symbol" className="w-20 h-20 sm:w-24 sm:h-24 mb-6" />
 
-        <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white">
-          L'apnea condivisa sta per iniziare.
-        </h1>
-        <p className="mt-3 text-base sm:text-lg text-white/70 max-w-xl">
+        <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-2xl">
           Apnea Mate è in arrivo. Unisciti alla community prima del lancio.
-        </p>
+        </h1>
 
         {/* Countdown */}
         <div className="mt-8 sm:mt-10 flex items-center justify-center gap-2 sm:gap-4">
