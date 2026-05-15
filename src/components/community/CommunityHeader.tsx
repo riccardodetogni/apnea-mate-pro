@@ -8,7 +8,6 @@ import { Calendar, Plus } from "lucide-react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CreateDisclaimerModal } from "./CreateDisclaimerModal";
-import { Logo } from "@/components/brand/Logo";
 
 export const CommunityHeader = () => {
   const { user } = useAuth();
@@ -36,12 +35,10 @@ export const CommunityHeader = () => {
 
       {/* Title group */}
       <div className="text-center flex-1 min-w-0">
-        <Logo
-          variant="horizontal"
-          alt={t("appName")}
-          className="h-5 w-auto mx-auto object-contain"
-        />
-        <span className="text-xl font-semibold block mt-0.5 text-foreground">
+        <span className="text-[13px] tracking-wide uppercase block" style={{ color: 'hsl(222 47% 11% / 0.45)' }}>
+          {t("appName")}
+        </span>
+        <span className="text-xl font-semibold block -mt-0.5 text-foreground">
           {t("community")}
         </span>
       </div>
