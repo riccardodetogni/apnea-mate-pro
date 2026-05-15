@@ -64,6 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Certificazione approvata! 🎉`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #16a34a;">Certificazione verificata! 🎉</h2>
           <p>Ciao ${userProfile.name}!</p>
           <p>La tua richiesta di certificazione è stata <strong>approvata</strong>!</p>
@@ -85,6 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Aggiornamento sulla tua certificazione`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #dc2626;">Certificazione non approvata</h2>
           <p>Ciao ${userProfile.name},</p>
           <p>Purtroppo la tua richiesta di certificazione non è stata approvata.</p>

@@ -84,6 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Sei stato accettato in "${group.name}"! 🎉`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #16a34a;">Benvenuto nel gruppo! 🎉</h2>
           <p>Ciao ${userProfile.name}!</p>
           <p>La tua richiesta di partecipazione è stata <strong>approvata</strong>!</p>
@@ -111,6 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Nuova richiesta di adesione a "${group.name}"`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #3f66e8;">Nuova richiesta di adesione 🤿</h2>
           <p>Ciao ${userProfile.name},</p>
           <p><strong>${requesterName}</strong> ha richiesto di unirsi al tuo gruppo:</p>
@@ -127,6 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Richiesta per "${group.name}" non approvata`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #dc2626;">Richiesta non approvata</h2>
           <p>Ciao ${userProfile.name},</p>
           <p>Purtroppo la tua richiesta di partecipazione al gruppo non è stata approvata:</p>
