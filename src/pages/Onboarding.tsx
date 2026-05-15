@@ -561,7 +561,7 @@ const Onboarding = () => {
 
               {/* Certification disclaimer */}
               <div className="mt-4 space-y-3">
-                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-muted leading-relaxed">
+                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-foreground leading-relaxed">
                   {t("certDisclaimer")}
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
@@ -616,13 +616,13 @@ const Onboarding = () => {
               </div>
 
               <div className="p-5 rounded-2xl bg-secondary border border-border">
-                <p className="text-sm text-muted">
+                <p className="text-sm text-foreground">
                   {t("safetyDisclaimer")}
                 </p>
               </div>
 
               <div className="space-y-3">
-                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-muted leading-relaxed">
+                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-foreground leading-relaxed">
                   {t("platformLiabilityDisclaimer")}
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
