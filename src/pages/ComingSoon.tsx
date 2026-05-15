@@ -86,7 +86,8 @@ const ComingSoon = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("waitlist").insert({ email: parsed.data.toLowerCase() });
+    const normalizedEmail = parsed.data.toLowerCase();
+    const { error } = await supabase.from("waitlist").insert({ email: normalizedEmail });
     setSubmitting(false);
     if (error) {
       if (error.code === "23505") {
@@ -96,6 +97,16 @@ const ComingSoon = () => {
       }
       return;
     }
+    // Fire-and-forget confirmation email — never block UX on it.
+    supabase.functions
+      .invoke("send-transactional-email", {
+        body: {
+          templateName: "waitlist-confirmation",
+          recipientEmail: normalizedEmail,
+          idempotencyKey: `waitlist-${normalizedEmail}`,
+        },
+      })
+      .catch((err) => console.warn("waitlist email send failed", err));
     setEmail("");
     setMessage({ type: "success", text: "Perfetto! Ti avviseremo il giorno del lancio." });
   };
