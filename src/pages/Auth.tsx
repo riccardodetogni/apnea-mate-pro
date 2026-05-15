@@ -7,8 +7,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { Waves, Mail, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Logo } from "@/components/brand/Logo";
 
 type AuthMode = "login" | "register" | "forgotPassword";
 
@@ -297,9 +298,7 @@ const Auth = () => {
         <div className="w-full max-w-[380px] animate-fade-in">
           {/* Logo and title */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#345678] flex items-center justify-center shadow-elevated">
-              <Waves className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <Logo variant="app" className="w-20 h-20 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-foreground">
               {t("resetPassword")}
             </h1>
@@ -361,9 +360,7 @@ const Auth = () => {
       <div className="w-full max-w-[380px] animate-fade-in">
         {/* Logo and title */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#345678] flex items-center justify-center shadow-elevated">
-            <Waves className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <Logo variant="app" className="w-20 h-20 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground">
             {mode === "login" ? t("welcomeBack") : t("createAccount")}
           </h1>
