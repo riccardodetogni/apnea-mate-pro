@@ -10,6 +10,7 @@ import RequireAuth from "./components/auth/RequireAuth";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
+const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Community = lazy(() => import("./pages/Community"));
@@ -67,8 +68,9 @@ const App = () => (
           <BrowserRouter>
             <Suspense fallback={<PageSpinner />}>
               <Routes>
-                <Route path="/" element={<Navigate to="/community" replace />} />
+                <Route path="/" element={<ComingSoon />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/admin-login" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
