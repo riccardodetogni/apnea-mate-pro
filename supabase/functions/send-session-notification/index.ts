@@ -1,16 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@resend.dev";
-const APP_URL = "https://apnea-mate-pro.com";
-
-const ctaButton = (href: string, label: string) => `
-  <a href="${href}" style="display:inline-block; background:#3f66e8; color:#ffffff; font-size:15px; font-weight:bold; border-radius:18px; padding:14px 28px; text-decoration:none; margin:16px 0;">
-    ${label}
-  </a>
-`;
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -24,206 +14,72 @@ interface NotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { type, sessionId, participantUserId }: NotificationRequest = await req.json();
 
-    // Fetch session details
     const { data: session, error: sessionError } = await supabase
       .from("sessions")
-      .select(`
-        id,
-        title,
-        date_time,
-        creator_id,
-        spot:spots (name)
-      `)
+      .select("id, title, date_time, creator_id, spot:spots(name)")
       .eq("id", sessionId)
       .single();
 
     if (sessionError || !session) {
-      console.error("Session not found:", sessionError);
-      return new Response(
-        JSON.stringify({ error: "Session not found" }),
-        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "Session not found" }), { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Format date
     const sessionDate = new Date(session.date_time).toLocaleDateString("it-IT", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      hour: "2-digit",
-      minute: "2-digit",
+      weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
     });
+    const spotName = (session.spot as any)?.name || "Spot";
 
-    let recipientEmail: string;
-    let recipientName: string;
-    let subject: string;
-    let htmlContent: string;
+    let templateName: string;
+    let recipientUserId: string | undefined;
+    const templateData: Record<string, any> = { sessionTitle: session.title, sessionId, spotName, sessionDate };
 
     if (type === "join_request") {
-      // Notify the session creator about new join request
-      const { data: creatorProfile } = await supabase
-        .from("profiles")
-        .select("email, name")
-        .eq("user_id", session.creator_id)
-        .single();
-
-      const { data: requesterProfile } = await supabase
-        .from("profiles")
-        .select("name")
-        .eq("user_id", participantUserId)
-        .single();
-
-      if (!creatorProfile?.email) {
-        return new Response(
-          JSON.stringify({ error: "Creator email not found" }),
-          { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
+      recipientUserId = session.creator_id;
+      templateName = "session-join-request";
+      if (participantUserId) {
+        const { data: req } = await supabase.from("profiles").select("name").eq("user_id", participantUserId).single();
+        templateData.requesterName = req?.name || "Un freediver";
       }
-
-      recipientEmail = creatorProfile.email;
-      recipientName = creatorProfile.name;
-      const requesterName = requesterProfile?.name || "Un utente";
-
-      subject = `Nuova richiesta per "${session.title}"`;
-      htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
-          <h2 style="color: #0891b2;">Nuova richiesta di partecipazione</h2>
-          <p>Ciao ${recipientName}!</p>
-          <p><strong>${requesterName}</strong> vuole partecipare alla tua sessione:</p>
-          <div style="background: #f0f9ff; border-radius: 12px; padding: 16px; margin: 16px 0;">
-            <h3 style="margin: 0 0 8px; color: #0c4a6e;">${session.title}</h3>
-            <p style="margin: 0; color: #64748b;">📍 ${(session.spot as any)?.name || "Spot"}</p>
-            <p style="margin: 0; color: #64748b;">📅 ${sessionDate}</p>
-          </div>
-          <p>Accedi all'app per approvare o rifiutare la richiesta.</p>
-          ${ctaButton(`${APP_URL}/sessions/${sessionId}`, "Gestisci richiesta")}
-          <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
-        </div>
-      `;
     } else if (type === "request_approved") {
-      // Notify participant that their request was approved
-      const { data: participantProfile } = await supabase
-        .from("profiles")
-        .select("email, name")
-        .eq("user_id", participantUserId)
-        .single();
-
-      if (!participantProfile?.email) {
-        return new Response(
-          JSON.stringify({ error: "Participant email not found" }),
-          { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-
-      recipientEmail = participantProfile.email;
-      recipientName = participantProfile.name;
-
-      subject = `Sei stato approvato per "${session.title}"! 🎉`;
-      htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
-          <h2 style="color: #16a34a;">Richiesta approvata! 🎉</h2>
-          <p>Ciao ${recipientName}!</p>
-          <p>La tua richiesta di partecipazione è stata <strong>approvata</strong>!</p>
-          <div style="background: #f0fdf4; border-radius: 12px; padding: 16px; margin: 16px 0; border-left: 4px solid #16a34a;">
-            <h3 style="margin: 0 0 8px; color: #166534;">${session.title}</h3>
-            <p style="margin: 0; color: #64748b;">📍 ${(session.spot as any)?.name || "Spot"}</p>
-            <p style="margin: 0; color: #64748b;">📅 ${sessionDate}</p>
-          </div>
-          <p>Non dimenticare la tua attrezzatura e arriva puntuale!</p>
-          ${ctaButton(`${APP_URL}/sessions/${sessionId}`, "Vedi sessione")}
-          <p style="color: #64748b; font-size: 14px;">Buone immersioni! 🌊<br/>— Il team Apnea Mate</p>
-        </div>
-      `;
+      recipientUserId = participantUserId;
+      templateName = "session-request-approved";
     } else if (type === "request_rejected") {
-      // Notify participant that their request was rejected
-      const { data: participantProfile } = await supabase
-        .from("profiles")
-        .select("email, name")
-        .eq("user_id", participantUserId)
-        .single();
-
-      if (!participantProfile?.email) {
-        return new Response(
-          JSON.stringify({ error: "Participant email not found" }),
-          { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-
-      recipientEmail = participantProfile.email;
-      recipientName = participantProfile.name;
-
-      subject = `Richiesta non approvata per "${session.title}"`;
-      htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
-          <h2 style="color: #dc2626;">Richiesta non approvata</h2>
-          <p>Ciao ${recipientName},</p>
-          <p>Purtroppo la tua richiesta di partecipazione non è stata approvata per questa sessione:</p>
-          <div style="background: #fef2f2; border-radius: 12px; padding: 16px; margin: 16px 0; border-left: 4px solid #dc2626;">
-            <h3 style="margin: 0 0 8px; color: #991b1b;">${session.title}</h3>
-            <p style="margin: 0; color: #64748b;">📍 ${(session.spot as any)?.name || "Spot"}</p>
-            <p style="margin: 0; color: #64748b;">📅 ${sessionDate}</p>
-          </div>
-          <p>Non preoccuparti, ci sono tante altre sessioni disponibili nella community!</p>
-          ${ctaButton(`${APP_URL}/community`, "Esplora sessioni")}
-          <p style="color: #64748b; font-size: 14px;">— Il team Apnea Mate</p>
-        </div>
-      `;
+      recipientUserId = participantUserId;
+      templateName = "session-request-rejected";
     } else {
-      return new Response(
-        JSON.stringify({ error: "Invalid notification type" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      return new Response(JSON.stringify({ error: "Invalid notification type" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
     }
 
-    // Send email via Resend API
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
+    if (!recipientUserId) {
+      return new Response(JSON.stringify({ error: "Missing recipient" }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+
+    const { data: recipient } = await supabase.from("profiles").select("email, name").eq("user_id", recipientUserId).single();
+    if (!recipient?.email) {
+      return new Response(JSON.stringify({ error: "Recipient email not found" }), { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+    templateData.recipientName = recipient.name;
+
+    const { data, error } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName,
+        recipientEmail: recipient.email,
+        idempotencyKey: `session-${type}-${sessionId}-${recipientUserId}`,
+        templateData,
       },
-      body: JSON.stringify({
-        from: `Apnea Mate <${RESEND_FROM_EMAIL}>`,
-        to: [recipientEmail],
-        subject,
-        html: htmlContent,
-      }),
     });
 
-    const emailData = await emailResponse.json();
-    console.log("Email sent:", emailData);
-
-    return new Response(
-      JSON.stringify({ success: true, emailId: emailData.id }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    if (error) throw error;
+    return new Response(JSON.stringify({ success: true, ...data }), { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } });
   } catch (error: any) {
-    console.error("Error in send-session-notification function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    console.error("send-session-notification error:", error);
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } });
   }
 };
 
