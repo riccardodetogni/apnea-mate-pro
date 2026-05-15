@@ -714,7 +714,7 @@ const Onboarding = () => {
               </div>
 
               {/* Checkbox D — optional */}
-              <div className="relative flex items-start gap-3 p-3 rounded-2xl border border-border">
+              <div className="relative flex items-start gap-3 p-3 pt-8 rounded-2xl border border-border">
                 <input
                   type="checkbox"
                   id="privD"
@@ -722,10 +722,10 @@ const Onboarding = () => {
                   onChange={(e) => setPrivacyMarketing(e.target.checked)}
                   className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
                 />
-                <label htmlFor="privD" className="text-sm text-foreground leading-relaxed cursor-pointer pr-16">
+                <label htmlFor="privD" className="text-sm text-foreground leading-relaxed cursor-pointer">
                   {t("privacyCheckboxD")}
                 </label>
-                <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-muted/20 text-muted">
+                <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-background border border-border text-muted-foreground">
                   {t("optional")}
                 </span>
               </div>
