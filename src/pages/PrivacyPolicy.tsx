@@ -12,7 +12,13 @@ const PrivacyPolicy = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate("/community");
+            }
+          }}
           className="mb-4 -ml-2"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
