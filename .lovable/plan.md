@@ -1,53 +1,27 @@
-## Goal
-1. Show the new Apnea Mate logo at the top of every email we send.
-2. Make the sender display name "Apnea Mate" (currently "apnea-mate").
-3. Explain what's needed for the round sender avatar in Gmail (BIMI).
+## Diagnosi
 
-## Step 1 — Host the logo so emails can load it
+L'URL del link è corretto: `https://apnea-mate-pro.com/unsubscribe?token=...`
 
-Email clients can't read local React assets — the logo must be a public URL.
+La rotta `/unsubscribe` **esiste già** in `src/App.tsx` ed è collegata alla pagina `src/pages/Unsubscribe.tsx` (l'abbiamo aggiunta in questa sessione). Funziona infatti in preview — il routing è corretto.
 
-- Create a public storage bucket `email-assets`.
-- Upload `src/assets/logos/apnea_mate_logo_orizzontale.png` (color, on white) as the header logo for emails (works on the white email background).
-- Use the returned public URL as a constant `LOGO_URL` in the templates.
+**Causa del 404:** la rotta `/unsubscribe` è stata aggiunta dopo l'ultima pubblicazione. Il sito live su `apnea-mate-pro.com` sta servendo la versione precedente del codice, che non conosce la rotta `/unsubscribe` → di conseguenza il server risponde 404.
 
-## Step 2 — Add the logo to every template
+## Fix
 
-Insert a `<Img src={LOGO_URL} alt="Apnea Mate" width="160" />` at the top of each template's `<Container>`, replacing the current `🌊 Apnea Mate` text wordmark.
+Non serve modificare codice. Basta **ripubblicare** il progetto. Una volta pubblicato:
 
-Templates to update:
-- `supabase/functions/_shared/email-templates/signup.tsx`
-- `supabase/functions/_shared/email-templates/magic-link.tsx`
-- `supabase/functions/_shared/email-templates/recovery.tsx`
-- `supabase/functions/_shared/email-templates/invite.tsx`
-- `supabase/functions/_shared/email-templates/email-change.tsx`
-- `supabase/functions/_shared/email-templates/reauthentication.tsx`
-- `supabase/functions/_shared/transactional-email-templates/waitlist-confirmation.tsx`
+- `apnea-mate-pro.com/unsubscribe?token=...` caricherà la pagina `Unsubscribe.tsx`
+- Il token verrà validato dall'edge function `handle-email-unsubscribe` (già deployata)
+- L'utente vedrà la conferma e potrà cancellarsi
 
-For the three legacy notification functions (`send-certification-notification`, `send-group-notification`, `send-session-notification`), add the same logo `<img>` to their inline HTML.
+## Verifica post-publish
 
-## Step 3 — Fix the sender display name
+1. Aprire il link del footer email su un browser → deve mostrare la card "Vuoi cancellarti?"
+2. Cliccare "Conferma cancellazione" → deve mostrare "Fatto ✅"
+3. Riapertura dello stesso link → deve mostrare "Già cancellato"
+4. Controllo opzionale lato dati: la mail deve apparire in `suppressed_emails` con `reason = 'unsubscribe'`
 
-Change the `SITE_NAME` constant from `"apnea-mate"` to `"Apnea Mate"` in:
-- `supabase/functions/auth-email-hook/index.ts`
-- `supabase/functions/send-transactional-email/index.ts`
+## Note
 
-This makes the From header read `Apnea Mate <noreply@apnea-mate-pro.com>` — exactly the bold name in your screenshot, just capitalized properly.
-
-## Step 4 — Redeploy
-
-Redeploy all affected edge functions so the changes go live.
-
-## Step 5 — Inbox avatar (BIMI) — informational, no code
-
-To get the round logo next to the sender name in Gmail, you (not me) need to:
-1. Create an **SVG Tiny PS** version of the symbol logo and host it at a public HTTPS URL.
-2. Make sure DMARC on `apnea-mate-pro.com` is at `p=quarantine` or `p=reject`.
-3. Add a `BIMI` TXT DNS record pointing to the SVG.
-4. (Required by Gmail) Buy a **VMC** (Verified Mark Certificate, ~$1.5k/year from Entrust or DigiCert) and reference it in the BIMI record.
-
-Without VMC, BIMI works on Yahoo/Apple Mail but Gmail won't show the avatar. If you want, I can prepare the BIMI record and host the SVG once you have it — just out of scope for this change.
-
-## Out of scope
-- BIMI/VMC setup itself.
-- Visual redesign of the email layouts (only swapping the wordmark for the logo image).
+- Tutti i nuovi link unsubscribe inviati da ora useranno l'URL corretto del custom domain (l'email infrastructure di Lovable usa il published URL del progetto).
+- Le email **già inviate prima** del publish puntano comunque allo stesso URL `/unsubscribe`, quindi una volta pubblicato funzioneranno anche quelle (i token sono salvati in DB e non scadono).
