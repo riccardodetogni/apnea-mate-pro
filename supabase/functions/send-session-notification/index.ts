@@ -99,6 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Nuova richiesta per "${session.title}"`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #0891b2;">Nuova richiesta di partecipazione</h2>
           <p>Ciao ${recipientName}!</p>
           <p><strong>${requesterName}</strong> vuole partecipare alla tua sessione:</p>
@@ -133,6 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Sei stato approvato per "${session.title}"! 🎉`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #16a34a;">Richiesta approvata! 🎉</h2>
           <p>Ciao ${recipientName}!</p>
           <p>La tua richiesta di partecipazione è stata <strong>approvata</strong>!</p>
@@ -167,6 +169,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Richiesta non approvata per "${session.title}"`;
       htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style="display:block;margin:0 0 20px;height:auto;" />
           <h2 style="color: #dc2626;">Richiesta non approvata</h2>
           <p>Ciao ${recipientName},</p>
           <p>Purtroppo la tua richiesta di partecipazione non è stata approvata per questa sessione:</p>

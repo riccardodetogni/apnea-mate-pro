@@ -8,6 +8,7 @@ import {
   Container,
   Head,
   Heading,
+  Img,
   Html,
   Link,
   Preview,
@@ -30,7 +31,7 @@ export const InviteEmail = ({
     <Preview>Sei stato invitato su Apnea Mate</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={brand}>🌊 Apnea Mate</Text>
+        <Img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style={logo} />
         <Heading style={h1}>Sei stato invitato</Heading>
         <Text style={text}>
           Sei stato invitato a unirti ad{' '}
@@ -55,7 +56,7 @@ export default InviteEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
 const container = { padding: '40px 25px', maxWidth: '480px', margin: '0 auto' }
-const brand = { fontSize: '18px', fontWeight: 'bold' as const, color: '#233a6b', margin: '0 0 24px', letterSpacing: '-0.3px' }
+const logo = { width: '180px', height: 'auto', margin: '0 0 24px', display: 'block' as const }
 const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#233a6b', margin: '0 0 20px' }
 const text = { fontSize: '15px', color: '#374151', lineHeight: '1.6', margin: '0 0 20px' }
 const link = { color: '#3f66e8', textDecoration: 'underline' }
