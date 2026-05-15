@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
-import { Waves, Lock, Loader2, CheckCircle } from "lucide-react";
+import { Lock, Loader2, CheckCircle } from "lucide-react";
+import { Logo } from "@/components/brand/Logo";
 import { supabase } from "@/integrations/supabase/client";
 
 const ResetPassword = () => {
@@ -146,9 +147,7 @@ const ResetPassword = () => {
       <div className="w-full max-w-[380px] animate-fade-in">
         {/* Logo and title */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#345678] flex items-center justify-center shadow-elevated">
-            <Waves className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <Logo variant="app" className="w-20 h-20 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground">
             {t("resetPassword")}
           </h1>
