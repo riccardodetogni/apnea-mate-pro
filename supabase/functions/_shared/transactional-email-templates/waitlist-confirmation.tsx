@@ -14,7 +14,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_URL = 'https://apnea-mate-pro.com'
+const SITE_URL = 'https://apneamate.com'
 
 const WaitlistConfirmationEmail = () => (
   <Html lang="it" dir="ltr">

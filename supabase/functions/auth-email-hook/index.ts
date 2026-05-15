@@ -37,9 +37,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 
 // Configuration
 const SITE_NAME = "Apnea Mate"
-const SENDER_DOMAIN = "notify.apnea-mate-pro.com"
-const ROOT_DOMAIN = "apnea-mate-pro.com"
-const FROM_DOMAIN = "apnea-mate-pro.com" // Domain shown in From address (may be root or sender subdomain)
+const SENDER_DOMAIN = "notify.apneamate.com"
+const ROOT_DOMAIN = "apneamate.com"
+const FROM_DOMAIN = "apneamate.com" // Domain shown in From address (may be root or sender subdomain)
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
