@@ -561,7 +561,7 @@ const Onboarding = () => {
 
               {/* Certification disclaimer */}
               <div className="mt-4 space-y-3">
-                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-muted leading-relaxed">
+                <div className="max-h-40 overflow-y-auto p-3 rounded-xl bg-muted/10 border border-border text-xs text-foreground leading-relaxed">
                   {t("certDisclaimer")}
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
