@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MapPin, MessageCircle, Users, BarChart3 } from "lucide-react";
+import { Globe, MapPin, MessageCircle, Users, BarChart3 } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useConversations } from "@/hooks/useConversations";
 import { CreateDisclaimerModal } from "@/components/community/CreateDisclaimerModal";
-import { Logo } from "@/components/brand/Logo";
-
-const CommunityIcon = ({ className }: { className?: string }) => (
-  <Logo variant="symbol" alt="" className={className} />
-);
 
 const navItems = [
-  { path: "/community", icon: CommunityIcon, labelKey: "navCommunity" as const },
+  { path: "/community", icon: Globe, labelKey: "navCommunity" as const },
   { path: "/spots", icon: MapPin, labelKey: "navSpot" as const },
   { path: "/messages", icon: MessageCircle, labelKey: "navMessages" as const },
   { path: "/groups", icon: Users, labelKey: "navGroups" as const },
