@@ -791,6 +791,31 @@ const translations = {
     // Misc
     communityGroupType: "Gruppo spontaneo",
     schoolClubGroupType: "Scuola/Club",
+
+    // Coming Soon page
+    comingSoonHeadline: "L'apnea non si fa da soli.",
+    comingSoonSubtitle: "Sta arrivando l'app per trovare buddy, gruppi, spot e scuole. Iscriviti per essere tra i primi a entrare.",
+    comingSoonDays: "Giorni",
+    comingSoonHours: "Ore",
+    comingSoonMinutes: "Minuti",
+    comingSoonSeconds: "Secondi",
+    comingSoonEmailPlaceholder: "La tua email",
+    comingSoonEmailMicrocopy: "Niente spam. Solo un'email quando l'app è pronta.",
+    comingSoonSubmit: "Entra nella prima ondata",
+    comingSoonErrInvalid: "Inserisci un'email valida",
+    comingSoonErrAlready: "Sei già nella lista!",
+    comingSoonErrGeneric: "Qualcosa è andato storto. Riprova.",
+    comingSoonSuccess: "Perfetto! Ti avviseremo il giorno del lancio.",
+    comingSoonFeatureSpotTitle: "Trova il tuo spot",
+    comingSoonFeatureSpotDesc: "Mappa costruita dagli apneisti, per gli apneisti.",
+    comingSoonFeatureBuddyTitle: "Trova il tuo buddy",
+    comingSoonFeatureBuddyDesc: "Apneisti vicino a te, del tuo livello, disponibili quando lo sei tu.",
+    comingSoonFeatureGruppiTitle: "Trova il tuo gruppo",
+    comingSoonFeatureGruppiDesc: "Allenarti con continuità è più facile se non lo fai da solo.",
+    comingSoonFeatureScuoleTitle: "Trova la tua scuola",
+    comingSoonFeatureScuoleDesc: "Corsi, istruttori, certificazioni. Tutto in trasparenza.",
+    comingSoonLangIt: "IT",
+    comingSoonLangEn: "EN",
    },
   en: {
     // App
@@ -1578,6 +1603,31 @@ const translations = {
     // Misc
     communityGroupType: "Spontaneous group",
     schoolClubGroupType: "School/Club",
+
+    // Coming Soon page
+    comingSoonHeadline: "Freediving isn't a solo sport.",
+    comingSoonSubtitle: "The app to find buddies, groups, spots and schools is coming. Sign up to be among the first in.",
+    comingSoonDays: "Days",
+    comingSoonHours: "Hours",
+    comingSoonMinutes: "Minutes",
+    comingSoonSeconds: "Seconds",
+    comingSoonEmailPlaceholder: "Your email",
+    comingSoonEmailMicrocopy: "No spam. Just one email when the app is ready.",
+    comingSoonSubmit: "Join the first wave",
+    comingSoonErrInvalid: "Please enter a valid email",
+    comingSoonErrAlready: "You're already on the list!",
+    comingSoonErrGeneric: "Something went wrong. Please try again.",
+    comingSoonSuccess: "You're in! We'll email you on launch day.",
+    comingSoonFeatureSpotTitle: "Find your spot",
+    comingSoonFeatureSpotDesc: "A map built by freedivers, for freedivers.",
+    comingSoonFeatureBuddyTitle: "Find your buddy",
+    comingSoonFeatureBuddyDesc: "Freedivers near you, at your level, available when you are.",
+    comingSoonFeatureGruppiTitle: "Find your group",
+    comingSoonFeatureGruppiDesc: "Training consistently is easier when you don't go it alone.",
+    comingSoonFeatureScuoleTitle: "Find your school",
+    comingSoonFeatureScuoleDesc: "Courses, instructors, certifications. All transparent.",
+    comingSoonLangIt: "IT",
+    comingSoonLangEn: "EN",
    },
 };
 
@@ -1591,9 +1641,15 @@ export const setLanguage = (lang: Language) => {
 };
 
 export const getLanguage = (): Language => {
-  const stored = localStorage.getItem("apnea-mate-lang") as Language | null;
+  const stored = typeof localStorage !== "undefined"
+    ? (localStorage.getItem("apnea-mate-lang") as Language | null)
+    : null;
   if (stored && (stored === "it" || stored === "en")) {
     currentLanguage = stored;
+    return currentLanguage;
+  }
+  if (typeof navigator !== "undefined" && navigator.language) {
+    currentLanguage = navigator.language.toLowerCase().startsWith("it") ? "it" : "en";
   }
   return currentLanguage;
 };
