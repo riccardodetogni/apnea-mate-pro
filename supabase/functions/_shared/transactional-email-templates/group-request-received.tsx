@@ -5,6 +5,9 @@ import type { TemplateEntry } from './registry.ts'
 
 const SITE_URL = 'https://apneamate.com'
 const LOGO = 'https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png'
+const ICON_BUDDY = `${SITE_URL}/assets/icons/buddy.png`
+const ICON_SPOT = `${SITE_URL}/assets/icons/spot.png`
+const inlineIcon = { verticalAlign: 'middle' as const, marginRight: '6px', display: 'inline-block' as const }
 
 
 interface Props { recipientName?: string; requesterName?: string; groupName?: string; groupId?: string; groupLocation?: string }
@@ -16,12 +19,20 @@ const GroupRequestReceivedEmail = ({ recipientName, requesterName, groupName, gr
     <Body style={main}>
       <Container style={container}>
         <Img src={LOGO} alt="Apnea Mate" width="180" style={logo} />
-        <Heading style={h1}>Nuova richiesta di adesione 🤿</Heading>
+        <Heading style={h1}>
+          Nuova richiesta di adesione{' '}
+          <Img src={ICON_BUDDY} alt="" width="22" height="22" style={inlineIcon} />
+        </Heading>
         <Text style={text}>Ciao {recipientName || "freediver"},</Text>
         <Text style={text}><strong>{requesterName || "Un freediver"}</strong> ha richiesto di unirsi al tuo gruppo:</Text>
         <Container style={card}>
           <Text style={cardTitle}>{groupName}</Text>
-          {groupLocation && <Text style={cardMeta}>📍 {groupLocation}</Text>}
+          {groupLocation && (
+            <Text style={cardMeta}>
+              <Img src={ICON_SPOT} alt="" width="14" height="14" style={inlineIcon} />
+              {groupLocation}
+            </Text>
+          )}
         </Container>
         <Text style={text}>Vai al gruppo per approvare o rifiutare la richiesta.</Text>
         <Button style={button} href={`${SITE_URL}/groups/${groupId}/manage`}>Gestisci richieste</Button>
