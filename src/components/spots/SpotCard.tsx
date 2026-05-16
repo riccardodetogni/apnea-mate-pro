@@ -2,6 +2,7 @@ import { Spot } from "@/hooks/useSpots";
 import { t } from "@/lib/i18n";
 import { MapPin, Heart, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandIcon } from "@/components/brand/BrandIcon";
 
 interface SpotCardProps {
   spot: Spot;
@@ -30,7 +31,7 @@ const getEnvironmentLabel = (type: string): string => {
   }
 };
 
-const getEnvironmentEmoji = (type: string): string => {
+const getEnvironmentEmoji = (type: string): string | null => {
   switch (type) {
     case "sea":
       return "🌊";
@@ -41,7 +42,7 @@ const getEnvironmentEmoji = (type: string): string => {
     case "deep_pool":
       return "🎯";
     default:
-      return "📍";
+      return null;
   }
 };
 
@@ -87,7 +88,9 @@ const SpotCard = ({
       <div className="flex gap-3">
         {/* Placeholder image */}
         <div className="w-20 h-20 rounded-xl bg-card flex items-center justify-center text-3xl flex-shrink-0">
-          {getEnvironmentEmoji(spot.environment_type)}
+          {getEnvironmentEmoji(spot.environment_type) ?? (
+            <BrandIcon name="spot" variant="color" size={32} />
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
