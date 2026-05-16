@@ -5,6 +5,8 @@ import type { TemplateEntry } from './registry.ts'
 
 const SITE_URL = 'https://apneamate.com'
 const LOGO = 'https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png'
+const ICON_SPOT = `${SITE_URL}/assets/icons/spot.png`
+const inlineIcon = { verticalAlign: 'middle' as const, marginRight: '6px', display: 'inline-block' as const }
 
 
 interface Props { recipientName?: string; groupName?: string; groupLocation?: string }
@@ -21,7 +23,12 @@ const GroupRequestRejectedEmail = ({ recipientName, groupName, groupLocation }: 
         <Text style={text}>Purtroppo la tua richiesta di partecipazione al gruppo non è stata approvata:</Text>
         <Container style={cardError}>
           <Text style={cardTitle}>{groupName}</Text>
-          {groupLocation && <Text style={cardMeta}>📍 {groupLocation}</Text>}
+          {groupLocation && (
+            <Text style={cardMeta}>
+              <Img src={ICON_SPOT} alt="" width="14" height="14" style={inlineIcon} />
+              {groupLocation}
+            </Text>
+          )}
         </Container>
         <Text style={text}>Non preoccuparti, ci sono tanti altri gruppi nella community!</Text>
         <Button style={button} href={`${SITE_URL}/groups`}>Esplora gruppi</Button>
