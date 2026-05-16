@@ -5,6 +5,8 @@ import type { TemplateEntry } from './registry.ts'
 
 const SITE_URL = 'https://apneamate.com'
 const LOGO = 'https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png'
+const ICON_SPOT = `${SITE_URL}/assets/icons/spot.png`
+const inlineIcon = { verticalAlign: 'middle' as const, marginRight: '6px', display: 'inline-block' as const }
 
 
 interface Props { recipientName?: string; groupName?: string; groupId?: string; groupLocation?: string }
@@ -21,7 +23,12 @@ const GroupRequestApprovedEmail = ({ recipientName, groupName, groupId, groupLoc
         <Text style={text}>La tua richiesta di partecipazione è stata <strong>approvata</strong>.</Text>
         <Container style={cardSuccess}>
           <Text style={cardTitle}>{groupName}</Text>
-          {groupLocation && <Text style={cardMeta}>📍 {groupLocation}</Text>}
+          {groupLocation && (
+            <Text style={cardMeta}>
+              <Img src={ICON_SPOT} alt="" width="14" height="14" style={inlineIcon} />
+              {groupLocation}
+            </Text>
+          )}
         </Container>
         <Text style={text}>Ora puoi vedere le sessioni del gruppo e partecipare alle attività!</Text>
         <Button style={button} href={`${SITE_URL}/groups/${groupId}`}>Vai al gruppo</Button>
