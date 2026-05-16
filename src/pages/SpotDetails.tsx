@@ -13,6 +13,7 @@ import { SpotMiniMap } from "@/components/spots/SpotMiniMap";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
 import { t } from "@/lib/i18n";
 import { ArrowLeft, Heart, Navigation, MapPin, Waves, Calendar, Users, Clock, Check, Loader2 } from "lucide-react";
+import { BrandIcon } from "@/components/brand/BrandIcon";
 import { toast } from "sonner";
 import { format, isToday, isTomorrow } from "date-fns";
 import { it } from "date-fns/locale";
