@@ -205,7 +205,7 @@ const SpotDetails = () => {
       <div className="card-session !rounded-2xl !p-0 mb-4">
         <div className="relative z-[1] p-5 flex items-start gap-4">
           <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-3xl">
-            {environmentIcons[spot.environment_type] || "📍"}
+            {environmentIcons[spot.environment_type] ?? <BrandIcon name="spot" variant="color" size={32} />}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-card-foreground mb-1">{spot.name}</h2>
