@@ -5,6 +5,9 @@ import type { TemplateEntry } from './registry.ts'
 
 const SITE_URL = 'https://apneamate.com'
 const LOGO = 'https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png'
+const ICON_BUDDY = `${SITE_URL}/assets/icons/buddy.png`
+const ICON_SPOT = `${SITE_URL}/assets/icons/spot.png`
+const inlineIcon = { verticalAlign: 'middle' as const, marginRight: '6px', display: 'inline-block' as const }
 
 
 interface Props { recipientName?: string; requesterName?: string; sessionTitle?: string; sessionId?: string; spotName?: string; sessionDate?: string }
@@ -16,12 +19,20 @@ const SessionJoinRequestEmail = ({ recipientName, requesterName, sessionTitle, s
     <Body style={main}>
       <Container style={container}>
         <Img src={LOGO} alt="Apnea Mate" width="180" style={logo} />
-        <Heading style={h1}>Nuova richiesta di partecipazione 🤿</Heading>
+        <Heading style={h1}>
+          Nuova richiesta di partecipazione{' '}
+          <Img src={ICON_BUDDY} alt="" width="22" height="22" style={inlineIcon} />
+        </Heading>
         <Text style={text}>Ciao {recipientName || "freediver"}!</Text>
         <Text style={text}><strong>{requesterName || "Un freediver"}</strong> vuole partecipare alla tua sessione:</Text>
         <Container style={card}>
           <Text style={cardTitle}>{sessionTitle}</Text>
-          {spotName && <Text style={cardMeta}>📍 {spotName}</Text>}
+          {spotName && (
+            <Text style={cardMeta}>
+              <Img src={ICON_SPOT} alt="" width="14" height="14" style={inlineIcon} />
+              {spotName}
+            </Text>
+          )}
           {sessionDate && <Text style={cardMeta}>📅 {sessionDate}</Text>}
         </Container>
         <Text style={text}>Accedi all'app per approvare o rifiutare la richiesta.</Text>
