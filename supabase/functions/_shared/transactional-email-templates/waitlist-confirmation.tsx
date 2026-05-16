@@ -15,6 +15,10 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_URL = 'https://apneamate.com'
+const ICON_BUDDY = `${SITE_URL}/assets/icons/buddy.png`
+const ICON_GRUPPI = `${SITE_URL}/assets/icons/gruppi.png`
+
+const inlineIconStyle = { verticalAlign: 'middle' as const, marginRight: '8px', display: 'inline-block' as const }
 
 const WaitlistConfirmationEmail = () => (
   <Html lang="it" dir="ltr">
@@ -23,7 +27,10 @@ const WaitlistConfirmationEmail = () => (
     <Body style={main}>
       <Container style={container}>
         <Img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style={logo} />
-        <Heading style={h1}>Sei nella lista! 🤿</Heading>
+        <Heading style={h1}>
+          Sei nella lista!{' '}
+          <Img src={ICON_BUDDY} alt="Buddy" width="24" height="24" style={inlineIconStyle} />
+        </Heading>
         <Text style={text}>
           Grazie per esserti iscritto alla lista d'attesa di{' '}
           <strong>Apnea Mate</strong>.
@@ -37,9 +44,11 @@ const WaitlistConfirmationEmail = () => (
           Nel frattempo, ecco cosa potrai fare con Apnea Mate:
         </Text>
         <Text style={list}>
-          🤿 Trovare sessioni di apnea vicino a te
+          <Img src={ICON_BUDDY} alt="" width="20" height="20" style={inlineIconStyle} />
+          Trovare sessioni di apnea vicino a te
           <br />
-          👥 Creare o unirti a gruppi e club
+          <Img src={ICON_GRUPPI} alt="" width="20" height="20" style={inlineIconStyle} />
+          Creare o unirti a gruppi e club
           <br />
           📊 Tracciare i tuoi allenamenti e progressi
         </Text>
