@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Instagram } from "lucide-react";
 import { BrandIcon, BrandIconName } from "@/components/brand/BrandIcon";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { t } from "@/lib/i18n";
 
 const LAUNCH_DATE = new Date("2026-05-21T22:00:00Z"); // 22 May 2026 00:00 Europe/Rome (CEST = UTC+2)
 
@@ -50,19 +52,20 @@ const CountdownBlock = ({ value, label }: { value: number; label: string }) => (
   </div>
 );
 
-const features: Array<{
+const FEATURE_DEFS: Array<{
   icon: BrandIconName;
-  title: string;
-  desc: string;
+  titleKey: "comingSoonFeatureSpotTitle" | "comingSoonFeatureBuddyTitle" | "comingSoonFeatureGruppiTitle" | "comingSoonFeatureScuoleTitle";
+  descKey: "comingSoonFeatureSpotDesc" | "comingSoonFeatureBuddyDesc" | "comingSoonFeatureGruppiDesc" | "comingSoonFeatureScuoleDesc";
 }> = [
-  { icon: "spot", title: "Trova il tuo spot", desc: "Mappa costruita dagli apneisti, per gli apneisti." },
-  { icon: "buddy", title: "Trova il tuo buddy", desc: "Apneisti vicino a te, del tuo livello, disponibili quando lo sei tu." },
-  { icon: "gruppi", title: "Trova il tuo gruppo", desc: "Allenarti con continuità è più facile se non lo fai da solo." },
-  { icon: "scuole", title: "Trova la tua scuola", desc: "Corsi, istruttori, certificazioni. Tutto in trasparenza." },
+  { icon: "spot", titleKey: "comingSoonFeatureSpotTitle", descKey: "comingSoonFeatureSpotDesc" },
+  { icon: "buddy", titleKey: "comingSoonFeatureBuddyTitle", descKey: "comingSoonFeatureBuddyDesc" },
+  { icon: "gruppi", titleKey: "comingSoonFeatureGruppiTitle", descKey: "comingSoonFeatureGruppiDesc" },
+  { icon: "scuole", titleKey: "comingSoonFeatureScuoleTitle", descKey: "comingSoonFeatureScuoleDesc" },
 ];
 
 const ComingSoon = () => {
   const { user, loading } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const [remaining, setRemaining] = useState<Remaining>(computeRemaining);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -72,6 +75,14 @@ const ComingSoon = () => {
     const id = setInterval(() => setRemaining(computeRemaining()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    const prev = document.documentElement.lang;
+    document.documentElement.lang = language;
+    return () => {
+      document.documentElement.lang = prev;
+    };
+  }, [language]);
 
   if (loading) {
     return (
@@ -88,7 +99,7 @@ const ComingSoon = () => {
     setMessage(null);
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) {
-      setMessage({ type: "error", text: parsed.error.issues[0].message });
+      setMessage({ type: "error", text: t("comingSoonErrInvalid") });
       return;
     }
     setSubmitting(true);
@@ -97,9 +108,9 @@ const ComingSoon = () => {
     setSubmitting(false);
     if (error) {
       if (error.code === "23505") {
-        setMessage({ type: "error", text: "Sei già nella lista!" });
+        setMessage({ type: "error", text: t("comingSoonErrAlready") });
       } else {
-        setMessage({ type: "error", text: "Qualcosa è andato storto. Riprova." });
+        setMessage({ type: "error", text: t("comingSoonErrGeneric") });
       }
       return;
     }
@@ -107,14 +118,14 @@ const ComingSoon = () => {
     supabase.functions
       .invoke("send-transactional-email", {
         body: {
-          templateName: "waitlist-confirmation",
+          templateName: `waitlist-confirmation-${language}`,
           recipientEmail: normalizedEmail,
           idempotencyKey: `waitlist-${normalizedEmail}`,
         },
       })
       .catch((err) => console.warn("waitlist email send failed", err));
     setEmail("");
-    setMessage({ type: "success", text: "Perfetto! Ti avviseremo il giorno del lancio." });
+    setMessage({ type: "success", text: t("comingSoonSuccess") });
   };
 
   return (
@@ -134,22 +145,49 @@ const ComingSoon = () => {
         }}
       />
 
+      {/* Language toggle */}
+      <div
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10 flex items-center rounded-full overflow-hidden"
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          backdropFilter: "blur(14px)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}
+        role="group"
+        aria-label="Language"
+      >
+        {(["it", "en"] as const).map((lng) => (
+          <button
+            key={lng}
+            type="button"
+            onClick={() => setLanguage(lng)}
+            aria-pressed={language === lng}
+            className={`px-3 py-1.5 text-xs font-semibold tracking-wider transition-colors ${
+              language === lng ? "bg-white/15 text-white" : "text-white/60 hover:text-white"
+            }`}
+          >
+            {lng.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       <main className="relative w-full max-w-3xl flex flex-col items-center text-center">
         <Logo variant="symbol" className="w-20 h-20 sm:w-24 sm:h-24 mb-6" />
 
         <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-2xl">
-          L'apnea non si fa da soli.
+          {t("comingSoonHeadline")}
         </h1>
         <p className="mt-3 text-base sm:text-lg text-white/70 max-w-xl">
-          Sta arrivando l'app per trovare buddy, gruppi, spot e scuole. Iscriviti per essere tra i primi a entrare.
+          {t("comingSoonSubtitle")}
         </p>
 
         {/* Countdown */}
         <div className="mt-8 sm:mt-10 flex items-center justify-center gap-2 sm:gap-4">
-          <CountdownBlock value={remaining.days} label="Giorni" />
-          <CountdownBlock value={remaining.hours} label="Ore" />
-          <CountdownBlock value={remaining.minutes} label="Minuti" />
-          <CountdownBlock value={remaining.seconds} label="Secondi" />
+          <CountdownBlock value={remaining.days} label={t("comingSoonDays")} />
+          <CountdownBlock value={remaining.hours} label={t("comingSoonHours")} />
+          <CountdownBlock value={remaining.minutes} label={t("comingSoonMinutes")} />
+          <CountdownBlock value={remaining.seconds} label={t("comingSoonSeconds")} />
         </div>
 
         {/* Email capture */}
@@ -163,14 +201,14 @@ const ComingSoon = () => {
             autoComplete="email"
             required
             maxLength={255}
-            placeholder="La tua email"
+            placeholder={t("comingSoonEmailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="bg-white/10 border-white/15 text-white placeholder:text-white/40 h-12"
-            aria-label="La tua email"
+            aria-label={t("comingSoonEmailPlaceholder")}
           />
           <p className="text-[12px] text-white/60 text-center sm:text-left">
-            Niente spam. Solo un'email quando l'app è pronta.
+            {t("comingSoonEmailMicrocopy")}
           </p>
           <Button
             type="submit"
@@ -178,7 +216,7 @@ const ComingSoon = () => {
             variant="primaryGradient"
             className="h-12 px-5 shrink-0"
           >
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entra nella prima ondata"}
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t("comingSoonSubmit")}
           </Button>
         </form>
         {message && (
@@ -194,9 +232,9 @@ const ComingSoon = () => {
 
         {/* Feature teasers */}
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-4 gap-3 w-full">
-          {features.map((f) => (
+          {FEATURE_DEFS.map((f) => (
             <div
-              key={f.title}
+              key={f.titleKey}
               className="rounded-2xl p-4 text-left"
               style={{
                 background: "rgba(255,255,255,0.06)",
@@ -207,17 +245,16 @@ const ComingSoon = () => {
               <div className="mb-2 flex items-center" aria-hidden>
                 <BrandIcon name={f.icon} variant="color" size={40} />
               </div>
-              <h3 className="text-sm font-semibold text-white">{f.title}</h3>
-              <p className="text-xs text-white/60 mt-1">{f.desc}</p>
+              <h3 className="text-sm font-semibold text-white">{t(f.titleKey)}</h3>
+              <p className="text-xs text-white/60 mt-1">{t(f.descKey)}</p>
             </div>
           ))}
         </div>
 
         {/* Social footer */}
         <footer className="mt-12 flex items-center gap-4 text-white/60">
-          {/* TODO: replace with real Apnea Mate Instagram URL when available */}
           <a
-            href="https://www.instagram.com/"
+            href="https://www.instagram.com/apneamate/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram"
