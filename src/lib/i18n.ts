@@ -791,6 +791,31 @@ const translations = {
     // Misc
     communityGroupType: "Gruppo spontaneo",
     schoolClubGroupType: "Scuola/Club",
+
+    // Coming Soon page
+    comingSoonHeadline: "L'apnea non si fa da soli.",
+    comingSoonSubtitle: "Sta arrivando l'app per trovare buddy, gruppi, spot e scuole. Iscriviti per essere tra i primi a entrare.",
+    comingSoonDays: "Giorni",
+    comingSoonHours: "Ore",
+    comingSoonMinutes: "Minuti",
+    comingSoonSeconds: "Secondi",
+    comingSoonEmailPlaceholder: "La tua email",
+    comingSoonEmailMicrocopy: "Niente spam. Solo un'email quando l'app è pronta.",
+    comingSoonSubmit: "Entra nella prima ondata",
+    comingSoonErrInvalid: "Inserisci un'email valida",
+    comingSoonErrAlready: "Sei già nella lista!",
+    comingSoonErrGeneric: "Qualcosa è andato storto. Riprova.",
+    comingSoonSuccess: "Perfetto! Ti avviseremo il giorno del lancio.",
+    comingSoonFeatureSpotTitle: "Trova il tuo spot",
+    comingSoonFeatureSpotDesc: "Mappa costruita dagli apneisti, per gli apneisti.",
+    comingSoonFeatureBuddyTitle: "Trova il tuo buddy",
+    comingSoonFeatureBuddyDesc: "Apneisti vicino a te, del tuo livello, disponibili quando lo sei tu.",
+    comingSoonFeatureGruppiTitle: "Trova il tuo gruppo",
+    comingSoonFeatureGruppiDesc: "Allenarti con continuità è più facile se non lo fai da solo.",
+    comingSoonFeatureScuoleTitle: "Trova la tua scuola",
+    comingSoonFeatureScuoleDesc: "Corsi, istruttori, certificazioni. Tutto in trasparenza.",
+    comingSoonLangIt: "IT",
+    comingSoonLangEn: "EN",
    },
   en: {
     // App
