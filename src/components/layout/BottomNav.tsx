@@ -1,17 +1,22 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Globe, MapPin, MessageCircle, Users, BarChart3 } from "lucide-react";
+import { Globe, MessageCircle, BarChart3 } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useConversations } from "@/hooks/useConversations";
 import { CreateDisclaimerModal } from "@/components/community/CreateDisclaimerModal";
+import { BrandIcon } from "@/components/brand/BrandIcon";
 
-const navItems = [
-  { path: "/community", icon: Globe, labelKey: "navCommunity" as const },
-  { path: "/spots", icon: MapPin, labelKey: "navSpot" as const },
-  { path: "/messages", icon: MessageCircle, labelKey: "navMessages" as const },
-  { path: "/groups", icon: Users, labelKey: "navGroups" as const },
-  { path: "/training", icon: BarChart3, labelKey: "navTraining" as const },
+const navItems: Array<{
+  path: string;
+  labelKey: "navCommunity" | "navSpot" | "navMessages" | "navGroups" | "navTraining";
+  renderIcon: () => ReactNode;
+}> = [
+  { path: "/community", labelKey: "navCommunity", renderIcon: () => <Globe className="w-5 h-5" /> },
+  { path: "/spots", labelKey: "navSpot", renderIcon: () => <BrandIcon name="spot" variant="color" size={24} /> },
+  { path: "/messages", labelKey: "navMessages", renderIcon: () => <MessageCircle className="w-5 h-5" /> },
+  { path: "/groups", labelKey: "navGroups", renderIcon: () => <BrandIcon name="gruppi" variant="color" size={24} /> },
+  { path: "/training", labelKey: "navTraining", renderIcon: () => <BarChart3 className="w-5 h-5" /> },
 ];
 
 export const BottomNav = () => {
@@ -24,7 +29,7 @@ export const BottomNav = () => {
   return (
     <div className="bottom-nav-container safe-area-bottom">
       <div className="bottom-nav-inner">
-        {navItems.map(({ path, icon: Icon, labelKey }) => {
+        {navItems.map(({ path, renderIcon, labelKey }) => {
           const isActive = location.pathname === path || 
             (path === "/community" && location.pathname === "/");
           const showBadge = path === "/messages" && totalUnread > 0;
@@ -42,7 +47,7 @@ export const BottomNav = () => {
               className={`nav-item ${isActive ? "active" : ""}`}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                {renderIcon()}
                 {showBadge && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
                     {totalUnread > 99 ? "99+" : totalUnread}

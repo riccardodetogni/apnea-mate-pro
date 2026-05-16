@@ -7,6 +7,7 @@ import { Logo } from "@/components/brand/Logo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Instagram } from "lucide-react";
+import { BrandIcon, BrandIconName } from "@/components/brand/BrandIcon";
 
 const LAUNCH_DATE = new Date("2026-05-21T22:00:00Z"); // 22 May 2026 00:00 Europe/Rome (CEST = UTC+2)
 
@@ -49,10 +50,14 @@ const CountdownBlock = ({ value, label }: { value: number; label: string }) => (
   </div>
 );
 
-const features = [
-  { icon: "🤿", title: "Trova sessioni vicino a te", desc: "Connettiti con apneisti nella tua zona" },
-  { icon: "👥", title: "Crea o unisciti a gruppi", desc: "Allenati con la tua community" },
-  { icon: "📊", title: "Traccia il tuo training", desc: "Log personale e tabelle di allenamento" },
+const features: Array<{
+  icon: BrandIconName | "training";
+  title: string;
+  desc: string;
+}> = [
+  { icon: "buddy", title: "Trova sessioni vicino a te", desc: "Connettiti con apneisti nella tua zona" },
+  { icon: "gruppi", title: "Crea o unisciti a gruppi", desc: "Allenati con la tua community" },
+  { icon: "training", title: "Traccia il tuo training", desc: "Log personale e tabelle di allenamento" },
 ];
 
 const ComingSoon = () => {
@@ -195,8 +200,12 @@ const ComingSoon = () => {
                 border: "1px solid rgba(255,255,255,0.10)",
               }}
             >
-              <div className="text-2xl mb-2" aria-hidden>
-                {f.icon}
+              <div className="mb-2 flex items-center" aria-hidden>
+                {f.icon === "training" ? (
+                  <span className="text-2xl leading-none">📊</span>
+                ) : (
+                  <BrandIcon name={f.icon} variant="color" size={40} />
+                )}
               </div>
               <h3 className="text-sm font-semibold text-white">{f.title}</h3>
               <p className="text-xs text-white/60 mt-1">{f.desc}</p>

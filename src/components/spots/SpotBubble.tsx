@@ -1,12 +1,12 @@
 import { Spot } from "@/hooks/useSpots";
 import { MapPin, Heart, ChevronRight } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { BrandIcon } from "@/components/brand/BrandIcon";
 
 const envEmoji: Record<string, string> = {
   sea: "🌊",
   lake: "🏞️",
   pool: "🏊",
-  deep_pool: "🤿",
 };
 
 interface SpotBubbleProps {
@@ -22,7 +22,7 @@ const SpotBubble = ({
   onToggleFavorite,
   onViewDetails,
 }: SpotBubbleProps) => {
-  const emoji = envEmoji[spot.environment_type] || "📍";
+  const emoji = envEmoji[spot.environment_type];
 
   return (
     <div className="fixed bottom-24 left-4 right-4 z-[1001] max-w-[430px] mx-auto animate-in slide-in-from-bottom duration-300">
@@ -32,7 +32,7 @@ const SpotBubble = ({
       >
         {/* Environment emoji */}
         <div className="w-11 h-11 rounded-xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-xl shrink-0">
-          {emoji}
+          {emoji ? emoji : <BrandIcon name="spot" variant="color" size={24} />}
         </div>
 
         {/* Info */}

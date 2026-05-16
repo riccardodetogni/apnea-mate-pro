@@ -13,6 +13,7 @@ import { SpotMiniMap } from "@/components/spots/SpotMiniMap";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
 import { t } from "@/lib/i18n";
 import { ArrowLeft, Heart, Navigation, MapPin, Waves, Calendar, Users, Clock, Check, Loader2 } from "lucide-react";
+import { BrandIcon } from "@/components/brand/BrandIcon";
 import { toast } from "sonner";
 import { format, isToday, isTomorrow } from "date-fns";
 import { it } from "date-fns/locale";
@@ -205,7 +206,7 @@ const SpotDetails = () => {
       <div className="card-session !rounded-2xl !p-0 mb-4">
         <div className="relative z-[1] p-5 flex items-start gap-4">
           <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-3xl">
-            {environmentIcons[spot.environment_type] || "📍"}
+            {environmentIcons[spot.environment_type] ?? <BrandIcon name="spot" variant="color" size={32} />}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-card-foreground mb-1">{spot.name}</h2>
