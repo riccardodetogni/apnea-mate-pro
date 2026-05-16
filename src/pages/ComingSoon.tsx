@@ -173,7 +173,7 @@ const ComingSoon = () => {
       </div>
 
       <main className="relative w-full max-w-3xl flex flex-col items-center text-center">
-        <Logo variant="symbol" className="w-20 h-20 sm:w-24 sm:h-24 mb-6" />
+        <Logo variant="horizontal-white" className="h-16 sm:h-20 w-auto mb-6" />
 
         <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-2xl">
           {t("comingSoonHeadline")}
