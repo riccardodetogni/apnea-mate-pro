@@ -18,6 +18,7 @@ import { useCourses } from "@/hooks/useCourses";
 import { useSearch } from "@/hooks/useSearch";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
+import { BrandIcon } from "@/components/brand/BrandIcon";
 import { useProfile } from "@/hooks/useProfile";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
@@ -376,14 +377,16 @@ const Community = () => {
               <button
                 key={g.id}
                 onClick={() => handleGroupClick(g.id)}
-                className="w-full text-left text-sm p-2 bg-background rounded-lg hover:bg-secondary transition-colors"
+                className="w-full text-left text-sm p-2 bg-background rounded-lg hover:bg-secondary transition-colors flex items-center gap-2"
               >
-                👥 {g.name}
+                <BrandIcon name="gruppi" variant="color" size={16} />
+                <span>{g.name}</span>
               </button>
             ))}
             {results.spots.map(s => (
-              <div key={s.id} className="text-sm p-2 bg-background rounded-lg">
-                📍 {s.name} - {s.location}
+              <div key={s.id} className="text-sm p-2 bg-background rounded-lg flex items-center gap-2">
+                <BrandIcon name="spot" variant="color" size={16} />
+                <span>{s.name} - {s.location}</span>
               </div>
             ))}
             {results.profiles.map(p => (
