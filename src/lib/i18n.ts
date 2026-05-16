@@ -1641,9 +1641,15 @@ export const setLanguage = (lang: Language) => {
 };
 
 export const getLanguage = (): Language => {
-  const stored = localStorage.getItem("apnea-mate-lang") as Language | null;
+  const stored = typeof localStorage !== "undefined"
+    ? (localStorage.getItem("apnea-mate-lang") as Language | null)
+    : null;
   if (stored && (stored === "it" || stored === "en")) {
     currentLanguage = stored;
+    return currentLanguage;
+  }
+  if (typeof navigator !== "undefined" && navigator.language) {
+    currentLanguage = navigator.language.toLowerCase().startsWith("it") ? "it" : "en";
   }
   return currentLanguage;
 };
