@@ -205,11 +205,7 @@ const ComingSoon = () => {
               }}
             >
               <div className="mb-2 flex items-center" aria-hidden>
-                {f.icon === "training" ? (
-                  <span className="text-2xl leading-none">📊</span>
-                ) : (
-                  <BrandIcon name={f.icon} variant="color" size={40} />
-                )}
+                <BrandIcon name={f.icon} variant="color" size={40} />
               </div>
               <h3 className="text-sm font-semibold text-white">{f.title}</h3>
               <p className="text-xs text-white/60 mt-1">{f.desc}</p>
