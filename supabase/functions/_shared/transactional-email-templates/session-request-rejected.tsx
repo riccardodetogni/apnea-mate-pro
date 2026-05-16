@@ -5,6 +5,8 @@ import type { TemplateEntry } from './registry.ts'
 
 const SITE_URL = 'https://apneamate.com'
 const LOGO = 'https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png'
+const ICON_SPOT = `${SITE_URL}/assets/icons/spot.png`
+const inlineIcon = { verticalAlign: 'middle' as const, marginRight: '6px', display: 'inline-block' as const }
 
 
 interface Props { recipientName?: string; sessionTitle?: string; spotName?: string; sessionDate?: string }
@@ -21,7 +23,12 @@ const SessionRequestRejectedEmail = ({ recipientName, sessionTitle, spotName, se
         <Text style={text}>Purtroppo la tua richiesta di partecipazione non è stata approvata per questa sessione:</Text>
         <Container style={cardError}>
           <Text style={cardTitle}>{sessionTitle}</Text>
-          {spotName && <Text style={cardMeta}>📍 {spotName}</Text>}
+          {spotName && (
+            <Text style={cardMeta}>
+              <Img src={ICON_SPOT} alt="" width="14" height="14" style={inlineIcon} />
+              {spotName}
+            </Text>
+          )}
           {sessionDate && <Text style={cardMeta}>📅 {sessionDate}</Text>}
         </Container>
         <Text style={text}>Non preoccuparti, ci sono tante altre sessioni disponibili nella community!</Text>
