@@ -51,13 +51,14 @@ const CountdownBlock = ({ value, label }: { value: number; label: string }) => (
 );
 
 const features: Array<{
-  icon: BrandIconName | "training";
+  icon: BrandIconName;
   title: string;
   desc: string;
 }> = [
-  { icon: "buddy", title: "Trova sessioni vicino a te", desc: "Connettiti con apneisti nella tua zona" },
-  { icon: "gruppi", title: "Crea o unisciti a gruppi", desc: "Allenati con la tua community" },
-  { icon: "training", title: "Traccia il tuo training", desc: "Log personale e tabelle di allenamento" },
+  { icon: "spot", title: "Trova il tuo spot", desc: "Mappa costruita dagli apneisti, per gli apneisti." },
+  { icon: "buddy", title: "Trova il tuo buddy", desc: "Apneisti vicino a te, del tuo livello, disponibili quando lo sei tu." },
+  { icon: "gruppi", title: "Trova il tuo gruppo", desc: "Allenarti con continuità è più facile se non lo fai da solo." },
+  { icon: "scuole", title: "Trova la tua scuola", desc: "Corsi, istruttori, certificazioni. Tutto in trasparenza." },
 ];
 
 const ComingSoon = () => {
@@ -137,10 +138,10 @@ const ComingSoon = () => {
         <Logo variant="symbol" className="w-20 h-20 sm:w-24 sm:h-24 mb-6" />
 
         <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-2xl">
-          Apnea Mate è in arrivo.
+          L'apnea non si fa da soli.
         </h1>
         <p className="mt-3 text-base sm:text-lg text-white/70 max-w-xl">
-          Unisciti alla community prima del lancio.
+          Sta arrivando l'app per trovare buddy, gruppi, spot e scuole. Iscriviti per essere tra i primi a entrare.
         </p>
 
         {/* Countdown */}
@@ -154,7 +155,7 @@ const ComingSoon = () => {
         {/* Email capture */}
         <form
           onSubmit={handleSubmit}
-          className="mt-10 w-full max-w-md flex flex-col sm:flex-row gap-2"
+          className="mt-10 w-full max-w-md flex flex-col gap-2"
         >
           <Input
             type="email"
@@ -168,13 +169,16 @@ const ComingSoon = () => {
             className="bg-white/10 border-white/15 text-white placeholder:text-white/40 h-12"
             aria-label="La tua email"
           />
+          <p className="text-[12px] text-white/60 text-center sm:text-left">
+            Niente spam. Solo un'email quando l'app è pronta.
+          </p>
           <Button
             type="submit"
             disabled={submitting}
             variant="primaryGradient"
             className="h-12 px-5 shrink-0"
           >
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Avvisami al lancio"}
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Entra nella prima ondata"}
           </Button>
         </form>
         {message && (
@@ -189,7 +193,7 @@ const ComingSoon = () => {
         )}
 
         {/* Feature teasers */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-4 gap-3 w-full">
           {features.map((f) => (
             <div
               key={f.title}
