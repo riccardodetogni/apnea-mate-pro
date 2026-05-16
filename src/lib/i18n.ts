@@ -1603,6 +1603,31 @@ const translations = {
     // Misc
     communityGroupType: "Spontaneous group",
     schoolClubGroupType: "School/Club",
+
+    // Coming Soon page
+    comingSoonHeadline: "Freediving isn't a solo sport.",
+    comingSoonSubtitle: "The app to find buddies, groups, spots and schools is coming. Sign up to be among the first in.",
+    comingSoonDays: "Days",
+    comingSoonHours: "Hours",
+    comingSoonMinutes: "Minutes",
+    comingSoonSeconds: "Seconds",
+    comingSoonEmailPlaceholder: "Your email",
+    comingSoonEmailMicrocopy: "No spam. Just one email when the app is ready.",
+    comingSoonSubmit: "Join the first wave",
+    comingSoonErrInvalid: "Please enter a valid email",
+    comingSoonErrAlready: "You're already on the list!",
+    comingSoonErrGeneric: "Something went wrong. Please try again.",
+    comingSoonSuccess: "You're in! We'll email you on launch day.",
+    comingSoonFeatureSpotTitle: "Find your spot",
+    comingSoonFeatureSpotDesc: "A map built by freedivers, for freedivers.",
+    comingSoonFeatureBuddyTitle: "Find your buddy",
+    comingSoonFeatureBuddyDesc: "Freedivers near you, at your level, available when you are.",
+    comingSoonFeatureGruppiTitle: "Find your group",
+    comingSoonFeatureGruppiDesc: "Training consistently is easier when you don't go it alone.",
+    comingSoonFeatureScuoleTitle: "Find your school",
+    comingSoonFeatureScuoleDesc: "Courses, instructors, certifications. All transparent.",
+    comingSoonLangIt: "IT",
+    comingSoonLangEn: "EN",
    },
 };
 
