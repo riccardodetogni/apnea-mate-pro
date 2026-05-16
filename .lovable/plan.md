@@ -1,142 +1,59 @@
-# Piano: Opzione A — Migrazione completa a Lovable Email + nuovo dominio
+# Brand Icon Replacement Plan
 
-## Obiettivo
+## 1. Upload assets
+Copy the 8 uploaded PNGs into `public/assets/icons/`:
+- `buddy.png`, `buddy_bianco.png`
+- `gruppi.png`, `gruppi_bianco.png`
+- `scuole.png`, `scuole_bianco.png`
+- `spot.png`, `spot_bianco.png`
 
-1. Eliminare Resend dalle 3 edge function legacy (session, certification, group notifications) → tutte passano per Lovable Email (queue, retry, suppression, unsubscribe automatici).
-2. Aggiornare tutti i link/dominio nelle email da `apnea-mate-pro.com` → `apneamate.com`.
+## 2. Central icon component
+Create `src/components/brand/BrandIcon.tsx`:
+- Exports a typed registry `{ buddy, gruppi, scuole, spot }` each with `color` and `white` variants.
+- Component API: `<BrandIcon name="spot" variant="color" size={24} />` — renders an `<img>` from `/assets/icons/...`, with `alt`, `width`, `height` (aspect-ratio preserved). No CSS filters/recoloring allowed.
 
-**Prerequisito:** `notify.apneamate.com` deve essere `active` (DNS verificato). Se non lo è ancora, completiamo prima la verifica.
+## 3. Replacements — frontend
 
----
+**Bottom navigation** (`src/components/layout/BottomNav.tsx`)
+- Replace lucide icons:
+  - `MapPin` → `BrandIcon name="spot"`
+  - `Users` → `BrandIcon name="gruppi"`
+- Size 24×24. The bottom nav has a dark/blurred background → use **color** variant (matches "match bar background" rule, our nav is dark).
+- Keep `Globe` (Community), `MessageCircle` (Messages), `BarChart3` (Training) untouched — not in scope.
 
-## Parte 1 — Aggiornamento dominio (tutti i file)
+**Coming Soon landing** (`src/pages/ComingSoon.tsx`)
+- Feature teaser items: replace 🤿 with `buddy` (color), 👥 with `gruppi` (color). Size 40×40.
+- Remove the emoji strings; render `<BrandIcon>` instead.
 
-Sostituire in **6 file**:
-- `supabase/functions/auth-email-hook/index.ts` → `SENDER_DOMAIN`, `ROOT_DOMAIN`, `FROM_DOMAIN`
-- `supabase/functions/send-transactional-email/index.ts` → `SENDER_DOMAIN`, `FROM_DOMAIN`
-- `supabase/functions/_shared/transactional-email-templates/waitlist-confirmation.tsx` → `SITE_URL`
-- (le 3 legacy verranno riscritte completamente al punto 2, quindi `APP_URL` sparisce)
+**Community page** (`src/pages/Community.tsx`)
+- Line 381: `👥 {g.name}` → `<BrandIcon name="gruppi" variant="color" size={16} />` inline.
+- Line 386: `📍 {s.name}` → `<BrandIcon name="spot" variant="color" size={16} />` inline.
 
-Valori nuovi:
-- `SENDER_DOMAIN = "notify.apneamate.com"`
-- `ROOT_DOMAIN = "apneamate.com"`
-- `FROM_DOMAIN = "apneamate.com"`
-- `SITE_URL = "https://apneamate.com"`
+**Spot cards / bubble** (`src/components/spots/SpotCard.tsx`, `SpotBubble.tsx`)
+- Replace the `environmentType` emoji map fallback `📍` and the `deep_pool: "🤿"` entry. Per rules, both "spot" emoji (📍) and the diver/buddy emoji (🤿) used as the deep-pool marker should switch to the brand `spot` icon (variant matches the card surface — navy card → color variant). Size 32×32 on `SpotCard`, 24×24 in `SpotBubble`'s thumbnail tile.
+- The sea/lake/pool emojis (🌊 🏞️ 🏊) are kept — they're environment-type indicators, not in the four-concept scope.
 
----
+**Spot details** (`src/pages/SpotDetails.tsx` line 208)
+- Same: replace the `📍` fallback with `<BrandIcon name="spot" />`.
 
-## Parte 2 — Migrazione delle 3 function legacy a Lovable Email
+## 4. Replacements — transactional emails
+Update these templates to swap the four concept emojis for `<img>` tags pointing to the public icons hosted under the production domain (`https://apneamate.com/assets/icons/...`), since email clients can't import React assets:
+- `waitlist-confirmation.tsx` — 🤿 → buddy, 👥 → gruppi (color variants; emails render on white → use **bianco**? No — bianco on white is invisible. Use **color** variants on white email backgrounds.)
+- `group-request-received.tsx`, `group-request-approved.tsx`, `group-request-rejected.tsx` — 📍 → spot.
+- `session-request-approved.tsx`, `session-request-rejected.tsx`, `session-join-request.tsx` — 📍 → spot, 🤿 in headings → buddy.
 
-### 2.1 Creare 8 nuovi template React Email
+Icons sized ~20px inline, `vertical-align: middle`.
 
-In `supabase/functions/_shared/transactional-email-templates/`:
+## 5. Cleanup sweep
+After edits, re-run `rg "🤿|👥|🫂|🎓|📍|🗺️|📚"` over `src/` and `supabase/functions/` and remove any leftover occurrences tied to the four concepts.
 
-**Session notifications (3):**
-- `session-join-request.tsx` → notifica al creator: "X vuole partecipare a Y"
-- `session-request-approved.tsx` → notifica al partecipante: approvato 🎉
-- `session-request-rejected.tsx` → notifica al partecipante: rifiutato
+## 6. Out of scope (not touched)
+- Lucide `MapPin` used for **generic addresses** (e.g. `LocationAutocomplete`, `SearchBar`, `EventCard` address line, profile location, group hero address). These are not "dive spot" contexts — they're physical addresses. I'll leave them as lucide `MapPin` to avoid visually overloading the brand spot mark on every address line.
+- Lucide `Users` used for **member counts / avatars / participants UI** (e.g. group member counts, participant lists). The brand `gruppi` mark is reserved for "group" entity branding, not count UI affordances. Same reasoning for `GraduationCap`/`UserPlus`.
 
-**Certification (2):**
-- `certification-approved.tsx` → certificazione approvata, nuovo ruolo
-- `certification-rejected.tsx` → certificazione rifiutata, motivo opzionale
+If you want those generic location/people icons also swapped to brand marks, say the word and I'll extend the sweep.
 
-**Group (3):**
-- `group-request-received.tsx` → all'owner: nuova richiesta di adesione
-- `group-request-approved.tsx` → al richiedente: benvenuto nel gruppo
-- `group-request-rejected.tsx` → al richiedente: richiesta rifiutata
-
-Ogni template:
-- Branded con palette Deep Blue Gradient (semantic tokens dell'app)
-- Body background bianco (regola tassativa Lovable Email)
-- Logo da `https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png`
-- CTA button con link a `https://apneamate.com/...`
-- Tipato con `TemplateEntry` + `previewData` di esempio
-- Subject dinamico (es: `(data) => "Nuova richiesta per " + data.sessionTitle`)
-
-### 2.2 Registrare gli 8 template
-
-Aggiornare `_shared/transactional-email-templates/registry.ts` per importare e mappare tutti i template.
-
-### 2.3 Riscrivere le 3 edge function legacy
-
-Ogni function diventa **un fetcher di dati + un invoke a `send-transactional-email`**. Niente più `fetch` a Resend, niente più HTML inline.
-
-**Pattern per ognuna:**
-```ts
-// 1. Fetch dati (session/group/profile) come oggi
-// 2. Build templateData con i campi necessari
-// 3. supabase.functions.invoke('send-transactional-email', {
-//      body: {
-//        templateName: '<kebab-case-name>',
-//        recipientEmail,
-//        idempotencyKey: `<type>-<id>`,
-//        templateData: { ... }
-//      }
-//    })
-// 4. Return success
-```
-
-**Mantieni le firme HTTP esistenti** (stesso request/response shape) → nessuna modifica nel client. I caller esistenti (es. quando un admin approva una certificazione, quando un user manda join request) continuano a funzionare senza modifiche.
-
-### 2.4 Deploy
-
-Deploy delle 4 edge function modificate in un colpo solo:
-- `send-transactional-email` (nuovo dominio + nuovi template registrati)
-- `send-session-notification`
-- `send-certification-notification`
-- `send-group-notification`
-- `auth-email-hook` (nuovo dominio)
-
----
-
-## Parte 3 — Cleanup
-
-- **NON** rimuovere subito i secrets `RESEND_API_KEY` e `RESEND_FROM_EMAIL` (li lasciamo come backup per 1-2 settimane in caso di rollback). Una volta verificato che tutto funziona, potrai eliminarli da Cloud → Secrets.
-- Le 3 function legacy non chiamano più Resend → l'API key resta inutilizzata.
-
----
-
-## Parte 4 — Aggiornare la memory
-
-Aggiornare la core memory: dominio principale passa da `apnea-mate-pro.com` → `apneamate.com`.
-
----
-
-## Vantaggi finali
-
-| Prima | Dopo |
-|---|---|
-| 2 sistemi email (Lovable + Resend) | 1 solo sistema (Lovable Email) |
-| 2 domini mittenti diversi | 1 dominio (`notify.apneamate.com`) |
-| Notifiche sessione: no retry, no suppression, no unsubscribe | Tutto incluso automaticamente |
-| Link email puntano al vecchio dominio | Tutti su `apneamate.com` |
-| 2 secret da gestire | 0 secret email-related lato Resend |
-
----
-
-## Cosa NON cambia
-
-- Il codice client/UI che chiama le edge function (stesse firme)
-- I subject e tono di voce delle email (stesso wording italiano)
-- L'auth-email-hook (solo costanti dominio aggiornate)
-- I domini custom del frontend (`apnea-mate-pro.com` resta connesso come alias finché vuoi)
-
----
-
-## Checklist verifica post-deploy
-
-1. Crea una sessione di test → richiedi adesione da altro account → verifica che arrivi email da `notify@notify.apneamate.com`
-2. Approva la richiesta → verifica email approvazione
-3. Controlla `email_send_log` per status `sent`
-4. Click sul CTA → deve aprire `https://apneamate.com/sessions/...`
-5. Footer unsubscribe → deve linkare a `https://apneamate.com/unsubscribe?token=...`
-
----
-
-## Tempo stimato
-
-- Parte 1 (dominio): 5 min
-- Parte 2 (8 template + 3 function): 20-30 min
-- Deploy + verifica: automatico
-
-Confermi di procedere?
+## Technical notes
+- Files in `public/` are served from the site root, so `<img src="/assets/icons/spot.png" />` works in the app. For emails, use the absolute `https://apneamate.com/...` URL.
+- No CSS filters or opacity tricks — variant choice handled by the `variant` prop.
+- The `BrandIcon` component is the single swap point for future icon updates.
