@@ -10,6 +10,7 @@ export interface TemplateEntry {
 }
 
 import { template as waitlistConfirmation } from './waitlist-confirmation.tsx'
+import { template as waitlistConfirmationEn } from './waitlist-confirmation-en.tsx'
 import { template as sessionJoinRequest } from './session-join-request.tsx'
 import { template as sessionRequestApproved } from './session-request-approved.tsx'
 import { template as sessionRequestRejected } from './session-request-rejected.tsx'
@@ -21,6 +22,8 @@ import { template as groupRequestRejected } from './group-request-rejected.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'waitlist-confirmation': waitlistConfirmation,
+  'waitlist-confirmation-it': waitlistConfirmation,
+  'waitlist-confirmation-en': waitlistConfirmationEn,
   'session-join-request': sessionJoinRequest,
   'session-request-approved': sessionRequestApproved,
   'session-request-rejected': sessionRequestRejected,
