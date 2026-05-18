@@ -816,6 +816,15 @@ const translations = {
     comingSoonFeatureScuoleDesc: "Corsi, istruttori, certificazioni. Tutto in trasparenza.",
     comingSoonLangIt: "IT",
     comingSoonLangEn: "EN",
+
+    // Error pages
+    errorPageNotFoundTitle: "Pagina non trovata",
+    errorPageNotFoundDesc: "La rotta che cercavi non esiste o è stata spostata.",
+    errorBackToCommunity: "Torna alla Community",
+    errorGoBack: "Indietro",
+    errorSomethingWrong: "Qualcosa è andato storto",
+    errorSomethingWrongDesc: "Si è verificato un errore imprevisto. Riprova tra un momento.",
+    errorTryAgain: "Riprova",
    },
   en: {
     // App
@@ -1628,6 +1637,15 @@ const translations = {
     comingSoonFeatureScuoleDesc: "Courses, instructors, certifications. All transparent.",
     comingSoonLangIt: "IT",
     comingSoonLangEn: "EN",
+
+    // Error pages
+    errorPageNotFoundTitle: "Page not found",
+    errorPageNotFoundDesc: "The route you were looking for doesn't exist or has been moved.",
+    errorBackToCommunity: "Back to Community",
+    errorGoBack: "Go back",
+    errorSomethingWrong: "Something went wrong",
+    errorSomethingWrongDesc: "An unexpected error occurred. Please try again in a moment.",
+    errorTryAgain: "Try again",
    },
 };
 
