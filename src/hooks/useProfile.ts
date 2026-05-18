@@ -17,6 +17,7 @@ export interface Profile {
   has_insurance: boolean;
   insurance_provider: string | null;
   freediving_since: number | null;
+  marketing_consent: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -101,7 +102,7 @@ export const useProfile = () => {
   const role = data?.role ?? "regular";
   const certification = data?.certification ?? null;
 
-  const updateProfile = async (updates: Partial<Pick<Profile, "name" | "location" | "avatar_url" | "search_visibility" | "bio" | "has_insurance" | "insurance_provider" | "freediving_since">>) => {
+  const updateProfile = async (updates: Partial<Pick<Profile, "name" | "location" | "avatar_url" | "search_visibility" | "bio" | "has_insurance" | "insurance_provider" | "freediving_since" | "marketing_consent">>) => {
     if (!user || !profile) return { error: new Error("No user or profile") };
 
     const { error } = await supabase
