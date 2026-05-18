@@ -61,12 +61,8 @@ const Onboarding = () => {
   const [isInstructor, setIsInstructor] = useState(false);
   // Step 6 — Privacy
   const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState(false);
-  const [privacyPurpose1, setPrivacyPurpose1] = useState(false);
-  const [privacyPurpose2, setPrivacyPurpose2] = useState(false);
   const [privacyMarketing, setPrivacyMarketing] = useState(false);
-  const [privacyCompliance, setPrivacyCompliance] = useState(false);
-  const privacyComplete =
-    privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance;
+  const privacyComplete = privacyPolicyAccepted;
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
@@ -667,7 +663,7 @@ const Onboarding = () => {
                   className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
                 />
                 <label htmlFor="privA" className="text-sm text-foreground leading-relaxed cursor-pointer">
-                  {t("privacyCheckboxA_part1")}{" "}
+                  {t("privacyCheckboxA_part1")}
                   <Link
                     to={PRIVACY_POLICY_PATH}
                     target="_blank"
@@ -681,67 +677,21 @@ const Onboarding = () => {
                 </label>
               </div>
 
-              <p className="text-sm text-foreground font-medium pt-2">
-                {t("privacyConsentIntro")}
-              </p>
-
-              {/* Checkbox B */}
-              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
-                <input
-                  type="checkbox"
-                  id="privB"
-                  checked={privacyPurpose1}
-                  onChange={(e) => setPrivacyPurpose1(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
-                />
-                <label htmlFor="privB" className="text-sm text-foreground leading-relaxed cursor-pointer">
-                  {t("privacyCheckboxB")}
-                </label>
-              </div>
-
-              {/* Checkbox C */}
-              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
-                <input
-                  type="checkbox"
-                  id="privC"
-                  checked={privacyPurpose2}
-                  onChange={(e) => setPrivacyPurpose2(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
-                />
-                <label htmlFor="privC" className="text-sm text-foreground leading-relaxed cursor-pointer">
-                  {t("privacyCheckboxC")}
-                </label>
-              </div>
-
-              {/* Checkbox D — optional */}
+              {/* Marketing — optional, independent */}
               <div className="relative flex items-start gap-3 p-3 pt-8 rounded-2xl border border-border">
                 <input
                   type="checkbox"
-                  id="privD"
+                  id="privMarketing"
                   checked={privacyMarketing}
                   onChange={(e) => setPrivacyMarketing(e.target.checked)}
                   className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
                 />
-                <label htmlFor="privD" className="text-sm text-foreground leading-relaxed cursor-pointer">
-                  {t("privacyCheckboxD")}
+                <label htmlFor="privMarketing" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyMarketingCheckbox")}
                 </label>
                 <span className="absolute top-2 right-2 text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full bg-background border border-border text-muted-foreground">
                   {t("optional")}
                 </span>
-              </div>
-
-              {/* Checkbox E */}
-              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
-                <input
-                  type="checkbox"
-                  id="privE"
-                  checked={privacyCompliance}
-                  onChange={(e) => setPrivacyCompliance(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
-                />
-                <label htmlFor="privE" className="text-sm text-foreground leading-relaxed cursor-pointer">
-                  {t("privacyCheckboxE")}
-                </label>
               </div>
             </div>
           )}

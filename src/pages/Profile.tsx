@@ -28,7 +28,9 @@ import {
   Eye,
   Pencil,
   Star,
+  Mail,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -314,6 +316,29 @@ const Profile = () => {
               checked={profile.search_visibility}
               onCheckedChange={async (checked) => {
                 await updateProfile({ search_visibility: checked });
+              }}
+            />
+          </div>
+
+          {/* Marketing consent toggle */}
+          <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
+            <Mail className="w-5 h-5 text-[hsl(var(--card-muted))]" />
+            <div className="flex-1 min-w-0">
+              <span className="text-card-foreground">{t("profileMarketingLabel")}</span>
+              <p className="text-xs text-[hsl(var(--card-muted))] mt-0.5">
+                {t("profileMarketingHelp")}
+              </p>
+              <Link
+                to="/privacy"
+                className="text-xs text-primary hover:underline mt-1 inline-block"
+              >
+                {t("profileMarketingReadPolicy")}
+              </Link>
+            </div>
+            <Switch
+              checked={!!profile.marketing_consent}
+              onCheckedChange={async (checked) => {
+                await updateProfile({ marketing_consent: checked });
               }}
             />
           </div>
