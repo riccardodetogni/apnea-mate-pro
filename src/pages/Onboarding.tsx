@@ -61,12 +61,8 @@ const Onboarding = () => {
   const [isInstructor, setIsInstructor] = useState(false);
   // Step 6 — Privacy
   const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState(false);
-  const [privacyPurpose1, setPrivacyPurpose1] = useState(false);
-  const [privacyPurpose2, setPrivacyPurpose2] = useState(false);
   const [privacyMarketing, setPrivacyMarketing] = useState(false);
-  const [privacyCompliance, setPrivacyCompliance] = useState(false);
-  const privacyComplete =
-    privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance;
+  const privacyComplete = privacyPolicyAccepted;
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
