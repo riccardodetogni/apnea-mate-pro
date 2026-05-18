@@ -7,6 +7,7 @@ import { Logo } from "@/components/brand/Logo";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
 import { BrandIcon, BrandIconName } from "@/components/brand/BrandIcon";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { t } from "@/lib/i18n";
@@ -219,6 +220,13 @@ const ComingSoon = () => {
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t("comingSoonSubmit")}
           </Button>
         </form>
+        <p className="mt-3 text-[11px] text-white/50 max-w-md text-center sm:text-left">
+          {t("comingSoonPrivacyNotice_pre")}
+          <Link to="/privacy" className="underline hover:text-white/80">
+            {t("comingSoonPrivacyNotice_link")}
+          </Link>
+          {t("comingSoonPrivacyNotice_post")}
+        </p>
         {message && (
           <p
             className={`mt-3 text-sm ${
@@ -262,7 +270,7 @@ const ComingSoon = () => {
           >
             <Instagram className="w-5 h-5" />
           </a>
-          <span className="text-xs">© {new Date().getFullYear()} Apnea Mate s.r.l.s.</span>
+          <span className="text-xs">© {new Date().getFullYear()} Apnea Mate S.r.l.</span>
         </footer>
       </main>
     </div>
