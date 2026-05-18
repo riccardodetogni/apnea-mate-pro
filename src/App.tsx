@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import RequireAuth from "./components/auth/RequireAuth";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -67,7 +68,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Suspense fallback={<PageSpinner />}>
+            <ErrorBoundary>
+              <Suspense fallback={<PageSpinner />}>
               <Routes>
                 <Route path="/" element={<ComingSoon />} />
                 <Route path="/auth" element={<Auth />} />
@@ -104,7 +106,8 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </Suspense>
+              </Suspense>
+            </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
