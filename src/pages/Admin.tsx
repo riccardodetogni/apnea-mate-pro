@@ -14,6 +14,7 @@ import {
   Loader2,
   UsersRound,
   BadgeCheck,
+  MessageSquare,
 } from "lucide-react";
 import {
   Dialog,
@@ -32,6 +33,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { FeedbackList } from "@/components/admin/FeedbackList";
+import { useAllFeedback } from "@/hooks/useFeedback";
 
 const getRoleLabel = (role: AppRole): string => {
   switch (role) {
@@ -63,12 +66,14 @@ const Admin = () => {
     toggleGroupVerification,
   } = useAdmin();
 
-  const [activeTab, setActiveTab] = useState<"users" | "groups">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "groups" | "feedback">("users");
   const [processing, setProcessing] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<typeof allUsers[0] | null>(null);
   const [newUserRole, setNewUserRole] = useState<AppRole>("regular");
   const [togglingGroupId, setTogglingGroupId] = useState<string | null>(null);
+  const { data: allFeedback = [] } = useAllFeedback(isAdmin);
+  const newFeedbackCount = allFeedback.filter((f) => f.status === "new").length;
 
   useEffect(() => {
     if (!user) {
@@ -182,6 +187,18 @@ const Admin = () => {
             <UsersRound className="w-4 h-4" />
             {t("groups")} ({allGroups.length})
           </button>
+          <button
+            onClick={() => setActiveTab("feedback")}
+            className={`flex items-center gap-2 py-3 px-4 border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === "feedback"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted"
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            {t("adminFeedback")} ({allFeedback.length}
+            {newFeedbackCount > 0 ? ` · ${newFeedbackCount} ${t("feedbackStatusNew").toLowerCase()}` : ""})
+          </button>
         </div>
       </div>
 
@@ -279,6 +296,8 @@ const Admin = () => {
             ))}
           </div>
         )}
+
+        {activeTab === "feedback" && <FeedbackList />}
       </div>
 
       {/* Role Update Dialog */}
