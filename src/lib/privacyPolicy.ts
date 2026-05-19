@@ -5,7 +5,7 @@
 import type { Language } from "@/lib/i18n";
 
 export const PRIVACY_CONTROLLER = {
-  company: "Apnea Mate S.r.l.",
+  company: "Apnea Mate S.r.l.s.",
   address: "Via Mazzini 37, 13836 Cossato (BI), Italia",
   vat: "02847820020",
   email: "privacy@apneamate.com",

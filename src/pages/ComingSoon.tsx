@@ -270,7 +270,7 @@ const ComingSoon = () => {
           >
             <Instagram className="w-5 h-5" />
           </a>
-          <span className="text-xs">© {new Date().getFullYear()} Apnea Mate S.r.l.</span>
+          <span className="text-xs">© {new Date().getFullYear()} Apnea Mate S.r.l.s.</span>
         </footer>
       </main>
     </div>
