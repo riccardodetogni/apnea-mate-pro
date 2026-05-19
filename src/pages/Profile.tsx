@@ -269,6 +269,14 @@ const Profile = () => {
 
         {/* Settings */}
         <div className="card-session !rounded-2xl !p-0 overflow-hidden">
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            className="w-full p-4 flex items-center gap-3 hover:bg-[hsl(var(--badge-blue-bg))] transition-colors border-b border-[hsl(var(--card-border))]"
+          >
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <span className="text-card-foreground font-medium">{t("sendFeedback")}</span>
+          </button>
+
           {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
