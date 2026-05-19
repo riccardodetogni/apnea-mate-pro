@@ -16,6 +16,7 @@ import { ReviewSummary } from "@/components/reviews/ReviewSummary";
 import { ReviewCard } from "@/components/reviews/ReviewCard";
 
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
+import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
 import { 
   Settings, 
   LogOut, 
@@ -29,6 +30,7 @@ import {
   Pencil,
   Star,
   Mail,
+  MessageSquare,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
