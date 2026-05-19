@@ -1,41 +1,51 @@
-# Themed Error Pages
+# Restore 5-checkbox Privacy step in Onboarding
 
-Bring the 404 and a new runtime error page in line with the Deep Blue Gradient theme used across the app (navy `card` surfaces, teal→blue gradient accents, glassmorphic chips, Lucide icons).
+## Background
 
-## 1. Redesign `src/pages/NotFound.tsx`
+Yesterday's privacy-policy work (msg #808, May 18) simplified the Privacy step from **5 checkboxes → 2** and deleted the supporting i18n keys (`privacyPurpose1`, `privacyPurpose2`, `privacyCompliance`). This plan restores the original five-checkbox structure while keeping the lawyer-approved Privacy Policy page and `marketing_consent` profile field intact.
 
-Replace the bare `bg-muted` layout with an on-brand screen wrapped in `AppLayout` (nav hidden):
+## Target structure (Onboarding step 6)
 
-- Centered themed card using `.card-session` styling (navy with teal/blue radial overlays already defined in `index.css`).
-- Big gradient "404" using `btn-primary-gradient` text treatment (background-clip: text via inline style or a utility class).
-- Lucide `Compass` icon in a circular `avatar-gradient` badge above the title — fits the diving / navigation metaphor.
-- Title: "Page not found" / IT: "Pagina non trovata" (use `useLanguage` from `LanguageContext` for the existing i18n pattern).
-- Subtitle explaining the route doesn't exist, muted white text.
-- Two actions:
-  - Primary `Button variant="primaryGradient"` → `Home` icon + "Back to Community" → navigates to `/community`.
-  - Secondary `Button variant="pillOutline"` → `ArrowLeft` icon + "Go back" → `navigate(-1)`.
-- Keep the existing `console.error` 404 log for debugging.
-- Use `react-router-dom`'s `Link` / `useNavigate` rather than raw `<a>` so client routing is preserved.
+Five checkboxes, each in its own bordered row:
 
-## 2. New `src/components/ErrorBoundary.tsx` + wire it in `App.tsx`
+| # | Label key | Required? | Gates Continue? |
+|---|---|---|---|
+| A | `privacyCheckboxA` (acknowledgement of Informativa Privacy, with link) | yes | yes |
+| B | `privacyPurpose1` (consent to platform use / account management) | yes | yes |
+| C | `privacyPurpose2` (consent to service communications) | yes | yes |
+| D | `privacyMarketingCheckbox` (marketing/newsletter) | no | no |
+| E | `privacyCompliance` (acknowledgement of safety rules & community guidelines) | yes | yes |
 
-Add a class-based React error boundary so runtime crashes show a themed screen instead of a white page.
+## Changes
 
-- Catches render errors, logs to console, stores `error` in state.
-- Fallback UI mirrors the 404 design but with:
-  - `AlertTriangle` icon in the gradient badge.
-  - Title "Something went wrong" (IT: "Qualcosa è andato storto").
-  - Short muted explanation.
-  - Buttons: primary `RotateCcw` "Try again" (resets state + `window.location.reload()`), secondary "Back to Community" linking to `/community`.
-- In `App.tsx`, wrap `<Suspense>` (or the `<Routes>`) in `<ErrorBoundary>` so all lazy-loaded pages are covered. Place it inside `BrowserRouter` so the fallback can use router hooks if needed.
+### 1. `src/lib/i18n.ts`
+Re-add the three deleted keys in both `it` and `en` blocks, near the existing `privacyCheckboxA_part1` group:
 
-## 3. i18n
+- `privacyPurpose1` — IT: "Acconsento al trattamento dei miei dati personali per la creazione e gestione del mio account su Apnea Mate." / EN equivalent.
+- `privacyPurpose2` — IT: "Acconsento a ricevere comunicazioni di servizio relative al funzionamento della piattaforma (conferme di prenotazione, notifiche di sicurezza, aggiornamenti operativi)." / EN equivalent.
+- `privacyCompliance` — IT: "Dichiaro di aver compreso e mi impegno a rispettare le regole di sicurezza dell'apnea e le linee guida della community di Apnea Mate." / EN equivalent.
 
-Add the new strings ("Page not found", "Go back", "Back to Community", "Something went wrong", "Try again", and the subtitles) to `src/lib/i18n.ts` under both `en` and `it` so the pages match the rest of the app.
+Also tweak `privacyImportantDesc` to reflect that multiple consents are required (not "only" the policy).
+
+### 2. `src/pages/Onboarding.tsx`
+- Add three state vars: `privacyPurpose1`, `privacyPurpose2`, `privacyCompliance` (all booleans, default `false`).
+- Update `privacyComplete` to `privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance` (marketing stays excluded).
+- Render the three new checkboxes between checkbox A and the Marketing row, mirroring the existing styling. Order: A → B (purpose1) → C (purpose2) → E (compliance) → D (marketing/optional).
+- `handleComplete` keeps writing `marketing_consent: privacyMarketing` (no new DB fields — these acknowledgements are gates only, not stored).
+- Final-button `disabled` already uses `!privacyComplete`, so it picks up the stricter rule automatically.
+
+### 3. Memory update
+Update `mem://features/onboarding-flow-steps` to note that step 6 = Privacy with 5 checkboxes (A mandatory + B/C purpose + E compliance gate Continue, D marketing optional).
+
+## Out of scope
+
+- `PrivacyPolicy.tsx` page content (lawyer version stays).
+- `Profile.tsx` marketing toggle (stays).
+- DB schema — no new columns; the three re-added checks are UI gates only.
+- `ComingSoon.tsx` waitlist disclosure (stays).
 
 ## Technical notes
 
-- No new dependencies — all icons (`Compass`, `Home`, `ArrowLeft`, `AlertTriangle`, `RotateCcw`) come from `lucide-react`, already used across the app.
-- Only semantic tokens / existing utility classes (`card-session`, `avatar-gradient`, `btn-primary-gradient`, `chip-filter`) are used — no hardcoded colors.
-- No backend, schema, or auth changes.
-- No changes to existing routes; the 404 stays as the `*` catch-all.
+- No migration, no edge-function change, no new deps.
+- All new copy goes through `t()`.
+- Tailwind classes already exist for the row layout — reuse `flex items-start gap-3 p-3 rounded-2xl border border-border`.
