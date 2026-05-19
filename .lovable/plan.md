@@ -1,51 +1,65 @@
-# Restore 5-checkbox Privacy step in Onboarding
+## Feedback Feature
 
-## Background
+Allow logged-in users to send feedback or suggestions to admins. Entry point lives in Settings; admins triage in the Admin dashboard. In-app only, no emails.
 
-Yesterday's privacy-policy work (msg #808, May 18) simplified the Privacy step from **5 checkboxes → 2** and deleted the supporting i18n keys (`privacyPurpose1`, `privacyPurpose2`, `privacyCompliance`). This plan restores the original five-checkbox structure while keeping the lawyer-approved Privacy Policy page and `marketing_consent` profile field intact.
+### 1. Database (new migration)
 
-## Target structure (Onboarding step 6)
+Create `public.feedback` table:
+- `id` uuid PK
+- `user_id` uuid NOT NULL (the sender — never nullable, RLS depends on it)
+- `category` text NOT NULL — one of `bug`, `suggestion`, `other`
+- `message` text NOT NULL (length capped client-side at ~2000 chars)
+- `status` text NOT NULL default `new` — one of `new`, `in_review`, `resolved`
+- `admin_notes` text nullable
+- `created_at`, `updated_at` timestamps + `update_updated_at_column` trigger
 
-Five checkboxes, each in its own bordered row:
+RLS policies:
+- INSERT: `auth.uid() = user_id` (any authenticated user)
+- SELECT own: `auth.uid() = user_id`
+- SELECT all: `has_role(auth.uid(), 'admin')`
+- UPDATE: admins only (for status / admin_notes)
+- DELETE: admins only
 
-| # | Label key | Required? | Gates Continue? |
-|---|---|---|---|
-| A | `privacyCheckboxA` (acknowledgement of Informativa Privacy, with link) | yes | yes |
-| B | `privacyPurpose1` (consent to platform use / account management) | yes | yes |
-| C | `privacyPurpose2` (consent to service communications) | yes | yes |
-| D | `privacyMarketingCheckbox` (marketing/newsletter) | no | no |
-| E | `privacyCompliance` (acknowledgement of safety rules & community guidelines) | yes | yes |
+Add validation trigger: enforce `category IN (...)` and `status IN (...)` and `length(message) BETWEEN 1 AND 2000`.
 
-## Changes
+### 2. User-facing UI
 
-### 1. `src/lib/i18n.ts`
-Re-add the three deleted keys in both `it` and `en` blocks, near the existing `privacyCheckboxA_part1` group:
+**`src/pages/Settings.tsx`** — currently nearly empty. Add a "Send feedback" row (icon + label + chevron) that opens a bottom sheet (`@/components/ui/sheet`). The sheet contains:
+- Category select (Bug / Suggestion / Other) with i18n labels
+- Textarea for message (zod-validated, 1–2000 chars, trimmed)
+- Submit button → inserts row, shows toast, closes sheet
+- Below: collapsible "My previous feedback" list showing the user's own submissions with status badge
 
-- `privacyPurpose1` — IT: "Acconsento al trattamento dei miei dati personali per la creazione e gestione del mio account su Apnea Mate." / EN equivalent.
-- `privacyPurpose2` — IT: "Acconsento a ricevere comunicazioni di servizio relative al funzionamento della piattaforma (conferme di prenotazione, notifiche di sicurezza, aggiornamenti operativi)." / EN equivalent.
-- `privacyCompliance` — IT: "Dichiaro di aver compreso e mi impegno a rispettare le regole di sicurezza dell'apnea e le linee guida della community di Apnea Mate." / EN equivalent.
+New component: `src/components/feedback/FeedbackSheet.tsx`.
 
-Also tweak `privacyImportantDesc` to reflect that multiple consents are required (not "only" the policy).
+### 3. Admin UI
 
-### 2. `src/pages/Onboarding.tsx`
-- Add three state vars: `privacyPurpose1`, `privacyPurpose2`, `privacyCompliance` (all booleans, default `false`).
-- Update `privacyComplete` to `privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance` (marketing stays excluded).
-- Render the three new checkboxes between checkbox A and the Marketing row, mirroring the existing styling. Order: A → B (purpose1) → C (purpose2) → E (compliance) → D (marketing/optional).
-- `handleComplete` keeps writing `marketing_consent: privacyMarketing` (no new DB fields — these acknowledgements are gates only, not stored).
-- Final-button `disabled` already uses `!privacyComplete`, so it picks up the stricter rule automatically.
+**`src/pages/Admin.tsx`** — add a third tab "Feedback" alongside Users and Groups. Shows list sorted by `status='new'` first, then `created_at desc`. Each card shows sender (name + avatar, link to profile), category badge, message, timestamp, and controls to:
+- Change status (new → in_review → resolved)
+- Add/edit `admin_notes` inline
+- Delete
 
-### 3. Memory update
-Update `mem://features/onboarding-flow-steps` to note that step 6 = Privacy with 5 checkboxes (A mandatory + B/C purpose + E compliance gate Continue, D marketing optional).
+Unread counter on the tab = count where `status='new'`.
 
-## Out of scope
+New component: `src/components/admin/FeedbackList.tsx`. New hook: `src/hooks/useFeedback.ts` (list, submit, updateStatus, delete).
 
-- `PrivacyPolicy.tsx` page content (lawyer version stays).
-- `Profile.tsx` marketing toggle (stays).
-- DB schema — no new columns; the three re-added checks are UI gates only.
-- `ComingSoon.tsx` waitlist disclosure (stays).
+### 4. i18n
 
-## Technical notes
+Add keys to `src/lib/i18n.ts` (it/en): `sendFeedback`, `feedbackCategory`, `feedbackBug`, `feedbackSuggestion`, `feedbackOther`, `feedbackMessagePlaceholder`, `feedbackSubmit`, `feedbackSent`, `myFeedback`, `feedbackStatusNew`, `feedbackStatusInReview`, `feedbackStatusResolved`, `adminFeedback`, `adminNotes`.
 
-- No migration, no edge-function change, no new deps.
-- All new copy goes through `t()`.
-- Tailwind classes already exist for the row layout — reuse `flex items-start gap-3 p-3 rounded-2xl border border-border`.
+### 5. Out of scope (explicit)
+
+- No email notifications to admins
+- No floating button / no entry on Profile or other pages
+- No reply-to-user thread (admin_notes are admin-only)
+
+### Files to create
+- `supabase/migrations/<timestamp>_feedback.sql`
+- `src/components/feedback/FeedbackSheet.tsx`
+- `src/components/admin/FeedbackList.tsx`
+- `src/hooks/useFeedback.ts`
+
+### Files to edit
+- `src/pages/Settings.tsx` — add entry row + mount sheet
+- `src/pages/Admin.tsx` — add Feedback tab + render list
+- `src/lib/i18n.ts` — translation keys
