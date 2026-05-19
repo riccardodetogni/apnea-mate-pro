@@ -55,6 +55,7 @@ const Profile = () => {
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Inline edit state
   const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | "freediving_since" | null>(null);
