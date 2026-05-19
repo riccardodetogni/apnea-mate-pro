@@ -61,8 +61,12 @@ const Onboarding = () => {
   const [isInstructor, setIsInstructor] = useState(false);
   // Step 6 — Privacy
   const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState(false);
+  const [privacyPurpose1, setPrivacyPurpose1] = useState(false);
+  const [privacyPurpose2, setPrivacyPurpose2] = useState(false);
+  const [privacyCompliance, setPrivacyCompliance] = useState(false);
   const [privacyMarketing, setPrivacyMarketing] = useState(false);
-  const privacyComplete = privacyPolicyAccepted;
+  const privacyComplete =
+    privacyPolicyAccepted && privacyPurpose1 && privacyPurpose2 && privacyCompliance;
   
   const { user } = useAuth();
   const { profile, submitCertification, refreshProfile } = useProfile();
@@ -674,6 +678,48 @@ const Onboarding = () => {
                     {t("privacyPolicyLinkLabel")}
                   </Link>
                   {t("privacyCheckboxA_part2")}
+                </label>
+              </div>
+
+              {/* Checkbox B — purpose 1, mandatory */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privB"
+                  checked={privacyPurpose1}
+                  onChange={(e) => setPrivacyPurpose1(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privB" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyPurpose1")}
+                </label>
+              </div>
+
+              {/* Checkbox C — purpose 2, mandatory */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privC"
+                  checked={privacyPurpose2}
+                  onChange={(e) => setPrivacyPurpose2(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privC" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyPurpose2")}
+                </label>
+              </div>
+
+              {/* Checkbox E — compliance, mandatory */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl border border-border">
+                <input
+                  type="checkbox"
+                  id="privE"
+                  checked={privacyCompliance}
+                  onChange={(e) => setPrivacyCompliance(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-border accent-primary flex-shrink-0"
+                />
+                <label htmlFor="privE" className="text-sm text-foreground leading-relaxed cursor-pointer">
+                  {t("privacyCompliance")}
                 </label>
               </div>
 
