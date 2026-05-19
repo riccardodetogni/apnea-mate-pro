@@ -403,6 +403,8 @@ const Profile = () => {
           />
         </DialogContent>
       </Dialog>
+
+      <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </div>
   );
 };
