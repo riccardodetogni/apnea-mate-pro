@@ -16,6 +16,7 @@ import { ReviewSummary } from "@/components/reviews/ReviewSummary";
 import { ReviewCard } from "@/components/reviews/ReviewCard";
 
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
+import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
 import { 
   Settings, 
   LogOut, 
@@ -29,6 +30,7 @@ import {
   Pencil,
   Star,
   Mail,
+  MessageSquare,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -53,6 +55,7 @@ const Profile = () => {
   const { language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Inline edit state
   const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | "freediving_since" | null>(null);
@@ -266,6 +269,14 @@ const Profile = () => {
 
         {/* Settings */}
         <div className="card-session !rounded-2xl !p-0 overflow-hidden">
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            className="w-full p-4 flex items-center gap-3 hover:bg-[hsl(var(--badge-blue-bg))] transition-colors border-b border-[hsl(var(--card-border))]"
+          >
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <span className="text-card-foreground font-medium">{t("sendFeedback")}</span>
+          </button>
+
           {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
@@ -392,6 +403,8 @@ const Profile = () => {
           />
         </DialogContent>
       </Dialog>
+
+      <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </div>
   );
 };

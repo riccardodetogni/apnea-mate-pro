@@ -28,7 +28,6 @@ const GroupManage = lazy(() => import("./pages/GroupManage"));
 const CreateGroup = lazy(() => import("./pages/CreateGroup"));
 const Training = lazy(() => import("./pages/Training"));
 const Profile = lazy(() => import("./pages/Profile"));
-const Settings = lazy(() => import("./pages/Settings"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const Search = lazy(() => import("./pages/Search"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -92,7 +91,6 @@ const App = () => (
                 <Route path="/create/group" element={<RequireAuth><CreateGroup /></RequireAuth>} />
                 <Route path="/training" element={<RequireAuth><Training /></RequireAuth>} />
                 <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-                <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
                 <Route path="/users/:id" element={<RequireAuth><UserProfile /></RequireAuth>} />
                 <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
