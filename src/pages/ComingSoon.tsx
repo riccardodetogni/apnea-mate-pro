@@ -1,5 +1,5 @@
 import { useEffect, useState, FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,6 +71,8 @@ const ComingSoon = () => {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const navigate = useNavigate();
+  const [routingAuthed, setRoutingAuthed] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setRemaining(computeRemaining()), 1000);
@@ -85,15 +87,26 @@ const ComingSoon = () => {
     };
   }, [language]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!user) return;
+    setRoutingAuthed(true);
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name, location")
+        .eq("user_id", user.id)
+        .single();
+      navigate(profile?.location ? "/community" : "/onboarding", { replace: true });
+    })();
+  }, [user, navigate]);
+
+  if (loading || routingAuthed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
-
-  if (user) return <Navigate to="/community" replace />;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
