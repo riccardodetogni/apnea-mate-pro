@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 export interface ChatMessage {
   id: string;
@@ -55,8 +55,25 @@ export const useChat = (conversationId: string | undefined) => {
     queryKey: ["chat-messages", conversationId],
     queryFn: () => fetchMessages(conversationId!, user!.id),
     enabled: !!conversationId && !!user,
-    refetchInterval: 10000,
   });
+
+  useEffect(() => {
+    if (!conversationId) return;
+    const channel = supabase
+      .channel(`messages-${conversationId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["chat-messages", conversationId] });
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId, queryClient]);
 
   const sendMessage = useCallback(
     async (content: string) => {

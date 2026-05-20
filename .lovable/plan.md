@@ -1,19 +1,24 @@
-## Replicare flusso approvazione su EventDetails
+## Messaggi in tempo reale
 
-Applicare a `src/pages/EventDetails.tsx` lo stesso pattern già implementato su `CourseDetails.tsx`.
+Le notifiche già funzionano in realtime (`useNotifications` sottoscrive `postgres_changes`). I **messaggi chat** invece fanno polling ogni 10 s e la lista conversazioni non si aggiorna affatto — da qui la sensazione di "fermo".
 
-### Modifiche
-1. **`handleJoin`**: inserire iscrizione con `status='pending'` e inviare notifica in-app + email `event_join_request` all'organizzatore.
-2. **`loadParticipants`**: caricare iscritti con profilo (avatar, nome, livello), separati in `pending` e `confirmed`.
-3. **UI organizzatore** (visibile solo se `user.id === creator_id`):
-   - Sezione **Richieste in attesa** con bottoni Approva / Rifiuta.
-   - Sezione **Partecipanti confermati** con possibilità di rimozione.
-4. **`handleApprove`**: `UPDATE status='confirmed'` + email/notifica `event_request_approved`.
-5. **`handleReject`**: `DELETE` riga + email/notifica `event_request_rejected`.
-6. **i18n**: riusare le chiavi già aggiunte per i corsi, aggiungendo varianti `event.*` dove necessario.
+### Cosa fare
+
+1. **Abilitare Realtime sulle tabelle chat** (migration):
+   - `ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;`
+   - `ALTER PUBLICATION supabase_realtime ADD TABLE public.conversation_participants;`
+   - Impostare `REPLICA IDENTITY FULL` su entrambe per ricevere i payload completi.
+
+2. **`src/hooks/useChat.ts`** — sostituire `refetchInterval: 10000` con una subscription:
+   - Canale `messages-{conversationId}` con filter `conversation_id=eq.{id}`, evento `INSERT`.
+   - Su evento → `queryClient.invalidateQueries(["chat-messages", conversationId])`.
+   - Cleanup con `removeChannel` allo unmount / cambio conversazione.
+
+3. **`src/hooks/useConversations.ts`** — aggiungere subscription globale all'utente:
+   - Canale `conversations-{userId}` su `messages` (INSERT) per refresh della lista e badge "non letti".
+   - Invalidare `["conversations"]` ad ogni evento.
 
 ### Note tecniche
-- Edge function `send-event-notification` già deployata.
-- Enum notification_type già esteso.
-- RLS già permette UPDATE/DELETE all'organizzatore tramite subquery su `creator_id`.
-- Nessuna modifica DB necessaria.
+- RLS già garantisce che i payload Realtime arrivino solo ai partecipanti della conversazione (policy `is_conversation_participant`).
+- Nessuna modifica al DB schema o alle policy.
+- Il polling viene rimosso: la subscription è sufficiente.
