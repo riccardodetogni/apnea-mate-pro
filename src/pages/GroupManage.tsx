@@ -535,8 +535,8 @@ const GroupManage = () => {
                 {t("saveSettings")}
               </Button>
 
-              {/* Request Verification for scuola_club */}
-              {group?.group_type === 'scuola_club' && !group?.verified && (
+              {/* Request Verification for school groups */}
+              {group?.group_type === 'school' && !group?.verified && (
                 <div className="mt-4 pt-4 border-t border-white/10">
                   <Button
                     variant="outline"
