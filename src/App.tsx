@@ -39,6 +39,8 @@ const CreateEvent = lazy(() => import("./pages/CreateEvent"));
 const CreateCourse = lazy(() => import("./pages/CreateCourse"));
 const EventDetails = lazy(() => import("./pages/EventDetails"));
 const CourseDetails = lazy(() => import("./pages/CourseDetails"));
+const EditEvent = lazy(() => import("./pages/EditEvent"));
+const EditCourse = lazy(() => import("./pages/EditCourse"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
@@ -101,6 +103,8 @@ const App = () => (
                 <Route path="/create/course" element={<RequireAuth><CreateCourse /></RequireAuth>} />
                 <Route path="/events/:id" element={<RequireAuth><EventDetails /></RequireAuth>} />
                 <Route path="/courses/:id" element={<RequireAuth><CourseDetails /></RequireAuth>} />
+                <Route path="/events/:id/edit" element={<RequireAuth><EditEvent /></RequireAuth>} />
+                <Route path="/courses/:id/edit" element={<RequireAuth><EditCourse /></RequireAuth>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

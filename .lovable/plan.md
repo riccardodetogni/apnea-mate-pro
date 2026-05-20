@@ -1,36 +1,26 @@
-# Allow instructors to create Events and Courses
+# Aggiungere modifica per Eventi e Corsi
 
-## Goal
-Any user with role `instructor` (or `admin`) can create Events and Courses. Attaching to a group becomes optional; the verified-group requirement is dropped.
+Attualmente solo le Sessioni hanno il pulsante "matita" e una pagina di modifica. Eventi e Corsi non sono modificabili dopo la creazione, e l'RLS non prevede policy di UPDATE per loro.
 
-## Changes
+## Modifiche
 
-### 1. Frontend gating — `src/pages/Create.tsx`
-Replace `canCreateEventsOrCourses || isAdmin` with `isInstructor || isAdmin` (use `useProfile`). Drop the `useVerifiedGroups` import here.
+### 1. Database (migration)
+Aggiungere policy `UPDATE` su `events` e `courses` per il creator se è `instructor` o `admin`, con `group_id` NULL oppure gruppo di cui è owner (stessa logica delle policy INSERT già aggiunte).
 
-### 2. Create forms — `src/pages/CreateEvent.tsx` and `src/pages/CreateCourse.tsx`
-- Replace the verified-groups selector with an **optional** group picker that lists all groups the user owns/admins (verified or not). Add a "Nessun gruppo" option (default).
-- Submit `group_id: form.group_id || null`.
-- Remove `!form.group_id` from validation and the submit button's `disabled`.
-- Keep the auto-select-if-only-one behavior, but only as a convenience (still overridable).
+### 2. Nuove pagine
+- `src/pages/EditEvent.tsx` — clone di `CreateEvent.tsx` che pre-carica i dati dell'evento e fa `UPDATE` invece di `INSERT`. Lo spot e il gruppo restano immutabili (coerente con `EditSession`).
+- `src/pages/EditCourse.tsx` — stesso pattern per i corsi.
 
-### 3. RLS policy updates (migration)
-Replace the INSERT policies on `events` and `courses` so they allow:
-- `admin`, OR
-- `instructor` creating a row with `creator_id = auth.uid()`, with `group_id` either NULL or a group they own/admin (no `verified` requirement).
+### 3. Routing
+In `src/App.tsx` aggiungere:
+- `/events/:id/edit` → `EditEvent`
+- `/courses/:id/edit` → `EditCourse`
+(entrambe lazy + `RequireAuth`)
 
-Old policy required `is_group_owner` AND `groups.verified = true`.
+### 4. Pulsante matita
+- `src/pages/EventDetails.tsx`: nell'header, accanto a "Condividi", mostrare il bottone Pencil quando `user.id === event.creator_id`, che naviga a `/events/:id/edit`.
+- `src/pages/CourseDetails.tsx`: stesso pattern verso `/courses/:id/edit`.
 
-### 4. Memory updates
-- Update `mem://features/events-and-courses` — new rule: instructors/admins can create; group optional; no verified-group gate.
-- Update `mem://features/group-verification-and-partner-status` — verification is now a badge/trust signal only, not a gate for Events/Courses.
-- Update the Core index entry accordingly.
-
-## Out of scope
-- No changes to Sessions (already instructor-allowed).
-- No changes to the verification request flow (the button stays so schools can still get the verified badge).
-- No changes to chat behavior; standalone Events/Courses (no group) simply won't have a group-chat link.
-
-## Technical notes
-- Migration drops & recreates `Verified group owners can create events` and `Verified group owners can create courses` policies.
-- New policy uses `has_role(auth.uid(), 'instructor')` / `'admin'` and `is_group_owner(auth.uid(), group_id)` only when `group_id IS NOT NULL`.
+## Note
+- Niente cambi a Sessioni, alle policy esistenti di INSERT/SELECT/DELETE, né alla logica dei gruppi.
+- I campi modificabili sono gli stessi della creazione tranne `spot_id` e `group_id` (immutabili, come per le sessioni).

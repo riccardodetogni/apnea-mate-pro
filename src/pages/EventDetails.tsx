@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass, MessageCircle } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass, MessageCircle, Pencil } from "lucide-react";
 import { getOrCreateEventConversation } from "@/hooks/useConversations";
 
 interface EventScheduleItem {
@@ -144,6 +144,11 @@ const EventDetails = () => {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div className="flex-1" />
+        {user && event && user.id === event.creator_id && (
+          <Button variant="outline" size="sm" onClick={() => navigate(`/events/${id}/edit`)} className="gap-2">
+            <Pencil className="w-4 h-4" />
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
           <Share2 className="w-4 h-4" /> {t("share")}
         </Button>
