@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
+import { FeedbackFab } from "@/components/feedback/FeedbackFab";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ export const AppLayout = ({ children, hideNav }: AppLayoutProps) => {
       <div className="app-container">
         {children}
       </div>
+      {!hideNav && <FeedbackFab />}
       {!hideNav && <BottomNav />}
     </div>
   );
