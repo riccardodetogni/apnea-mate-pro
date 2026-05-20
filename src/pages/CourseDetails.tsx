@@ -400,9 +400,6 @@ const CourseDetails = () => {
           </div>
         </div>
       )}
-      <div className="hidden">
-        </button>
-      </div>
     </AppLayout>
   );
 };
