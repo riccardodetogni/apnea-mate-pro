@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { MapPin, Calendar, Users, Ticket, Trophy, Compass } from "lucide-react";
+import { MapPin, Calendar, Users, Ticket, Trophy, Compass, BadgeCheck } from "lucide-react";
 import type { EventWithDetails } from "@/hooks/useEvents";
 import { t } from "@/lib/i18n";
 
@@ -80,17 +80,35 @@ export const EventCard = ({ event, onClick }: EventCardProps) => {
       {/* Creator */}
       <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex items-center gap-2">
-          <div className="avatar-creator">
-            {event.creator_avatar ? (
-              <img src={event.creator_avatar} className="w-full h-full rounded-full object-cover" alt="" />
-            ) : (
-              event.creator_name.charAt(0).toUpperCase()
-            )}
-          </div>
-          <span className="text-xs text-[hsl(var(--card-soft))]">
-            {event.creator_name}
-            {event.creator_is_instructor && ` · ${t("roleInstructor")}`}
-          </span>
+          {event.group_name ? (
+            <>
+              <div className="avatar-creator overflow-hidden">
+                {event.group_avatar ? (
+                  <img src={event.group_avatar} className="w-full h-full rounded-full object-cover" alt="" />
+                ) : (
+                  event.group_name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <span className="text-xs text-[hsl(var(--card-soft))] flex items-center gap-1">
+                {event.group_name}
+                {event.group_verified && <BadgeCheck className="w-3 h-3 text-primary" />}
+              </span>
+            </>
+          ) : (
+            <>
+              <div className="avatar-creator">
+                {event.creator_avatar ? (
+                  <img src={event.creator_avatar} className="w-full h-full rounded-full object-cover" alt="" />
+                ) : (
+                  event.creator_name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <span className="text-xs text-[hsl(var(--card-soft))]">
+                {event.creator_name}
+                {event.creator_is_instructor && ` · ${t("roleInstructor")}`}
+              </span>
+            </>
+          )}
         </div>
         <span className="text-xs text-[hsl(var(--card-soft))] underline">Dettagli</span>
       </div>
