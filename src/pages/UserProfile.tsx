@@ -135,8 +135,12 @@ const UserProfile = () => {
         {/* Profile card */}
         <div className="card-session !rounded-2xl !p-0 text-center mb-6">
           <div className="relative z-[1] p-6">
-          <div className="w-20 h-20 mx-auto rounded-full avatar-gradient flex items-center justify-center text-2xl font-bold text-white mb-4">
-            {profile.name.charAt(0).toUpperCase()}
+          <div className="w-20 h-20 mx-auto rounded-full avatar-gradient flex items-center justify-center text-2xl font-bold text-white mb-4 overflow-hidden">
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
+            ) : (
+              profile.name.charAt(0).toUpperCase()
+            )}
           </div>
           
           <h2 className="text-xl font-bold text-card-foreground">{profile.name}</h2>
