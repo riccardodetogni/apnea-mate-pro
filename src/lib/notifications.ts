@@ -8,13 +8,23 @@ export type NotificationType =
   | "group_join_request"
   | "group_request_approved"
   | "group_verification_request"
-  | "new_follower";
+  | "new_follower"
+  | "course_join_request"
+  | "course_request_approved"
+  | "course_request_rejected"
+  | "event_join_request"
+  | "event_request_approved"
+  | "event_request_rejected";
 
 export interface NotificationMetadata {
   session_id?: string;
   session_title?: string;
   group_id?: string;
   group_name?: string;
+  course_id?: string;
+  course_title?: string;
+  event_id?: string;
+  event_title?: string;
   user_id?: string;
   user_name?: string;
 }

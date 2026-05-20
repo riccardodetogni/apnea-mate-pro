@@ -9,7 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil, Check, X } from "lucide-react";
+import { createNotification } from "@/lib/notifications";
 
 const courseTypeKeys: Record<string, string> = {
   beginner: "courseTypeBeginner",
@@ -31,6 +32,27 @@ const CourseDetails = () => {
   const [userStatus, setUserStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [participants, setParticipants] = useState<Array<{ id: string; user_id: string; status: string; profile: { name: string | null; avatar_url: string | null } | null }>>([]);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const isCreator = !!user && !!course && user.id === course.creator_id;
+
+  const loadParticipants = async (courseId: string) => {
+    const { data } = await supabase
+      .from("course_participants")
+      .select("id, user_id, status")
+      .eq("course_id", courseId)
+      .in("status", ["pending", "confirmed"]);
+    if (!data || data.length === 0) {
+      setParticipants([]);
+      return;
+    }
+    const userIds = [...new Set(data.map((p) => p.user_id))];
+    const { data: profilesData } = await supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds);
+    const profileMap = new Map<string, { name: string | null; avatar_url: string | null }>();
+    profilesData?.forEach((p) => profileMap.set(p.user_id, { name: p.name, avatar_url: p.avatar_url }));
+    setParticipants(data.map((p) => ({ ...p, profile: profileMap.get(p.user_id) || null })));
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -49,6 +71,9 @@ const CourseDetails = () => {
       setParticipantCount(participantsRes.data?.filter(p => p.status === "confirmed").length || 0);
       setReservedCount(participantsRes.data?.length || 0);
       setUserStatus(participantsRes.data?.find(p => p.user_id === user?.id)?.status || null);
+      if (user?.id === courseData.creator_id) {
+        await loadParticipants(id);
+      }
       setLoading(false);
     };
     fetchCourse();
@@ -72,6 +97,30 @@ const CourseDetails = () => {
       setUserStatus("pending");
       setReservedCount(c => c + 1);
       toast({ title: t("requestSent") });
+
+      // In-app notification to organizer
+      const { data: requesterProfile } = await supabase.from("profiles").select("name").eq("user_id", user.id).single();
+      await createNotification({
+        userId: course.creator_id,
+        type: "course_join_request",
+        title: "Nuova richiesta di iscrizione",
+        message: `${requesterProfile?.name || "Un freediver"} vuole iscriversi a "${course.title}"`,
+        metadata: {
+          course_id: id,
+          course_title: course.title,
+          user_id: user.id,
+          user_name: requesterProfile?.name || undefined,
+        },
+      });
+
+      // Email
+      try {
+        await supabase.functions.invoke("send-course-notification", {
+          body: { type: "join_request", courseId: id, participantUserId: user.id },
+        });
+      } catch (e) {
+        console.error("Failed to send course notification:", e);
+      }
     }
     setJoining(false);
   };
@@ -83,6 +132,67 @@ const CourseDetails = () => {
     setUserStatus(null);
     toast({ title: t("registrationCancelled") });
     setJoining(false);
+  };
+
+  const handleApprove = async (participantId: string, participantUserId: string) => {
+    if (!id || !course) return;
+    setActionLoading(participantId);
+    const { error } = await supabase
+      .from("course_participants")
+      .update({ status: "confirmed" })
+      .eq("id", participantId);
+    setActionLoading(null);
+    if (error) {
+      toast({ title: t("error"), description: t("cannotApprove"), variant: "destructive" });
+      return;
+    }
+    toast({ title: t("approvedTitle"), description: t("approvedDesc") });
+    setParticipants((prev) => prev.map((p) => (p.id === participantId ? { ...p, status: "confirmed" } : p)));
+    setParticipantCount((c) => c + 1);
+
+    await createNotification({
+      userId: participantUserId,
+      type: "course_request_approved",
+      title: "Iscrizione approvata!",
+      message: `La tua iscrizione a "${course.title}" è stata confermata`,
+      metadata: { course_id: id, course_title: course.title },
+    });
+    try {
+      await supabase.functions.invoke("send-course-notification", {
+        body: { type: "request_approved", courseId: id, participantUserId },
+      });
+    } catch (e) {
+      console.error("Failed to send course notification:", e);
+    }
+  };
+
+  const handleReject = async (participantId: string, participantUserId: string) => {
+    if (!id || !course) return;
+    setActionLoading(participantId);
+    const { error } = await supabase.from("course_participants").delete().eq("id", participantId);
+    setActionLoading(null);
+    if (error) {
+      toast({ title: t("error"), description: t("cannotReject"), variant: "destructive" });
+      return;
+    }
+    toast({ title: t("rejectedTitle"), description: t("rejectedDesc") });
+    setParticipants((prev) => prev.filter((p) => p.id !== participantId));
+    setReservedCount((c) => Math.max(0, c - 1));
+
+    await createNotification({
+      userId: participantUserId,
+      type: "course_request_rejected",
+      title: "Iscrizione non approvata",
+      message: `La tua richiesta per "${course.title}" non è stata accettata`,
+      metadata: { course_id: id, course_title: course.title },
+    });
+    try {
+      await supabase.functions.invoke("send-course-notification", {
+        body: { type: "request_rejected", courseId: id, participantUserId },
+      });
+    } catch (e) {
+      console.error("Failed to send course notification:", e);
+    }
   };
 
   const handleShare = async () => {
@@ -220,6 +330,76 @@ const CourseDetails = () => {
           <span className="font-medium text-foreground">{creatorProfile?.name || t("user")}</span>
         </button>
       </div>
+
+      {/* Participants management (creator) */}
+      {isCreator && (
+        <div className="space-y-4 mb-6">
+          {participants.filter((p) => p.status === "pending").length > 0 && (
+            <div className="card-session !rounded-2xl !p-4">
+              <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-warning/20 text-warning flex items-center justify-center text-sm">
+                  {participants.filter((p) => p.status === "pending").length}
+                </span>
+                {t("pendingRequests")}
+              </h3>
+              <div className="space-y-2">
+                {participants.filter((p) => p.status === "pending").map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-[hsl(var(--badge-blue-bg))]">
+                    {p.profile?.avatar_url ? (
+                      <img src={p.profile.avatar_url} alt={p.profile.name || ""} className="w-8 h-8 rounded-full object-cover cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)} />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-sm font-medium text-white cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                        {p.profile?.name?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                    )}
+                    <span className="flex-1 text-sm text-card-foreground cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                      {p.profile?.name || t("user")}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/20" onClick={() => handleApprove(p.id, p.user_id)} disabled={!!actionLoading}>
+                        {actionLoading === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/20" onClick={() => handleReject(p.id, p.user_id)} disabled={!!actionLoading}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="card-session !rounded-2xl !p-4">
+            <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-success/20 text-success flex items-center justify-center text-sm">
+                {participants.filter((p) => p.status === "confirmed").length}
+              </span>
+              {t("confirmedParticipants")}
+            </h3>
+            {participants.filter((p) => p.status === "confirmed").length > 0 ? (
+              <div className="space-y-2">
+                {participants.filter((p) => p.status === "confirmed").map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-[hsl(var(--badge-blue-bg))]">
+                    {p.profile?.avatar_url ? (
+                      <img src={p.profile.avatar_url} alt={p.profile.name || ""} className="w-8 h-8 rounded-full object-cover cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)} />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-sm font-medium text-white cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                        {p.profile?.name?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                    )}
+                    <span className="flex-1 text-sm text-card-foreground cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                      {p.profile?.name || t("user")}
+                    </span>
+                    <Check className="w-4 h-4 text-success" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[hsl(var(--card-muted))]">{t("noConfirmedParticipants")}</p>
+            )}
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 };

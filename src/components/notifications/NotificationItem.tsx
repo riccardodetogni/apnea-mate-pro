@@ -1,11 +1,13 @@
-import { 
-  UserPlus, 
-  Check, 
-  X, 
-  XCircle, 
-  Users, 
+import {
+  UserPlus,
+  Check,
+  X,
+  XCircle,
+  Users,
   Heart,
   Shield,
+  GraduationCap,
+  CalendarDays,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
@@ -26,6 +28,12 @@ const iconMap = {
   group_request_approved: { icon: Check, color: "text-green-500" },
   group_verification_request: { icon: Shield, color: "text-amber-500" },
   new_follower: { icon: Heart, color: "text-pink-500" },
+  course_join_request: { icon: GraduationCap, color: "text-blue-500" },
+  course_request_approved: { icon: Check, color: "text-green-500" },
+  course_request_rejected: { icon: X, color: "text-red-500" },
+  event_join_request: { icon: CalendarDays, color: "text-blue-500" },
+  event_request_approved: { icon: Check, color: "text-green-500" },
+  event_request_rejected: { icon: X, color: "text-red-500" },
 };
 
 export const NotificationItem = ({ notification, onClick }: NotificationItemProps) => {

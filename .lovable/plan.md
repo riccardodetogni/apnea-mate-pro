@@ -1,35 +1,52 @@
-## Obiettivo
-Rendere il feedback/segnalazione bug sempre raggiungibile tramite un FAB globale persistente, mantenendolo discreto per non disturbare l'UX mobile-first.
+## Problema
 
-## Cosa aggiungere
+Quando un utente si iscrive a un corso o evento, viene creato un record `pending` in `course_participants` / `event_participants`, ma **non succede nient'altro**:
+- nessuna notifica in-app o email all'organizzatore;
+- nessuna schermata per approvare/rifiutare le richieste;
+- nessuna notifica di esito all'iscritto.
 
-### 1. Nuovo componente `FeedbackFab`
-`src/components/feedback/FeedbackFab.tsx`
-- Piccolo bottone fluttuante circolare (40-44px), posizionato `fixed bottom-20 left-3` (sopra la BottomNav, lato opposto rispetto ai FAB esistenti come "+spot" che stanno a destra).
-- Icona `MessageSquareWarning` (o `Bug`) da lucide-react.
-- Stile glassmorphism coerente con il tema: `bg-card/80 backdrop-blur border border-border/50 shadow-lg text-card-foreground`.
-- Tap → apre la `FeedbackSheet` esistente (stesso componente già usato in Profile, nessun cambio alla logica di invio).
-- Nasconde se utente non autenticato (`useAuth`), in route di onboarding/auth, o quando `hideNav` è attivo (training/breathing).
+Risultato: tutto "frizzato" in pending. Per le sessioni questo flusso esiste già (`send-session-notification`, lista pending in `SessionDetails`, notifiche in-app); per corsi/eventi va replicato.
 
-### 2. Integrazione in `AppLayout`
-`src/components/layout/AppLayout.tsx`
-- Render `<FeedbackFab />` accanto a `<BottomNav />`, rispettando lo stesso flag `hideNav`.
-- Così il bottone compare automaticamente in tutte le pagine autenticate principali (Community, Spots, Sessions, Groups, Profile, dettagli) senza toccarle una per una.
+## Soluzione: replicare il flusso "approvazione richiesta" delle sessioni
 
-### 3. Mantenere l'entry esistente nel Profilo
-La riga "Invia feedback" in `Profile.tsx` resta — chi cerca lì la trova. Il FAB è scoperta visiva, il menu profilo è il punto di riferimento.
+### 1. Notifiche & tipi
+- Estendere l'enum `notification_type` con: `course_join_request`, `course_request_approved`, `course_request_rejected`, `event_join_request`, `event_request_approved`, `event_request_rejected`.
+- Aggiornare `src/lib/notifications.ts` con i nuovi tipi e metadata (`course_id` / `event_id` / `title`).
+- Aggiornare `NotificationItem.tsx` con icone, label IT/EN e routing (`/courses/:id`, `/events/:id`).
 
-### 4. i18n
-Aggiungere in `src/lib/i18n.ts`:
-- `feedbackFabLabel` → "Feedback" / "Feedback" (aria-label e tooltip).
+### 2. Edge Functions email
+- Nuova `send-course-notification` con 3 template:
+  - `course-join-request` (all'organizzatore)
+  - `course-request-approved` / `course-request-rejected` (all'iscritto)
+- Nuova `send-event-notification` con i 3 template equivalenti.
+- Registrare i 6 template in `supabase/functions/_shared/transactional-email-templates/registry.ts` (riusando lo styling dei template sessione).
 
-## Non-goals (intenzionalmente esclusi)
-- Niente nudge/tooltip una tantum (può essere aggiunto in seguito se serve).
-- Niente modifiche alla `FeedbackSheet`, alla edge function di invio o allo schema DB.
-- Niente nuova voce nella BottomNav (vincolo memory: 5 tab fisse).
-- Niente FAB su /spots overlay mappa? → Va valutato: c'è già il FAB "+ Aggiungi spot" a destra; il feedback FAB sta a sinistra quindi non collide.
+### 3. UI lato iscritto
+- `CourseDetails.handleJoin` / `EventDetails.handleJoin`: dopo l'insert pending, creare notifica in-app per l'organizzatore + invocare la nuova edge function (`type: "join_request"`).
+
+### 4. UI lato organizzatore
+- In `CourseDetails.tsx` e `EventDetails.tsx`, se `user.id === creator_id`, caricare la lista partecipanti completa e mostrare due sezioni come in `SessionDetails`:
+  - **Richieste in attesa** con pulsanti Approva / Rifiuta;
+  - **Partecipanti confermati**.
+- Handler approve: `UPDATE course_participants/event_participants SET status='confirmed'` + notifica in-app + email `request_approved`.
+- Handler reject: `DELETE` riga + notifica in-app + email `request_rejected`.
+
+### 5. i18n
+Aggiungere stringhe in `src/lib/i18n.ts` (IT/EN): `pendingRequests`, `confirmedParticipants`, `approve`, `reject`, `courseJoinRequest`, `eventJoinRequest`, `requestApproved`, `requestRejected`, ecc. (riusare dove possibile quelle delle sessioni).
 
 ## Dettagli tecnici
-- Z-index: sotto eventuali Dialog/Sheet (`z-30` basta; BottomNav è già `z-40`+).
-- Safe-area: usare `pb-[env(safe-area-inset-bottom)]` nel calcolo del bottom su iOS Capacitor.
-- Accessibilità: `aria-label` localizzato, `role="button"`, focus ring tematizzato.
+
+```text
+join click → INSERT pending → notification (in-app + email "join_request") → organizzatore
+organizzatore approva → UPDATE confirmed → notification (in-app + email "request_approved") → iscritto
+organizzatore rifiuta → DELETE row → notification (in-app + email "request_rejected") → iscritto
+```
+
+- RLS già OK: `course_participants` e `event_participants` hanno policy `UPDATE` per il creatore via subquery su `courses.creator_id` / `events.creator_id`.
+- Trigger `enforce_course_capacity` / `enforce_event_capacity` esistono già per la prevenzione overbooking.
+- Edge functions: pattern identico a `send-session-notification` (template idempotency key `course-{type}-{id}-{userId}`).
+
+## Out of scope
+- Nessuna modifica al pricing/pagamenti.
+- Nessun cambio al flusso di creazione corsi/eventi.
+- Le chat di evento (già esistenti) non vengono toccate.
