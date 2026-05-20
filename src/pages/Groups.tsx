@@ -51,6 +51,9 @@ const Groups = () => {
       case "schools":
         result = result.filter(g => g.groupType === 'school');
         break;
+      case "divingCenters":
+        result = result.filter(g => g.groupType === 'diving_center');
+        break;
       case "myGroups":
         result = result.filter(g => g.isMember);
         break;

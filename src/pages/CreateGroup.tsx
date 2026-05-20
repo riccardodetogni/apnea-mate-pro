@@ -19,12 +19,12 @@ const CreateGroup = () => {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [groupType, setGroupType] = useState<"community" | "school">("community");
+  const [groupType, setGroupType] = useState<"community" | "school" | "diving_center">("community");
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"open" | "approval">("open");
   const [loading, setLoading] = useState(false);
 
-  const handleGroupTypeChange = (type: "community" | "school") => {
+  const handleGroupTypeChange = (type: "community" | "school" | "diving_center") => {
     setGroupType(type);
   };
 
@@ -115,10 +115,10 @@ const CreateGroup = () => {
         {/* Group Type */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">{t("groupTypeLabel")}</label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => handleGroupTypeChange("community")}
-              className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
+              className={`flex-1 min-w-[30%] py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
                 groupType === "community"
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted/30 text-muted-foreground"
@@ -128,7 +128,7 @@ const CreateGroup = () => {
             </button>
             <button
               onClick={() => handleGroupTypeChange("school")}
-              className={`flex-1 py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
+              className={`flex-1 min-w-[30%] py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
                 groupType === "school"
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted/30 text-muted-foreground"
@@ -136,8 +136,18 @@ const CreateGroup = () => {
             >
               {t("groupTypeSchool")}
             </button>
+            <button
+              onClick={() => handleGroupTypeChange("diving_center")}
+              className={`flex-1 min-w-[30%] py-2.5 px-4 rounded-full text-sm font-medium transition-colors ${
+                groupType === "diving_center"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/30 text-muted-foreground"
+              }`}
+            >
+              {t("groupTypeDivingCenter")}
+            </button>
           </div>
-          {groupType === "school" && (
+          {(groupType === "school" || groupType === "diving_center") && (
             <p className="text-xs text-muted mt-2">
               Per diventare partner verificato, contatta il nostro team dopo la creazione.
             </p>

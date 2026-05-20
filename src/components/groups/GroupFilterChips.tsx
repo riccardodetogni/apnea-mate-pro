@@ -1,6 +1,6 @@
 import { t } from "@/lib/i18n";
 
-export type GroupFilter = "all" | "schools" | "myGroups" | "nearby";
+export type GroupFilter = "all" | "schools" | "divingCenters" | "myGroups" | "nearby";
 
 interface GroupFilterChipsProps {
   activeFilter: GroupFilter;
@@ -11,6 +11,7 @@ export const GroupFilterChips = ({ activeFilter, onFilterChange }: GroupFilterCh
   const filters: { id: GroupFilter; label: string }[] = [
     { id: "all", label: t("filterAll") },
     { id: "schools", label: t("filterSchools") },
+    { id: "divingCenters", label: t("filterDivingCenters") },
     { id: "myGroups", label: t("filterYourGroups") },
     { id: "nearby", label: t("filterNearby") },
   ];

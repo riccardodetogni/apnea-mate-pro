@@ -76,6 +76,11 @@ export const GroupHeroCard = ({
               {t("groupTypeSchool")}
             </span>
           )}
+          {groupType === "diving_center" && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[hsl(var(--badge-blue-bg))] text-card-foreground text-xs font-medium">
+              {t("groupTypeDivingCenter")}
+            </span>
+          )}
           {groupType === "community" && !isInstructorLed && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[hsl(var(--badge-blue-bg))] text-[hsl(var(--card-muted))] text-xs font-medium">
               {t("spontaneousGroup")}
