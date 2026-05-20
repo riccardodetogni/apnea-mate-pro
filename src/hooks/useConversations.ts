@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 export interface ConversationListItem {
   id: string;
@@ -151,13 +152,37 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
 
 export const useConversations = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: conversations = [], isLoading: loading, refetch } = useQuery({
     queryKey: ["conversations", user?.id],
     queryFn: () => fetchConversations(user!.id),
     enabled: !!user,
-    refetchInterval: 15000,
   });
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`conversations-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "conversation_participants", filter: `user_id=eq.${user.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
 
