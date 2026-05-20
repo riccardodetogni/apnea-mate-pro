@@ -1227,6 +1227,12 @@ export type Database = {
         | "group_request_approved"
         | "new_follower"
         | "group_verification_request"
+        | "course_join_request"
+        | "course_request_approved"
+        | "course_request_rejected"
+        | "event_join_request"
+        | "event_request_approved"
+        | "event_request_rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1370,6 +1376,12 @@ export const Constants = {
         "group_request_approved",
         "new_follower",
         "group_verification_request",
+        "course_join_request",
+        "course_request_approved",
+        "course_request_rejected",
+        "event_join_request",
+        "event_request_approved",
+        "event_request_rejected",
       ],
     },
   },
