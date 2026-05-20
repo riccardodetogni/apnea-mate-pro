@@ -48,7 +48,7 @@ const getRoleLabel = (role: AppRole): string => {
 const getGroupTypeLabel = (type: string): string => {
   switch (type) {
     case "community_spontanea": return t("communityGroupType");
-    case "scuola_club": return t("schoolClubGroupType");
+    case "school": return t("schoolClubGroupType");
     default: return type;
   }
 };
