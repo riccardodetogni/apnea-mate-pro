@@ -117,8 +117,10 @@ const EventDetails = () => {
       await createNotification({
         userId: event.creator_id,
         type: "event_join_request",
-        title: "Nuova richiesta di iscrizione",
-        message: `${requesterProfile?.name || "Un freediver"} vuole iscriversi a "${event.title}"`,
+        title: t("notifJoinRequestTitle"),
+        message: t("notifJoinRequestMsg")
+          .replace("{name}", requesterProfile?.name || t("aFreediver"))
+          .replace("{title}", event.title),
         metadata: {
           event_id: id,
           event_title: event.title,
@@ -166,8 +168,8 @@ const EventDetails = () => {
     await createNotification({
       userId: participantUserId,
       type: "event_request_approved",
-      title: "Iscrizione approvata!",
-      message: `La tua iscrizione a "${event.title}" è stata confermata`,
+      title: t("notifApprovedTitle"),
+      message: t("notifApprovedMsg").replace("{title}", event.title),
       metadata: { event_id: id, event_title: event.title },
     });
     try {
@@ -195,8 +197,8 @@ const EventDetails = () => {
     await createNotification({
       userId: participantUserId,
       type: "event_request_rejected",
-      title: "Iscrizione non approvata",
-      message: `La tua richiesta per "${event.title}" non è stata accettata`,
+      title: t("notifRejectedTitle"),
+      message: t("notifRejectedMsg").replace("{title}", event.title),
       metadata: { event_id: id, event_title: event.title },
     });
     try {
