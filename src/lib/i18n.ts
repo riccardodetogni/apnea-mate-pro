@@ -1695,6 +1695,7 @@ const translations = {
 
     // Feedback
     sendFeedback: "Send feedback",
+    feedbackFabLabel: "Feedback",
     feedbackTitle: "Send feedback",
     feedbackSubtitle: "Help us improve the app",
     feedbackCategory: "Category",
