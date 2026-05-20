@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { MapPin, Calendar, Users, GraduationCap, Mail } from "lucide-react";
+import { MapPin, Calendar, Users, GraduationCap, Mail, BadgeCheck } from "lucide-react";
 import type { CourseWithDetails } from "@/hooks/useCourses";
 import { t } from "@/lib/i18n";
 
@@ -81,17 +81,35 @@ export const CourseCard = ({ course, onClick }: CourseCardProps) => {
       {/* Creator */}
       <div className="flex items-center justify-between mt-auto pt-1">
         <div className="flex items-center gap-2">
-          <div className="avatar-creator">
-            {course.creator_avatar ? (
-              <img src={course.creator_avatar} className="w-full h-full rounded-full object-cover" alt="" />
-            ) : (
-              course.creator_name.charAt(0).toUpperCase()
-            )}
-          </div>
-          <span className="text-xs text-[hsl(var(--card-soft))]">
-            {course.creator_name}
-            {course.creator_is_instructor && ` · ${t("roleInstructor")}`}
-          </span>
+          {course.group_name ? (
+            <>
+              <div className="avatar-creator overflow-hidden">
+                {course.group_avatar ? (
+                  <img src={course.group_avatar} className="w-full h-full rounded-full object-cover" alt="" />
+                ) : (
+                  course.group_name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <span className="text-xs text-[hsl(var(--card-soft))] flex items-center gap-1">
+                {course.group_name}
+                {course.group_verified && <BadgeCheck className="w-3 h-3 text-primary" />}
+              </span>
+            </>
+          ) : (
+            <>
+              <div className="avatar-creator">
+                {course.creator_avatar ? (
+                  <img src={course.creator_avatar} className="w-full h-full rounded-full object-cover" alt="" />
+                ) : (
+                  course.creator_name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <span className="text-xs text-[hsl(var(--card-soft))]">
+                {course.creator_name}
+                {course.creator_is_instructor && ` · ${t("roleInstructor")}`}
+              </span>
+            </>
+          )}
         </div>
         <span className="text-xs text-[hsl(var(--card-soft))] underline">Dettagli</span>
       </div>
