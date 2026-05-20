@@ -163,7 +163,7 @@ const EditEvent = () => {
           <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-2xl font-bold text-foreground">{t("editSessionTitle")}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("edit")}</h1>
         </div>
       </header>
 
