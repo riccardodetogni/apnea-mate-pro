@@ -839,6 +839,7 @@ const translations = {
 
     // Feedback
     sendFeedback: "Invia feedback",
+    feedbackFabLabel: "Feedback",
     feedbackTitle: "Invia feedback",
     feedbackSubtitle: "Aiutaci a migliorare l'app",
     feedbackCategory: "Categoria",
@@ -1694,6 +1695,7 @@ const translations = {
 
     // Feedback
     sendFeedback: "Send feedback",
+    feedbackFabLabel: "Feedback",
     feedbackTitle: "Send feedback",
     feedbackSubtitle: "Help us improve the app",
     feedbackCategory: "Category",
