@@ -1,26 +1,36 @@
-## Problem
-After a user confirms their email, Supabase redirects them to `/` (the value of `emailRedirectTo` in `signUp`). The `/` route renders `ComingSoon`, which unconditionally sends any authenticated user to `/community`. The profile-completeness check that decides between `/community` and `/onboarding` only exists in `Auth.tsx`, so confirmed users skip onboarding (and miss the privacy/safety disclaimers).
+# Allow instructors to create Events and Courses
 
-## Fix
-Send confirmed users through `/auth` so the existing profile check runs and routes them to `/onboarding` or `/community` correctly.
+## Goal
+Any user with role `instructor` (or `admin`) can create Events and Courses. Attaching to a group becomes optional; the verified-group requirement is dropped.
 
-### 1. `src/contexts/AuthContext.tsx`
-Change the `signUp` redirect target from `/` to `/auth`:
-```ts
-const redirectUrl = `${window.location.origin}/auth`;
-```
-This way the email confirmation link lands on `/auth`, which already has the profile-existence logic in its `useEffect`.
+## Changes
 
-### 2. `src/pages/ComingSoon.tsx` (defensive)
-Currently does `if (user) return <Navigate to="/community" replace />`. Replace with a small async profile check (same logic as `Auth.tsx`): if `profile.location` is set → `/community`, else → `/onboarding`. This protects any user who is already logged in and revisits `/` directly.
+### 1. Frontend gating — `src/pages/Create.tsx`
+Replace `canCreateEventsOrCourses || isAdmin` with `isInstructor || isAdmin` (use `useProfile`). Drop the `useVerifiedGroups` import here.
 
-Reuse the same query pattern already used in `Auth.tsx` (select `name, location` from `profiles` by `user_id`) to keep behavior identical.
+### 2. Create forms — `src/pages/CreateEvent.tsx` and `src/pages/CreateCourse.tsx`
+- Replace the verified-groups selector with an **optional** group picker that lists all groups the user owns/admins (verified or not). Add a "Nessun gruppo" option (default).
+- Submit `group_id: form.group_id || null`.
+- Remove `!form.group_id` from validation and the submit button's `disabled`.
+- Keep the auto-select-if-only-one behavior, but only as a convenience (still overridable).
+
+### 3. RLS policy updates (migration)
+Replace the INSERT policies on `events` and `courses` so they allow:
+- `admin`, OR
+- `instructor` creating a row with `creator_id = auth.uid()`, with `group_id` either NULL or a group they own/admin (no `verified` requirement).
+
+Old policy required `is_group_owner` AND `groups.verified = true`.
+
+### 4. Memory updates
+- Update `mem://features/events-and-courses` — new rule: instructors/admins can create; group optional; no verified-group gate.
+- Update `mem://features/group-verification-and-partner-status` — verification is now a badge/trust signal only, not a gate for Events/Courses.
+- Update the Core index entry accordingly.
 
 ## Out of scope
-- The Auth.tsx privacy-checkbox addition discussed earlier (separate task).
-- Any change to the email template itself — the link works, only the destination logic is wrong.
+- No changes to Sessions (already instructor-allowed).
+- No changes to the verification request flow (the button stays so schools can still get the verified badge).
+- No changes to chat behavior; standalone Events/Courses (no group) simply won't have a group-chat link.
 
-## Verification
-- Register a fresh test email → click confirmation link → should land on `/onboarding` (not `/community`).
-- Re-open `/` while logged in with a completed profile → should land on `/community`.
-- Re-open `/` while logged in with an incomplete profile → should land on `/onboarding`.
+## Technical notes
+- Migration drops & recreates `Verified group owners can create events` and `Verified group owners can create courses` policies.
+- New policy uses `has_role(auth.uid(), 'instructor')` / `'admin'` and `is_group_owner(auth.uid(), group_id)` only when `group_id IS NOT NULL`.

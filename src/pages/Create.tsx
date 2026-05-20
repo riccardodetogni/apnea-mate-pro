@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { t } from "@/lib/i18n";
 import { Calendar, Users, BarChart3, ChevronLeft, Ticket, GraduationCap } from "lucide-react";
-import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
 import { useProfile } from "@/hooks/useProfile";
 
 const allCreateOptions = [
@@ -50,11 +49,10 @@ const allCreateOptions = [
 
 const Create = () => {
   const navigate = useNavigate();
-  const { canCreateEventsOrCourses } = useVerifiedGroups();
-  const { isAdmin } = useProfile();
+  const { isAdmin, isInstructor } = useProfile();
 
   const createOptions = allCreateOptions.filter(
-    (opt) => !opt.requiresVerifiedGroup || canCreateEventsOrCourses || isAdmin
+    (opt) => !opt.requiresVerifiedGroup || isInstructor || isAdmin
   );
 
   const handleOptionClick = (id: string) => {
