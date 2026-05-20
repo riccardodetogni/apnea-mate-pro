@@ -45,6 +45,14 @@ export const GroupCard = ({
           </span>
         );
       }
+      if (groupType === 'diving_center') {
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/85 border border-white/10">
+            <Building2 className="w-3 h-3" />
+            {t("divingCenterPartner")}
+          </span>
+        );
+      }
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-success/20 text-success border border-success/20">
           <CheckCircle className="w-3 h-3" />
