@@ -37,7 +37,7 @@ export const GroupCard = ({
   // Determine badge type based on verified status and group type
   const getBadge = () => {
     if (isVerified) {
-      if (groupType === 'scuola_club') {
+      if (groupType === 'school') {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white/85 border border-white/10">
             <Building2 className="w-3 h-3" />
