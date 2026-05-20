@@ -1,26 +1,38 @@
-# Aggiungere modifica per Eventi e Corsi
+# Mostra la scuola/gruppo come organizzatore nelle card Community
 
-Attualmente solo le Sessioni hanno il pulsante "matita" e una pagina di modifica. Eventi e Corsi non sono modificabili dopo la creazione, e l'RLS non prevede policy di UPDATE per loro.
+## Obiettivo
+Quando una sessione, evento o corso è collegato a un gruppo (scuola), le card nella pagina Community mostreranno **il gruppo** (avatar + nome) come organizzatore, al posto del nome della persona che l'ha creato. Se non c'è alcun gruppo collegato, resta visibile la persona come oggi.
+
+Il creatore personale continuerà a essere visibile nelle pagine di dettaglio (Session/Event/Course Details) — questa modifica riguarda solo le card di anteprima nel feed Community.
 
 ## Modifiche
 
-### 1. Database (migration)
-Aggiungere policy `UPDATE` su `events` e `courses` per il creator se è `instructor` o `admin`, con `group_id` NULL oppure gruppo di cui è owner (stessa logica delle policy INSERT già aggiunte).
+### 1. Dati: aggiungere info del gruppo nei hook
+- **`src/hooks/useSessions.ts`**, **`src/hooks/useEvents.ts`**, **`src/hooks/useCourses.ts`**
+  - Raccogliere i `group_id` non null dalle righe restituite.
+  - Fare una query batch a `groups` per ottenere `id, name, avatar_url, verified`.
+  - Aggiungere ai tipi (`SessionWithDetails`, `EventWithDetails`, `CourseWithDetails`) i campi opzionali:
+    - `group_name?: string | null`
+    - `group_avatar?: string | null`
+    - `group_verified?: boolean`
 
-### 2. Nuove pagine
-- `src/pages/EditEvent.tsx` — clone di `CreateEvent.tsx` che pre-carica i dati dell'evento e fa `UPDATE` invece di `INSERT`. Lo spot e il gruppo restano immutabili (coerente con `EditSession`).
-- `src/pages/EditCourse.tsx` — stesso pattern per i corsi.
+### 2. UI: aggiornare le card
+- **`src/components/community/SessionCard.tsx`**
+  - Nuove prop opzionali: `groupName?`, `groupAvatar?`, `groupVerified?`.
+  - Se `groupName` è presente: mostrare avatar/iniziale del gruppo e nome del gruppo al posto di `creatorName/creatorInitial`; label "Organizzatore" invariata; nascondere il ruolo personale (instructor/etc.) perché stiamo mostrando l'entità gruppo.
+  - Se il gruppo è `verified`, mostrare la spunta/badge accanto al nome (coerente con il resto dell'app).
+- **`src/components/community/EventCard.tsx`** e **`src/components/community/CourseCard.tsx`**
+  - Stessa logica: quando `event.group_id`/`course.group_id` esiste e abbiamo `group_name`, mostrare il gruppo invece di `creator_name`/`creator_avatar`.
 
-### 3. Routing
-In `src/App.tsx` aggiungere:
-- `/events/:id/edit` → `EditEvent`
-- `/courses/:id/edit` → `EditCourse`
-(entrambe lazy + `RequireAuth`)
+### 3. Passaggio prop in `src/pages/Community.tsx`
+- Inoltrare i nuovi campi gruppo a `SessionCard` (già usa `{...session}` quindi basterà che il hook restituisca i campi).
 
-### 4. Pulsante matita
-- `src/pages/EventDetails.tsx`: nell'header, accanto a "Condividi", mostrare il bottone Pencil quando `user.id === event.creator_id`, che naviga a `/events/:id/edit`.
-- `src/pages/CourseDetails.tsx`: stesso pattern verso `/courses/:id/edit`.
+## Fuori scope
+- Nessuna modifica alle pagine di dettaglio (Session/Event/Course Details).
+- Nessuna modifica alle policy RLS o allo schema DB (`group_id` esiste già su tutte e tre le tabelle).
+- Nessuna modifica al ranking/filtering del feed Community.
+- I gruppi non-school continuano a comportarsi allo stesso modo (basta che ci sia un `group_id`).
 
-## Note
-- Niente cambi a Sessioni, alle policy esistenti di INSERT/SELECT/DELETE, né alla logica dei gruppi.
-- I campi modificabili sono gli stessi della creazione tranne `spot_id` e `group_id` (immutabili, come per le sessioni).
+## Note tecniche
+- I `groups` sono leggibili pubblicamente (necessari per i feed di gruppo già esistenti), quindi nessun problema di RLS.
+- Per il fallback dell'avatar gruppo riuseremo lo stesso pattern già in uso in `GroupCard.tsx`.

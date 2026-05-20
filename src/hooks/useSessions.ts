@@ -58,6 +58,9 @@ export interface SessionWithDetails {
   distanceKm: number | null;
   rawLevel: string;
   rawDateTime: string;
+  groupName?: string | null;
+  groupAvatar?: string | null;
+  groupVerified?: boolean;
 }
 
 const formatSessionDateTime = (dateTime: string, durationMinutes: number): string => {
@@ -137,9 +140,21 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
   if (sessionsError) throw sessionsError;
 
   const creatorIds = [...new Set(sessionsData?.map(s => s.creator_id) || [])];
+  const groupIds = [...new Set((sessionsData || []).map(s => (s as any).group_id).filter((g: any): g is string => !!g))];
   
   let creatorProfiles: Record<string, { name: string; avatar_url: string | null; user_id: string }> = {};
   let creatorRoles: Record<string, string> = {};
+  const groupsMap: Record<string, { name: string; avatar_url: string | null; verified: boolean }> = {};
+
+  if (groupIds.length > 0) {
+    const { data: groupsData } = await supabase
+      .from("groups")
+      .select("id, name, avatar_url, verified")
+      .in("id", groupIds);
+    groupsData?.forEach(g => {
+      groupsMap[g.id] = { name: g.name, avatar_url: g.avatar_url, verified: !!g.verified };
+    });
+  }
   
   if (creatorIds.length > 0) {
     const { data: profilesData } = await supabase
@@ -203,6 +218,8 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
       creatorRole = "instructor";
     }
     const participationStatus = userParticipations.get(session.id);
+    const gId = (session as any).group_id as string | null;
+    const grp = gId ? groupsMap[gId] : undefined;
     return {
       ...session,
       creator: creatorProfiles[session.creator_id] || null,
@@ -211,6 +228,9 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
       reserved_count: reservedCounts[session.id] || 0,
       is_joined: participationStatus === "confirmed",
       is_pending: participationStatus === "pending",
+      group_name: grp?.name ?? null,
+      group_avatar: grp?.avatar_url ?? null,
+      group_verified: grp?.verified ?? false,
     };
   }) || [];
 
@@ -345,6 +365,9 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     distanceKm: session.distance_km || null,
     rawLevel: session.level,
     rawDateTime: session.date_time,
+    groupName: (session as any).group_name ?? null,
+    groupAvatar: (session as any).group_avatar ?? null,
+    groupVerified: (session as any).group_verified ?? false,
   }));
 
   return {

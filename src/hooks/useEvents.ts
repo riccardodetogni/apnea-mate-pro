@@ -31,6 +31,9 @@ export interface EventWithDetails {
   is_joined: boolean;
   is_pending: boolean;
   days_count: number;
+  group_name?: string | null;
+  group_avatar?: string | null;
+  group_verified?: boolean;
 }
 
 async function fetchEvents(userId: string | undefined, groupId?: string) {
@@ -52,11 +55,15 @@ async function fetchEvents(userId: string | undefined, groupId?: string) {
 
   const creatorIds = [...new Set(events.map(e => e.creator_id))];
   const eventIds = events.map(e => e.id);
+  const groupIds = [...new Set(events.map(e => e.group_id).filter((g): g is string => !!g))];
 
-  const [profilesRes, rolesRes, participantsRes] = await Promise.all([
+  const [profilesRes, rolesRes, participantsRes, groupsRes] = await Promise.all([
     supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", creatorIds),
     supabase.from("user_roles").select("user_id, role").in("user_id", creatorIds),
     supabase.from("event_participants").select("event_id, user_id, status").in("event_id", eventIds).in("status", ["pending", "confirmed"]),
+    groupIds.length > 0
+      ? supabase.from("groups").select("id, name, avatar_url, verified").in("id", groupIds)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const profiles: Record<string, { name: string; avatar_url: string | null }> = {};
@@ -70,6 +77,11 @@ async function fetchEvents(userId: string | undefined, groupId?: string) {
   participantsRes.data?.forEach(p => {
     if (p.status === "confirmed") counts[p.event_id] = (counts[p.event_id] || 0) + 1;
     if (userId && p.user_id === userId) userStatus[p.event_id] = p.status;
+  });
+
+  const groups: Record<string, { name: string; avatar_url: string | null; verified: boolean }> = {};
+  (groupsRes.data as any[] | null)?.forEach(g => {
+    groups[g.id] = { name: g.name, avatar_url: g.avatar_url, verified: !!g.verified };
   });
 
   return events.map(e => {
@@ -105,6 +117,9 @@ async function fetchEvents(userId: string | undefined, groupId?: string) {
       is_joined: userStatus[e.id] === "confirmed",
       is_pending: userStatus[e.id] === "pending",
       days_count: days,
+      group_name: e.group_id ? groups[e.group_id]?.name ?? null : null,
+      group_avatar: e.group_id ? groups[e.group_id]?.avatar_url ?? null : null,
+      group_verified: e.group_id ? groups[e.group_id]?.verified ?? false : false,
     } as EventWithDetails;
   });
 }
