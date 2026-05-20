@@ -103,8 +103,10 @@ const CourseDetails = () => {
       await createNotification({
         userId: course.creator_id,
         type: "course_join_request",
-        title: "Nuova richiesta di iscrizione",
-        message: `${requesterProfile?.name || "Un freediver"} vuole iscriversi a "${course.title}"`,
+        title: t("notifJoinRequestTitle"),
+        message: t("notifJoinRequestMsg")
+          .replace("{name}", requesterProfile?.name || t("aFreediver"))
+          .replace("{title}", course.title),
         metadata: {
           course_id: id,
           course_title: course.title,
@@ -153,8 +155,8 @@ const CourseDetails = () => {
     await createNotification({
       userId: participantUserId,
       type: "course_request_approved",
-      title: "Iscrizione approvata!",
-      message: `La tua iscrizione a "${course.title}" è stata confermata`,
+      title: t("notifApprovedTitle"),
+      message: t("notifApprovedMsg").replace("{title}", course.title),
       metadata: { course_id: id, course_title: course.title },
     });
     try {
@@ -182,8 +184,8 @@ const CourseDetails = () => {
     await createNotification({
       userId: participantUserId,
       type: "course_request_rejected",
-      title: "Iscrizione non approvata",
-      message: `La tua richiesta per "${course.title}" non è stata accettata`,
+      title: t("notifRejectedTitle"),
+      message: t("notifRejectedMsg").replace("{title}", course.title),
       metadata: { course_id: id, course_title: course.title },
     });
     try {
