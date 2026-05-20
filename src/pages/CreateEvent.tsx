@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { t, getEventTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react";
-import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
+import { useOwnedGroups } from "@/hooks/useOwnedGroups";
 import { useProfile } from "@/hooks/useProfile";
 
 interface ScheduleDay {
@@ -29,7 +29,7 @@ const CreateEvent = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const { verifiedGroups, loading: groupsLoading } = useVerifiedGroups();
+  const { ownedGroups, loading: groupsLoading } = useOwnedGroups();
   const { isInstructor } = useProfile();
 
   const eventTypes = getEventTypes();
@@ -71,13 +71,8 @@ const CreateEvent = () => {
     setSchedule(prev => prev.filter((_, i) => i !== index).map((d, i) => ({ ...d, day_number: i + 1 })));
   };
 
-  // Auto-select if only one group
-  if (verifiedGroups.length === 1 && !form.group_id) {
-    setForm(f => ({ ...f, group_id: verifiedGroups[0].id }));
-  }
-
   const handleSubmit = async () => {
-    if (!user || !form.title || !form.start_date || !form.end_date || !form.group_id) {
+    if (!user || !form.title || !form.start_date || !form.end_date) {
       toast({ title: t("fillRequiredFields"), variant: "destructive" });
       return;
     }
@@ -100,7 +95,7 @@ const CreateEvent = () => {
           contact_email: form.contact_email || null,
           contact_phone: form.contact_phone || null,
           contact_url: form.contact_url || null,
-          group_id: form.group_id,
+          group_id: form.group_id || null,
         })
         .select("id")
         .single();
@@ -142,24 +137,26 @@ const CreateEvent = () => {
       </header>
 
       <div className="space-y-5">
-        {/* Group selector */}
-        <div className="space-y-2">
-          <Label>{t("selectGroup")} *</Label>
-          {verifiedGroups.length === 0 && !groupsLoading ? (
-            <p className="text-sm text-muted-foreground">{t("noVerifiedGroups")}</p>
-          ) : (
-            <Select value={form.group_id} onValueChange={v => setForm(f => ({ ...f, group_id: v }))}>
+        {/* Group selector (optional) */}
+        {!groupsLoading && ownedGroups.length > 0 && (
+          <div className="space-y-2">
+            <Label>{t("selectGroup")}</Label>
+            <Select
+              value={form.group_id || "none"}
+              onValueChange={v => setForm(f => ({ ...f, group_id: v === "none" ? "" : v }))}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t("selectGroupPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                {verifiedGroups.map(g => (
+                <SelectItem value="none">—</SelectItem>
+                {ownedGroups.map(g => (
                   <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Event type */}
         <div className="space-y-2">
@@ -252,7 +249,7 @@ const CreateEvent = () => {
           )}
         </div>
 
-        <Button onClick={handleSubmit} disabled={loading || !form.group_id} className="w-full">
+        <Button onClick={handleSubmit} disabled={loading} className="w-full">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("createEvent")}
         </Button>
       </div>
