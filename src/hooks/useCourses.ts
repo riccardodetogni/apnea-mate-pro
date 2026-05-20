@@ -30,6 +30,9 @@ export interface CourseWithDetails {
   participant_count: number;
   is_joined: boolean;
   is_pending: boolean;
+  group_name?: string | null;
+  group_avatar?: string | null;
+  group_verified?: boolean;
 }
 
 async function fetchCourses(userId: string | undefined, groupId?: string) {
@@ -51,11 +54,15 @@ async function fetchCourses(userId: string | undefined, groupId?: string) {
 
   const creatorIds = [...new Set(courses.map(c => c.creator_id))];
   const courseIds = courses.map(c => c.id);
+  const groupIds = [...new Set(courses.map(c => c.group_id).filter((g): g is string => !!g))];
 
-  const [profilesRes, rolesRes, participantsRes] = await Promise.all([
+  const [profilesRes, rolesRes, participantsRes, groupsRes] = await Promise.all([
     supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", creatorIds),
     supabase.from("user_roles").select("user_id, role").in("user_id", creatorIds),
     supabase.from("course_participants").select("course_id, user_id, status").in("course_id", courseIds).in("status", ["pending", "confirmed"]),
+    groupIds.length > 0
+      ? supabase.from("groups").select("id, name, avatar_url, verified").in("id", groupIds)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const profiles: Record<string, { name: string; avatar_url: string | null }> = {};
@@ -69,6 +76,11 @@ async function fetchCourses(userId: string | undefined, groupId?: string) {
   participantsRes.data?.forEach(p => {
     if (p.status === "confirmed") counts[p.course_id] = (counts[p.course_id] || 0) + 1;
     if (userId && p.user_id === userId) userStatus[p.course_id] = p.status;
+  });
+
+  const groups: Record<string, { name: string; avatar_url: string | null; verified: boolean }> = {};
+  (groupsRes.data as any[] | null)?.forEach(g => {
+    groups[g.id] = { name: g.name, avatar_url: g.avatar_url, verified: !!g.verified };
   });
 
   return courses.map(c => ({
@@ -98,6 +110,9 @@ async function fetchCourses(userId: string | undefined, groupId?: string) {
     participant_count: counts[c.id] || 0,
     is_joined: userStatus[c.id] === "confirmed",
     is_pending: userStatus[c.id] === "pending",
+    group_name: c.group_id ? groups[c.group_id]?.name ?? null : null,
+    group_avatar: c.group_id ? groups[c.group_id]?.avatar_url ?? null : null,
+    group_verified: c.group_id ? groups[c.group_id]?.verified ?? false : false,
   } as CourseWithDetails));
 }
 
