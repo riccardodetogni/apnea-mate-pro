@@ -32,9 +32,20 @@ L.Icon.Default.mergeOptions({
 interface SpotCreatorProps {
   onSpotCreated: (spotId: string) => void;
   onCancel: () => void;
+  mode?: "create" | "edit";
+  spotId?: string;
+  initialValues?: {
+    name: string;
+    location: string;
+    environment_type: string;
+    description?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+  };
+  hideHeader?: boolean;
 }
 
-const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
+const SpotCreator = ({ onSpotCreated, onCancel, mode = "create", spotId, initialValues, hideHeader }: SpotCreatorProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const mapRef = useRef<L.Map | null>(null);
@@ -42,14 +53,19 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
   const markerRef = useRef<L.Marker | null>(null);
 
   const [form, setForm] = useState({
-    name: "",
-    location: "",
-    environment_type: "sea",
+    name: initialValues?.name ?? "",
+    location: initialValues?.location ?? "",
+    environment_type: initialValues?.environment_type ?? "sea",
+    description: initialValues?.description ?? "",
   });
   const [coordinates, setCoordinates] = useState<{
     lat: number;
     lng: number;
-  } | null>(null);
+  } | null>(
+    initialValues?.latitude != null && initialValues?.longitude != null
+      ? { lat: Number(initialValues.latitude), lng: Number(initialValues.longitude) }
+      : null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -58,8 +74,10 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const defaultCenter: L.LatLngExpression = [44.4056, 8.9463];
-    mapRef.current = L.map(containerRef.current).setView(defaultCenter, 8);
+    const initialCenter: L.LatLngExpression =
+      coordinates ? [coordinates.lat, coordinates.lng] : [44.4056, 8.9463];
+    const initialZoom = coordinates ? 14 : 8;
+    mapRef.current = L.map(containerRef.current).setView(initialCenter, initialZoom);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
@@ -177,26 +195,48 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from("spots")
-        .insert({
-          name: form.name.trim(),
-          location: form.location.trim(),
-          environment_type: form.environment_type,
-          latitude: coordinates?.lat || null,
-          longitude: coordinates?.lng || null,
-          created_by: user?.id ?? null,
-        })
-        .select("id")
-        .single();
+      if (mode === "edit" && spotId) {
+        const { error } = await supabase
+          .from("spots")
+          .update({
+            name: form.name.trim(),
+            location: form.location.trim(),
+            environment_type: form.environment_type,
+            description: form.description?.trim() || null,
+            latitude: coordinates?.lat ?? null,
+            longitude: coordinates?.lng ?? null,
+          })
+          .eq("id", spotId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: t("spotCreated"),
-        description: t("spotCreatedDesc"),
-      });
-      onSpotCreated(data.id);
+        toast({
+          title: t("spotUpdated"),
+        });
+        onSpotCreated(spotId);
+      } else {
+        const { data, error } = await supabase
+          .from("spots")
+          .insert({
+            name: form.name.trim(),
+            location: form.location.trim(),
+            environment_type: form.environment_type,
+            description: form.description?.trim() || null,
+            latitude: coordinates?.lat || null,
+            longitude: coordinates?.lng || null,
+            created_by: user?.id ?? null,
+          })
+          .select("id")
+          .single();
+
+        if (error) throw error;
+
+        toast({
+          title: t("spotCreated"),
+          description: t("spotCreatedDesc"),
+        });
+        onSpotCreated(data.id);
+      }
     } catch (error: any) {
       console.error("Error creating spot:", error);
       toast({
@@ -213,12 +253,14 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">{t("newSpot")}</span>
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">{mode === "edit" ? t("editSpot") : t("newSpot")}</span>
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Name */}
       <div className="space-y-2">
@@ -250,6 +292,18 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Description */}
+      <div className="space-y-2">
+        <Label htmlFor="spotDescription">{t("descriptionOptional")}</Label>
+        <Input
+          id="spotDescription"
+          placeholder={t("spotDescriptionPlaceholder")}
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          maxLength={500}
+        />
       </div>
 
       {/* Address search */}
@@ -331,7 +385,7 @@ const SpotCreator = ({ onSpotCreated, onCancel }: SpotCreatorProps) => {
           ) : (
             <>
               <Check className="w-4 h-4 mr-1" />
-              {t("saveSpot")}
+              {mode === "edit" ? t("save") : t("saveSpot")}
             </>
           )}
         </Button>

@@ -17,6 +17,8 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Community = lazy(() => import("./pages/Community"));
 const Spots = lazy(() => import("./pages/Spots"));
 const SpotDetails = lazy(() => import("./pages/SpotDetails"));
+const CreateSpot = lazy(() => import("./pages/CreateSpot"));
+const EditSpot = lazy(() => import("./pages/EditSpot"));
 const Create = lazy(() => import("./pages/Create"));
 const CreateSession = lazy(() => import("./pages/CreateSession"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
@@ -81,7 +83,9 @@ const App = () => (
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
                 <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
                 <Route path="/spots" element={<RequireAuth><Spots /></RequireAuth>} />
+                <Route path="/spots/new" element={<RequireAuth><CreateSpot /></RequireAuth>} />
                 <Route path="/spots/:id" element={<RequireAuth><SpotDetails /></RequireAuth>} />
+                <Route path="/spots/:id/edit" element={<RequireAuth><EditSpot /></RequireAuth>} />
                 <Route path="/create" element={<RequireAuth><Create /></RequireAuth>} />
                 <Route path="/create/session" element={<RequireAuth><CreateSession /></RequireAuth>} />
                 <Route path="/sessions/:id" element={<RequireAuth><SessionDetails /></RequireAuth>} />

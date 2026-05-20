@@ -11,6 +11,7 @@ export interface SpotDetails {
   longitude: number | null;
   description: string | null;
   created_at: string;
+  created_by: string | null;
 }
 
 export interface SpotSession {

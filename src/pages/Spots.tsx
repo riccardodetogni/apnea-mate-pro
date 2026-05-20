@@ -6,7 +6,7 @@ import SpotBubble from "@/components/spots/SpotBubble";
 import { useSpots, SpotSession } from "@/hooks/useSpots";
 import { useSpotFavorites } from "@/hooks/useSpotFavorites";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Search, SlidersHorizontal, Heart } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal, Heart, Plus } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -26,17 +26,39 @@ const filterOptions: { id: QuickFilterType; label: string; icon?: React.ReactNod
   { id: "favorites", label: "filterFavorites", icon: <Heart className="w-3.5 h-3.5" /> },
 ];
 
-function sessionsMatchFilters(
+// Map session_type filter values to spot environment_type values.
+const SESSION_TO_ENV: Record<string, string> = {
+  sea_trip: "sea",
+  pool_session: "pool",
+  deep_pool_session: "deep_pool",
+  lake_trip: "lake",
+  spearfishing: "sea",
+};
+
+function spotMatchesFilters(
+  spotEnvType: string,
   sessions: SpotSession[] | undefined,
-  filters: SpotFilters
+  filters: SpotFilters,
 ): boolean {
+  const hasLevel = filters.levels.length > 0;
+  const hasDate = !!filters.dateFrom || !!filters.dateTo;
+  const hasActivity = filters.activities.length > 0;
+
+  // Activity-only filtering: also accept spot environment_type matches.
+  if (hasActivity && !hasLevel && !hasDate) {
+    const envMatches = filters.activities.some(
+      (a) => SESSION_TO_ENV[a] === spotEnvType,
+    );
+    if (envMatches) return true;
+  }
+
+  // Level/date constraints (and combined filters) require a matching future session.
   if (!sessions || sessions.length === 0) return false;
 
   return sessions.some((s) => {
     const activityMatch =
-      filters.activities.length === 0 || filters.activities.includes(s.session_type);
-    const levelMatch =
-      filters.levels.length === 0 || filters.levels.includes(s.level);
+      !hasActivity || filters.activities.includes(s.session_type);
+    const levelMatch = !hasLevel || filters.levels.includes(s.level);
     const dateMatch =
       (!filters.dateFrom || s.date_time >= filters.dateFrom) &&
       (!filters.dateTo || s.date_time <= filters.dateTo);
@@ -68,7 +90,7 @@ const Spots = () => {
 
     if (hasActiveFilters(advancedFilters)) {
       result = result.filter((spot) =>
-        sessionsMatchFilters(spotSessions[spot.id], advancedFilters)
+        spotMatchesFilters(spot.environment_type, spotSessions[spot.id], advancedFilters)
       );
     }
 
@@ -202,6 +224,17 @@ const Spots = () => {
             </div>
           </div>
         </div>
+
+        {user && (
+          <button
+            onClick={() => navigate("/spots/new")}
+            className="absolute right-4 z-[1000] w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
+            style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
+            aria-label={t("addSpot")}
+          >
+            <Plus className="w-6 h-6" />
+          </button>
+        )}
       </div>
 
       {currentSpot && (

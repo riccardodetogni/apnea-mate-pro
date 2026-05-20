@@ -12,7 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SpotMiniMap } from "@/components/spots/SpotMiniMap";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
 import { t } from "@/lib/i18n";
-import { ArrowLeft, Heart, Navigation, MapPin, Waves, Calendar, Users, Clock, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Heart, Navigation, MapPin, Waves, Calendar, Users, Clock, Check, Loader2, Pencil } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 import { BrandIcon } from "@/components/brand/BrandIcon";
 import { toast } from "sonner";
 import { format, isToday, isTomorrow } from "date-fns";
@@ -39,6 +40,7 @@ const SpotDetails = () => {
   const backPath = (location.state as { from?: string })?.from || "/spots";
   const { user } = useAuth();
   const { canJoinSession, isCertified } = useCommunityContext();
+  const { isAdmin } = useProfile();
   const { spot, sessions, loading, error, refetch } = useSpotDetails(id);
   const { isFavorite, toggleFavorite } = useSpotFavorites();
 
@@ -200,6 +202,15 @@ const SpotDetails = () => {
         <h1 className="text-lg font-semibold text-foreground flex-1 truncate">
           {t("spotDetails")}
         </h1>
+        {(spot.created_by === user?.id || isAdmin) && (
+          <button
+            onClick={() => navigate(`/spots/${spot.id}/edit`)}
+            className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center hover:bg-muted/50 transition-colors"
+            aria-label={t("editSpot")}
+          >
+            <Pencil className="w-4 h-4 text-foreground" />
+          </button>
+        )}
       </div>
 
       {/* Hero section */}
