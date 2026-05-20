@@ -1,36 +1,39 @@
-## Add "Diving Center" group type
+## Diagnosi
 
-Introduce a third `group_type` alongside `community` and `school`, treated as a professional, verification-eligible organization (same trust tier as schools).
+Hai ragione su entrambi i punti:
 
-### 1. Database
-- Migration on `public.groups`: relax/replace the existing `group_type` check (or add value) to allow `'diving_center'` in addition to `'community'` and `'school'`.
-- Update `is_verified_group_owner` is unaffected (it checks `verified = true` regardless of type, so diving centers can be verified the same way).
+1. **Creazione/modifica spot scollegata da sessione**: oggi `SpotCreator` è usato solo dentro `SpotSelector` dentro `CreateSession`. Non c'è nessun pulsante "Aggiungi spot" su `/spots`, e `SpotDetails` non ha pulsante "Modifica". La policy RLS sui `spots` permette già a qualsiasi utente autenticato di creare, e al `created_by` di modificare — manca solo la UI.
 
-### 2. Backend logic / RLS
-- No RLS changes needed. Events/Courses creation gating already relies on instructor/admin role + `is_group_owner`, not on group type.
-- Verification flow stays manual (admin-driven), same as schools.
+2. **Filtri che sembrano non funzionare** (es. "Deep pool" non mostra le piscine profonde): è **intended behaviour attuale ma confuso**. In `Spots.tsx → sessionsMatchFilters`, i filtri Attività/Livello/Date vengono applicati alle **sessioni future** legate allo spot, non al campo `environment_type` dello spot. Quindi una piscina profonda senza sessioni attive viene nascosta non appena attivi un filtro Attività.
 
-### 3. UI — Create / Edit Group
-File: `src/pages/CreateGroup.tsx`
-- Replace the 2-button toggle with a 3-option selector (Community / School / Diving Center). Keep pill-style buttons; wrap if needed at narrow widths.
-- Update helper text shown when `school` or `diving_center` is selected: "Per diventare partner verificato, contatta il nostro team dopo la creazione."
-- Type the state as `"community" | "school" | "diving_center"`.
+Il filtro "Attività" mescola anche due concetti diversi: i `session_type` (es. `deep_pool_session`) sono mostrati come opzioni, ma molti utenti li leggono come "tipo di spot" (`environment_type` es. `deep_pool`).
 
-### 4. UI — Display
-- `src/components/groups/GroupHeroCard.tsx`: add a badge case for `groupType === "diving_center"` (label "Diving Center", same styling as the school badge).
-- `src/components/community/GroupCard.tsx`: extend `getBadge()` so verified diving centers show "Centro partner" (verified) or "Diving Center" badge; unverified shows the type label.
-- `src/components/groups/GroupFilterChips.tsx`: optionally add a "Diving Centers" filter chip next to "Schools" (or fold both into a single "Professional" chip). **Decision: add a separate "Diving Centers" chip** for clarity.
-- `src/pages/Groups.tsx`: extend `GroupFilter` union + filtering logic for the new chip.
+## Piano
 
-### 5. i18n
-File: `src/lib/i18n.ts`
-- Add keys: `groupTypeDivingCenter` ("Diving Center"), `verifiedDivingCenter` ("Centro partner"), `filterDivingCenters` ("Diving Center").
-- Keep Italian and English variants consistent with existing pattern.
+### 1. Aggiungere creazione spot standalone
+- Nuova pagina `src/pages/CreateSpot.tsx` che riusa `<SpotCreator>` (lo stesso componente già esistente con geocoding Nominatim), con header "Nuovo spot" e back button verso `/spots`.
+- Route `/spots/new` in `src/App.tsx`, protetta da `RequireAuth`.
+- FAB "+" sulla mappa in `Spots.tsx` (in basso a destra, sopra la `BottomNav`), che naviga a `/spots/new`. Visibile solo se utente autenticato.
+- Al salvataggio: invalidare `["spots"]` query, toast successo, ritorno a `/spots` con lo spot appena creato selezionato.
 
-### 6. Memory updates
-- Update `mem://features/group-verification-and-partner-status` and `mem://features/groups-tab-complete` to mention the new type.
+### 2. Aggiungere modifica spot
+- Pulsante "Modifica" in `SpotDetails.tsx` (header, icona matita) — visibile solo se `spot.created_by === user.id` o admin.
+- Nuova pagina `src/pages/EditSpot.tsx` che precompila `SpotCreator` con i dati esistenti e fa `UPDATE`.
+- Piccolo refactor di `SpotCreator` per accettare props `initialValues` e `mode: "create" | "edit"`.
+- Route `/spots/:id/edit`.
 
-### Out of scope
-- No changes to event/course creation gating (already permissive).
-- No automated verification — admin still flips `verified` flag manually.
-- No icon changes for map markers.
+### 3. Sistemare la semantica dei filtri
+Cambio in `Spots.tsx → sessionsMatchFilters`:
+- **Activity filter**: matcha sia su `spot.environment_type` (mapping `deep_pool` ↔ `deep_pool_session`, `pool` ↔ `pool_session`, `sea` ↔ `sea_session`, ecc.) **OR** su una sessione futura con quel `session_type`. Così "Deep pool" mostra tutte le piscine profonde + spot mare/lago che ospitano sessioni di tipo "piscina profonda".
+- **Level / Date filter**: continuano a operare solo sulle sessioni (hanno senso solo nel contesto sessione). Se nessuna sessione corrisponde a Livello/Date attivi, lo spot viene escluso — comportamento corretto.
+- Se l'utente attiva **solo** filtri Activity, gli spot senza sessioni ma con `environment_type` matchante restano visibili.
+
+Aggiungere una nota visiva (sottotitolo nella sheet filtri) per chiarire che Livello e Date filtrano per sessioni future.
+
+### 4. Aggiornamenti minori
+- i18n: nuove key `addSpot`, `editSpot`, `spotCreated`, `spotUpdated`, `filterHelpLevelDate` (IT/EN).
+- Memory: aggiornare `mem://features/spot-management` per riflettere le nuove route e la semantica filtri.
+
+### Fuori scope
+- Nessuna modifica a RLS/DB (già supportano create/edit con `created_by`).
+- Nessuna eliminazione spot (RLS attuale non la consente e non è richiesto).
