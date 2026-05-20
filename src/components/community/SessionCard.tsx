@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { Check, Clock, DollarSign } from "lucide-react";
+import { Check, Clock, DollarSign, BadgeCheck } from "lucide-react";
 
 interface SessionCardProps {
   spotName: string;
@@ -14,6 +14,9 @@ interface SessionCardProps {
   creatorName: string;
   creatorInitial: string;
   creatorRole: "instructor" | "instructorF" | "user";
+  groupName?: string | null;
+  groupAvatar?: string | null;
+  groupVerified?: boolean;
   isJoined?: boolean;
   isPaid?: boolean;
   isPending?: boolean;
@@ -43,6 +46,9 @@ export const SessionCard = ({
   creatorName,
   creatorInitial,
   creatorRole,
+  groupName,
+  groupAvatar,
+  groupVerified,
   isJoined = false,
   isPaid = false,
   isPending = false,
@@ -135,13 +141,34 @@ export const SessionCard = ({
       {/* Bottom - creator and action */}
       <div className="flex justify-between items-center mt-1 gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
-          <div className="flex flex-col gap-px min-w-0">
-            <span className="text-[13px] font-medium text-card-foreground truncate">{creatorName}</span>
-            <span className="text-[11px] text-white/55">
-              {t("organizer" as any)}{creatorRole !== "user" ? ` · ${t(creatorRole)}` : ""}
-            </span>
-          </div>
+          {groupName ? (
+            <>
+              <div className="avatar-creator flex-shrink-0 overflow-hidden">
+                {groupAvatar ? (
+                  <img src={groupAvatar} className="w-full h-full rounded-full object-cover" alt="" />
+                ) : (
+                  groupName.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="flex flex-col gap-px min-w-0">
+                <span className="text-[13px] font-medium text-card-foreground truncate flex items-center gap-1">
+                  {groupName}
+                  {groupVerified && <BadgeCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                </span>
+                <span className="text-[11px] text-white/55">{t("organizer" as any)}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
+              <div className="flex flex-col gap-px min-w-0">
+                <span className="text-[13px] font-medium text-card-foreground truncate">{creatorName}</span>
+                <span className="text-[11px] text-white/55">
+                  {t("organizer" as any)}{creatorRole !== "user" ? ` · ${t(creatorRole)}` : ""}
+                </span>
+              </div>
+            </>
+          )}
         </div>
         
         <Button 
