@@ -143,7 +143,7 @@ const EditEvent = () => {
         if (rows.length > 0) await supabase.from("event_schedule").insert(rows);
       }
 
-      toast({ title: t("saved") });
+      toast({ title: t("saveChanges") });
       navigate(`/events/${id}`);
     } catch (err: any) {
       toast({ title: t("error"), description: err.message, variant: "destructive" });
@@ -163,7 +163,7 @@ const EditEvent = () => {
           <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center">
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-2xl font-bold text-foreground">{t("editEvent")}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("editSessionTitle")}</h1>
         </div>
       </header>
 
@@ -257,7 +257,7 @@ const EditEvent = () => {
         </div>
 
         <Button onClick={handleSubmit} disabled={loading} className="w-full">
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("save")}
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("saveChanges")}
         </Button>
       </div>
     </AppLayout>
