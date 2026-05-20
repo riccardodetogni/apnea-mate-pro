@@ -330,6 +330,79 @@ const CourseDetails = () => {
           <span className="font-medium text-foreground">{creatorProfile?.name || t("user")}</span>
         </button>
       </div>
+
+      {/* Participants management (creator) */}
+      {isCreator && (
+        <div className="space-y-4 mb-6">
+          {participants.filter((p) => p.status === "pending").length > 0 && (
+            <div className="card-session !rounded-2xl !p-4">
+              <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-warning/20 text-warning flex items-center justify-center text-sm">
+                  {participants.filter((p) => p.status === "pending").length}
+                </span>
+                {t("pendingRequests")}
+              </h3>
+              <div className="space-y-2">
+                {participants.filter((p) => p.status === "pending").map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-[hsl(var(--badge-blue-bg))]">
+                    {p.profile?.avatar_url ? (
+                      <img src={p.profile.avatar_url} alt={p.profile.name || ""} className="w-8 h-8 rounded-full object-cover cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)} />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-sm font-medium text-white cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                        {p.profile?.name?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                    )}
+                    <span className="flex-1 text-sm text-card-foreground cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                      {p.profile?.name || t("user")}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/20" onClick={() => handleApprove(p.id, p.user_id)} disabled={!!actionLoading}>
+                        {actionLoading === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/20" onClick={() => handleReject(p.id, p.user_id)} disabled={!!actionLoading}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="card-session !rounded-2xl !p-4">
+            <h3 className="font-semibold text-card-foreground mb-3 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-success/20 text-success flex items-center justify-center text-sm">
+                {participants.filter((p) => p.status === "confirmed").length}
+              </span>
+              {t("confirmedParticipants")}
+            </h3>
+            {participants.filter((p) => p.status === "confirmed").length > 0 ? (
+              <div className="space-y-2">
+                {participants.filter((p) => p.status === "confirmed").map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl bg-[hsl(var(--badge-blue-bg))]">
+                    {p.profile?.avatar_url ? (
+                      <img src={p.profile.avatar_url} alt={p.profile.name || ""} className="w-8 h-8 rounded-full object-cover cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)} />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full avatar-gradient flex items-center justify-center text-sm font-medium text-white cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                        {p.profile?.name?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                    )}
+                    <span className="flex-1 text-sm text-card-foreground cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
+                      {p.profile?.name || t("user")}
+                    </span>
+                    <Check className="w-4 h-4 text-success" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[hsl(var(--card-muted))]">{t("noConfirmedParticipants")}</p>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="hidden">
+        </button>
+      </div>
     </AppLayout>
   );
 };
