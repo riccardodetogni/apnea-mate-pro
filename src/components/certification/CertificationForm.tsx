@@ -13,6 +13,7 @@ const certificationAgencies = [
   "AIDA",
   "Apnea Academy",
   "CMAS",
+  "FIPSAS",
   "Molchanovs",
   "PADI",
   "SSI",
