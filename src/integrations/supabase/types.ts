@@ -1101,16 +1101,19 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          language: string
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
+          language?: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          language?: string
         }
         Relationships: []
       }

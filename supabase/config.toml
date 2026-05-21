@@ -13,3 +13,5 @@ project_id = "vjvhaegbfjepysptcygz"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.send-launch-announcement]
+    verify_jwt = false
