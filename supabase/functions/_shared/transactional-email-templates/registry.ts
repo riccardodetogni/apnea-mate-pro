@@ -11,6 +11,8 @@ export interface TemplateEntry {
 
 import { template as waitlistConfirmation } from './waitlist-confirmation.tsx'
 import { template as waitlistConfirmationEn } from './waitlist-confirmation-en.tsx'
+import { template as launchAnnouncementIt } from './launch-announcement-it.tsx'
+import { template as launchAnnouncementEn } from './launch-announcement-en.tsx'
 import { template as sessionJoinRequest } from './session-join-request.tsx'
 import { template as sessionRequestApproved } from './session-request-approved.tsx'
 import { template as sessionRequestRejected } from './session-request-rejected.tsx'
@@ -30,6 +32,8 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'waitlist-confirmation': waitlistConfirmation,
   'waitlist-confirmation-it': waitlistConfirmation,
   'waitlist-confirmation-en': waitlistConfirmationEn,
+  'launch-announcement-it': launchAnnouncementIt,
+  'launch-announcement-en': launchAnnouncementEn,
   'session-join-request': sessionJoinRequest,
   'session-request-approved': sessionRequestApproved,
   'session-request-rejected': sessionRequestRejected,

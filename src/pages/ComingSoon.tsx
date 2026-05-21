@@ -118,7 +118,7 @@ const ComingSoon = () => {
     }
     setSubmitting(true);
     const normalizedEmail = parsed.data.toLowerCase();
-    const { error } = await supabase.from("waitlist").insert({ email: normalizedEmail });
+    const { error } = await supabase.from("waitlist").insert({ email: normalizedEmail, language });
     setSubmitting(false);
     if (error) {
       if (error.code === "23505") {
