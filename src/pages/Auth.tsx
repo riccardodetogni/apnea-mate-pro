@@ -38,6 +38,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [resending, setResending] = useState(false);
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -119,14 +121,20 @@ const Auth = () => {
           let errorMessage = error.message;
           if (error.message === "Invalid login credentials") {
             errorMessage = "Credenziali non valide";
+            setNeedsConfirmation(false);
           } else if (error.message.includes("Email not confirmed")) {
             errorMessage = "Email non confermata. Controlla la tua casella di posta.";
+            setNeedsConfirmation(true);
+          } else {
+            setNeedsConfirmation(false);
           }
           toast({
             title: "Errore di accesso",
             description: errorMessage,
             variant: "destructive",
           });
+        } else {
+          setNeedsConfirmation(false);
         }
       } else {
         const { error } = await signUp(trimmedEmail, password);
@@ -218,6 +226,47 @@ const Auth = () => {
     setMode("login");
     setResetEmailSent(false);
     setConfirmationSent(false);
+    setNeedsConfirmation(false);
+  };
+
+  const handleResendConfirmation = async () => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !validateEmail(trimmedEmail)) {
+      toast({
+        title: "Errore",
+        description: "Inserisci un indirizzo email valido",
+        variant: "destructive",
+      });
+      return;
+    }
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: trimmedEmail,
+      });
+      if (error) {
+        toast({
+          title: "Errore",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Email inviata",
+          description: "Ti abbiamo re-inviato il link di conferma. Controlla la casella (e lo spam).",
+        });
+        setNeedsConfirmation(false);
+      }
+    } catch {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore. Riprova.",
+        variant: "destructive",
+      });
+    } finally {
+      setResending(false);
+    }
   };
 
   // Email Confirmation Sent View
@@ -424,6 +473,29 @@ const Auth = () => {
             {loading ? t("loading") : (mode === "login" ? t("login") : t("register"))}
           </Button>
         </form>
+
+        {mode === "login" && needsConfirmation && (
+          <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
+            <p className="text-sm text-card-foreground mb-3">
+              Non hai ricevuto l'email di conferma?
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full h-10"
+              onClick={handleResendConfirmation}
+              disabled={resending}
+            >
+              {resending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4" />
+              )}
+              {resending ? "Invio in corso..." : "Reinvia email di conferma"}
+            </Button>
+          </div>
+        )}
 
         {/* Switch mode */}
         <p className="text-center text-sm text-muted mt-6">
