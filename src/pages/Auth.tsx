@@ -474,6 +474,29 @@ const Auth = () => {
           </Button>
         </form>
 
+        {mode === "login" && needsConfirmation && (
+          <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
+            <p className="text-sm text-card-foreground mb-3">
+              Non hai ricevuto l'email di conferma?
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full h-10"
+              onClick={handleResendConfirmation}
+              disabled={resending}
+            >
+              {resending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4" />
+              )}
+              {resending ? "Invio in corso..." : "Reinvia email di conferma"}
+            </Button>
+          </div>
+        )}
+
         {/* Switch mode */}
         <p className="text-center text-sm text-muted mt-6">
           {mode === "login" ? t("noAccount") : t("hasAccount")}{" "}
