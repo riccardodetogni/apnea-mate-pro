@@ -47,9 +47,10 @@ const LaunchAnnouncementIt = () => (
         <Text style={text}>
           È un progetto appena partito, nato dal basso e portato avanti con tempo,
           lavoro ed energie per costruire qualcosa di bello per tutta la community.
-          Se mentre la provi trovi qualcosa che non funziona come dovrebbe, basta
-          rispondere a questa email per dircelo. Ogni segnalazione ci aiuta a
-          farla crescere.
+          Se mentre la provi trovi qualcosa che non funziona come dovrebbe,
+          scrivici a <strong>support@apneamate.com</strong> (o rispondi
+          direttamente a questa email) per dircelo. Ogni segnalazione ci aiuta
+          a farla crescere.
         </Text>
         <Text style={text}>L'apnea non si fa da soli. 💙</Text>
         <Text style={signoff}>Il team di Apnea Mate</Text>
