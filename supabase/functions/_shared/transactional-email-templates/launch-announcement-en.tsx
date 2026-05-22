@@ -48,8 +48,9 @@ const LaunchAnnouncementEn = () => (
           This is a project that just got started, born from the ground up and
           built with time, work and energy to create something good for the
           whole community. If you find something that doesn't work as it
-          should while using it, just reply to this email and let us know. Every
-          report helps us grow.
+          should while using it, drop us a line at{' '}
+          <strong>support@apneamate.com</strong> (or just reply to this email)
+          and let us know. Every report helps us grow.
         </Text>
         <Text style={text}>Freediving isn't done alone. 💙</Text>
         <Text style={signoff}>The Apnea Mate team</Text>
