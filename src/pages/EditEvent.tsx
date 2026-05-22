@@ -13,6 +13,17 @@ import { useToast } from "@/hooks/use-toast";
 import { t, getEventTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ScheduleDay {
   id?: string;
@@ -30,6 +41,7 @@ const EditEvent = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const { isInstructor } = useProfile();
 
   const eventTypes = getEventTypes();
@@ -152,6 +164,22 @@ const EditEvent = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!user || !id) return;
+    setDeleting(true);
+    try {
+      await supabase.from("event_schedule").delete().eq("event_id", id);
+      await supabase.from("event_participants").delete().eq("event_id", id);
+      const { error } = await supabase.from("events").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: t("eventDeleted") });
+      navigate("/community");
+    } catch (err: any) {
+      toast({ title: t("error"), description: err.message, variant: "destructive" });
+      setDeleting(false);
+    }
+  };
+
   if (fetching) {
     return <AppLayout><div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin" /></div></AppLayout>;
   }
@@ -259,6 +287,27 @@ const EditEvent = () => {
         <Button onClick={handleSubmit} disabled={loading} className="w-full">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("saveChanges")}
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" disabled={deleting} className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2">
+              {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              {deleting ? t("deleting") : t("deleteEvent")}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("confirmDeleteEventTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("confirmDeleteEventDesc")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {t("delete")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );

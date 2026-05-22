@@ -11,8 +11,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { t, getCourseTypes } from "@/lib/i18n";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2, Trash2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const EditCourse = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +32,7 @@ const EditCourse = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const { isInstructor } = useProfile();
 
   const courseTypes = getCourseTypes();
@@ -103,6 +115,21 @@ const EditCourse = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!user || !id) return;
+    setDeleting(true);
+    try {
+      await supabase.from("course_participants").delete().eq("course_id", id);
+      const { error } = await supabase.from("courses").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: t("courseDeleted") });
+      navigate("/community");
+    } catch (err: any) {
+      toast({ title: t("error"), description: err.message, variant: "destructive" });
+      setDeleting(false);
+    }
+  };
+
   if (fetching) {
     return <AppLayout><div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin" /></div></AppLayout>;
   }
@@ -182,6 +209,27 @@ const EditCourse = () => {
         <Button onClick={handleSubmit} disabled={loading} className="w-full">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("saveChanges")}
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" disabled={deleting} className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground gap-2">
+              {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              {deleting ? t("deleting") : t("deleteCourse")}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("confirmDeleteCourseTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("confirmDeleteCourseDesc")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {t("delete")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
