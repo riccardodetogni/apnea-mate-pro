@@ -479,6 +479,52 @@ const Auth = () => {
 
         {/* Email form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === "register" && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">Nome</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Mario"
+                    maxLength={60}
+                    autoComplete="given-name"
+                    className="rounded-xl h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Cognome</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Rossi"
+                    maxLength={60}
+                    autoComplete="family-name"
+                    className="rounded-xl h-12"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Data di nascita</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="rounded-xl h-12"
+                />
+                <p className="text-xs text-muted">Devi avere almeno 18 anni.</p>
+              </div>
+            </>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">{t("email")}</Label>
             <Input
