@@ -213,7 +213,11 @@ const CreateEvent = () => {
 
         <div className="space-y-2">
           <Label>{t("location")}</Label>
-          <LocationAutocomplete value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
+          <LocationAutocomplete
+            value={form.location}
+            onChange={val => setForm(f => ({ ...f, location: val }))}
+            onCoordinatesChange={(lat, lng) => setForm(f => ({ ...f, latitude: lat, longitude: lng }))}
+          />
         </div>
 
         <div className="space-y-2">
