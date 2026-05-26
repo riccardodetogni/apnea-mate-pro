@@ -454,6 +454,27 @@ const SessionDetails = () => {
               <Pencil className="w-4 h-4 text-foreground" />
             </button>
           )}
+          {session.isCreator && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                  aria-label="Altre azioni"
+                >
+                  <MoreVertical className="w-4 h-4 text-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Elimina
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </header>
 
