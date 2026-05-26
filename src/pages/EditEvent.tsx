@@ -54,6 +54,8 @@ const EditEvent = () => {
     start_date: "",
     end_date: "",
     location: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     max_participants: 0,
     is_paid: false,
     is_public: true,
@@ -87,6 +89,8 @@ const EditEvent = () => {
         start_date: ev.start_date || "",
         end_date: ev.end_date || "",
         location: ev.location || "",
+        latitude: ev.latitude != null ? Number(ev.latitude) : null,
+        longitude: ev.longitude != null ? Number(ev.longitude) : null,
         max_participants: ev.max_participants || 0,
         is_paid: !!ev.is_paid,
         is_public: !!ev.is_public,
@@ -135,6 +139,8 @@ const EditEvent = () => {
         start_date: form.start_date,
         end_date: form.end_date,
         location: form.location || null,
+        latitude: form.latitude,
+        longitude: form.longitude,
         max_participants: form.max_participants,
         is_paid: isInstructor ? form.is_paid : false,
         is_public: form.is_public,
@@ -247,7 +253,11 @@ const EditEvent = () => {
 
         <div className="space-y-2">
           <Label>{t("location")}</Label>
-          <LocationAutocomplete value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
+          <LocationAutocomplete
+            value={form.location}
+            onChange={val => setForm(f => ({ ...f, location: val }))}
+            onCoordinatesChange={(lat, lng) => setForm(f => ({ ...f, latitude: lat, longitude: lng }))}
+          />
         </div>
 
         <div className="space-y-2">

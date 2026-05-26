@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 
 interface NominatimResult {
   display_name: string;
+  lat?: string;
+  lon?: string;
   address?: {
     city?: string;
     town?: string;
@@ -19,6 +21,7 @@ interface NominatimResult {
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
+  onCoordinatesChange?: (lat: number | null, lng: number | null) => void;
   placeholder?: string;
   id?: string;
 }
@@ -37,6 +40,7 @@ const formatResult = (result: NominatimResult): string => {
 export const LocationAutocomplete = ({
   value,
   onChange,
+  onCoordinatesChange,
   placeholder = "Milano, Lombardia",
   id = "location",
 }: LocationAutocompleteProps) => {
@@ -90,6 +94,14 @@ export const LocationAutocomplete = ({
     const formatted = formatResult(result);
     setQuery(formatted);
     onChange(formatted);
+    if (onCoordinatesChange) {
+      const lat = result.lat ? Number(result.lat) : null;
+      const lng = result.lon ? Number(result.lon) : null;
+      onCoordinatesChange(
+        Number.isFinite(lat) ? lat : null,
+        Number.isFinite(lng) ? lng : null,
+      );
+    }
     setOpen(false);
     setResults([]);
   };
