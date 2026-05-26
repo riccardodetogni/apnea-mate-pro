@@ -80,6 +80,7 @@ const EditSpot = () => {
             description: spot.description,
             latitude: spot.latitude != null ? Number(spot.latitude) : null,
             longitude: spot.longitude != null ? Number(spot.longitude) : null,
+            cover_image_url: spot.cover_image_url ?? null,
           }}
           onSpotCreated={handleSaved}
           onCancel={() => navigate(`/spots/${id}`)}
