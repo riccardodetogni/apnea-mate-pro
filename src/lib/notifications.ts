@@ -14,7 +14,10 @@ export type NotificationType =
   | "course_request_rejected"
   | "event_join_request"
   | "event_request_approved"
-  | "event_request_rejected";
+  | "event_request_rejected"
+  | "event_cancelled"
+  | "course_cancelled"
+  | "group_deleted";
 
 export interface NotificationMetadata {
   session_id?: string;
