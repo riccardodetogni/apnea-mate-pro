@@ -1161,9 +1161,37 @@ export type Database = {
         Args: { _reviewer_id: string; _target_id: string }
         Returns: boolean
       }
+      delete_course_cascade: {
+        Args: { _course_id: string }
+        Returns: {
+          title: string
+          user_id: string
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      delete_event_cascade: {
+        Args: { _event_id: string }
+        Returns: {
+          title: string
+          user_id: string
+        }[]
+      }
+      delete_group_cascade: {
+        Args: { _group_id: string }
+        Returns: {
+          title: string
+          user_id: string
+        }[]
+      }
+      delete_session_cascade: {
+        Args: { _session_id: string }
+        Returns: {
+          title: string
+          user_id: string
+        }[]
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -1245,6 +1273,9 @@ export type Database = {
         | "event_join_request"
         | "event_request_approved"
         | "event_request_rejected"
+        | "event_cancelled"
+        | "course_cancelled"
+        | "group_deleted"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1394,6 +1425,9 @@ export const Constants = {
         "event_join_request",
         "event_request_approved",
         "event_request_rejected",
+        "event_cancelled",
+        "course_cancelled",
+        "group_deleted",
       ],
     },
   },
