@@ -9,9 +9,16 @@ import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass, MessageCircle, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass, MessageCircle, Pencil, Check, X, MoreVertical, Trash2 } from "lucide-react";
 import { getOrCreateEventConversation } from "@/hooks/useConversations";
 import { createNotification } from "@/lib/notifications";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
 interface EventScheduleItem {
   id: string;
@@ -44,6 +51,8 @@ const EventDetails = () => {
   const [joining, setJoining] = useState(false);
   const [participants, setParticipants] = useState<Array<{ id: string; user_id: string; status: string; profile: { name: string | null; avatar_url: string | null } | null }>>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isCreator = !!user && !!event && user.id === event.creator_id;
 
