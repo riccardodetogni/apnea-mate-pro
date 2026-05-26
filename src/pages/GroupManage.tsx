@@ -537,6 +537,71 @@ const GroupManage = () => {
                 />
               </div>
 
+              {/* Location */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="groupLoc" className="text-card-foreground">{t("groupMainZone")}</Label>
+                <Input
+                  id="groupLoc"
+                  value={groupLocation}
+                  onChange={(e) => setGroupLocation(e.target.value)}
+                  placeholder={t("groupLocationPlaceholder")}
+                />
+              </div>
+
+              {/* Group Type */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-card-foreground">{t("groupTypeLabel")}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(["community", "school", "diving_center"] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setGroupType(type)}
+                      className={`flex-1 min-w-[30%] py-2 px-3 rounded-full text-sm font-medium transition-colors ${
+                        groupType === type
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white/10 text-card-foreground border border-white/15"
+                      }`}
+                    >
+                      {type === "community"
+                        ? t("groupTypeCommunity")
+                        : type === "school"
+                        ? t("groupTypeSchool")
+                        : t("groupTypeDivingCenter")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Visibility */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-card-foreground">{t("groupVisibility")}</Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRequiresApproval(false)}
+                    className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-colors ${
+                      !requiresApproval
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white/10 text-card-foreground border border-white/15"
+                    }`}
+                  >
+                    {t("visibilityOpen")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRequiresApproval(true)}
+                    className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-colors ${
+                      requiresApproval
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white/10 text-card-foreground border border-white/15"
+                    }`}
+                  >
+                    {t("visibilityApproval")}
+                  </button>
+                </div>
+              </div>
+
               <Button
                 className="w-full gap-2 btn-primary-gradient"
                 onClick={handleSaveSettings}
