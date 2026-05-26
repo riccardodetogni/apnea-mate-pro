@@ -414,6 +414,15 @@ const Profile = () => {
         onSave={handleFieldSave}
       />
 
+      <CompleteProfileDialog
+        open={completeProfileOpen}
+        onOpenChange={setCompleteProfileOpen}
+        initialLastName={profile.last_name}
+        initialBirthDate={profile.birth_date}
+        onSave={async ({ last_name, birth_date }) => {
+          await updateProfile({ last_name, birth_date });
+        }}
+      />
 
       {/* Certification Dialog */}
       <Dialog open={certDialogOpen} onOpenChange={setCertDialogOpen}>
