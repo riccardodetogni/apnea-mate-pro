@@ -119,16 +119,16 @@ const Profile = () => {
         {needsProfileCompletion && (
           <button
             onClick={() => setCompleteProfileOpen(true)}
-            className="w-full mb-4 rounded-xl border border-primary/30 bg-primary/5 p-4 text-left flex items-center gap-3 hover:bg-primary/10 transition-colors"
+            className="w-full mb-4 rounded-xl border border-primary bg-primary p-4 text-left flex items-center gap-3 shadow-md hover:opacity-95 transition-opacity"
           >
-            <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-              <Pencil className="w-4 h-4 text-primary" />
+            <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0">
+              <Pencil className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-card-foreground">
+              <p className="text-sm font-semibold text-primary-foreground">
                 Completa il tuo profilo
               </p>
-              <p className="text-xs text-[hsl(var(--card-muted))]">
+              <p className="text-xs text-primary-foreground/80">
                 Aggiungi cognome e data di nascita.
               </p>
             </div>
