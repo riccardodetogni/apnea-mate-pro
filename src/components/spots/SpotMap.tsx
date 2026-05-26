@@ -41,6 +41,17 @@ interface SpotMapProps {
   onSelectSpot: (spotId: string) => void;
   onDeselectSpot?: () => void;
   className?: string;
+  events?: MapPoint[];
+  courses?: MapPoint[];
+  onSelectEvent?: (eventId: string) => void;
+  onSelectCourse?: (courseId: string) => void;
+}
+
+export interface MapPoint {
+  id: string;
+  latitude: number;
+  longitude: number;
+  title: string;
 }
 
 const SpotMap = ({
@@ -49,10 +60,15 @@ const SpotMap = ({
   onSelectSpot,
   onDeselectSpot,
   className,
+  events = [],
+  courses = [],
+  onSelectEvent,
+  onSelectCourse,
 }: SpotMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const extraMarkersRef = useRef<L.Marker[]>([]);
   const hasFittedBoundsRef = useRef(false);
 
   // Filter spots with valid coordinates
@@ -151,6 +167,43 @@ const SpotMap = ({
       markersRef.current.push(marker);
     });
   }, [spots, selectedSpotId, onSelectSpot, spotsWithCoords]);
+
+  // Update event/course markers
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    extraMarkersRef.current.forEach((m) => m.remove());
+    extraMarkersRef.current = [];
+
+    const eventColor = "hsl(270, 70%, 55%)";
+    const courseColor = "hsl(30, 90%, 55%)";
+
+    events.forEach((ev) => {
+      const lat = Number(ev.latitude);
+      const lng = Number(ev.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const icon = createColoredMarker(eventColor);
+      const marker = L.marker([lat, lng], { icon, title: ev.title }).addTo(mapRef.current!);
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        onSelectEvent?.(ev.id);
+      });
+      extraMarkersRef.current.push(marker);
+    });
+
+    courses.forEach((co) => {
+      const lat = Number(co.latitude);
+      const lng = Number(co.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const icon = createColoredMarker(courseColor);
+      const marker = L.marker([lat, lng], { icon, title: co.title }).addTo(mapRef.current!);
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        onSelectCourse?.(co.id);
+      });
+      extraMarkersRef.current.push(marker);
+    });
+  }, [events, courses, onSelectEvent, onSelectCourse]);
 
   return (
     <div
