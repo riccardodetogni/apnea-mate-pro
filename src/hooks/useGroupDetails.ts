@@ -296,12 +296,24 @@ export const useGroupDetails = (groupId: string | undefined) => {
   };
 
   // Update group details
-  const updateGroup = async (updates: Partial<Pick<GroupDetails, "name" | "description" | "avatar_url">>) => {
+  const updateGroup = async (
+    updates: Partial<
+      Pick<
+        GroupDetails,
+        | "name"
+        | "description"
+        | "avatar_url"
+        | "location"
+        | "group_type"
+        | "requires_approval"
+      >
+    >
+  ) => {
     if (!user || !groupId) return { error: new Error("Not authenticated") };
 
     const { error } = await supabase
       .from("groups")
-      .update(updates)
+      .update(updates as any)
       .eq("id", groupId);
 
     if (!error) {
