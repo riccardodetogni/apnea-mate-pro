@@ -1,26 +1,39 @@
 ## Obiettivo
-Nella schermata di registrazione (`/auth` in modalità "register"), inserire un messaggio statico chiaro che informi l'utente che i dati richiesti (nome, cognome, data di nascita, email) sono della persona fisica e non della scuola o del gruppo. Specificare inoltre che la creazione di scuola/gruppo sarà possibile solo dopo la registrazione, direttamente dal proprio profilo.
+Estendere la sezione "Impostazioni" del Gestisci gruppo (`/groups/:id/manage`) per consentire al proprietario di modificare tutti i campi principali, oggi limitati a avatar/nome/descrizione.
 
-## Modifiche richieste
+## Campi da aggiungere alla modifica
+Allineare i campi modificabili a quelli del form di creazione (`CreateGroup.tsx`):
 
-### 1. Traduzioni (`src/lib/i18n.ts`)
-Aggiungere le seguenti chiavi sia nella sezione `it` che `en`:
+- **Posizione** (`location`) — input con `LocationAutocomplete` per geocodificare e salvare `location`, `latitude`, `longitude`.
+- **Tipo di gruppo** (`group_type`) — selezione tra `community` / `school` / `diving_center` (stessi 3 bottoni di CreateGroup).
+- **Visibilità / approvazione** (`requires_approval`) — toggle "Gruppo aperto" vs "Accesso su richiesta".
 
-- `registerPersonalInfoTitle`: "Dati personali"
-- `registerPersonalInfoDesc`: "Inserisci i tuoi dati personali. Dopo la registrazione potrai creare la tua scuola o il tuo gruppo direttamente dal profilo."
+I campi già presenti (avatar, nome, descrizione) restano invariati.
 
-### 2. UI Registrazione (`src/pages/Auth.tsx`)
-Nella vista `mode === "register"`, posizionare sotto il sottotitolo (`registerSubtitle`) un blocco informativo statico:
-- Contenitore con `bg-card/50`, `border`, `rounded-xl`, `p-3`
-- Testo in `text-sm text-muted-foreground`
-- Titoletto in `text-xs font-semibold text-foreground uppercase tracking-wide` (o simile, coerente con il design system)
-- Icona opzionale `Info` da lucide-react per catturare l'attenzione
-- Nessuna interazione (no checkbox, no pulsante)
+## Note funzionali
+- Se l'utente cambia il tipo a un valore diverso da `school`, il flag `verified` deve restare invariato (non lo modifichiamo: solo gli admin lo gestiscono). Il blocco "Richiedi verifica" continua ad apparire solo per `school` non verificati, calcolato sul valore corrente.
+- La modifica della posizione aggiorna anche `latitude` / `longitude` (cast a numero) per non rompere ricerche per distanza.
+- Nessun cambiamento alle RLS: la policy "Group creators can update groups" già consente al creatore di aggiornare qualsiasi colonna.
 
-### 3. Styling
-- Rispettare il design system esistente: usare solo token semantici (nessun colore hardcoded)
-- Il blocco deve essere visibile ma non invasivo, adatto alla viewport mobile (max-width 380px del form)
+## Modifiche tecniche
 
-## Note
-- Non modificare la logica di registrazione, i campi esistenti, o il flusso di onboarding.
-- Non aggiungere nuovi componenti condivisi: la modifica è locale alla pagina Auth.
+### 1. `src/hooks/useGroupDetails.ts`
+- Estendere il tipo del parametro di `updateGroup` per includere: `location`, `latitude`, `longitude`, `group_type`, `requires_approval` (oltre ai campi esistenti).
+
+### 2. `src/pages/GroupManage.tsx`
+Nel `TabsContent value="settings"`:
+- Aggiungere stato locale per `groupLocation`, `groupLat`, `groupLng`, `groupType`, `requiresApproval`, sincronizzato in `useEffect` quando `group` viene caricato.
+- Inserire dopo il campo Descrizione:
+  - `LocationAutocomplete` per la posizione.
+  - Gruppo di 3 bottoni per il tipo (riusare lo stile di CreateGroup: pillole/cards per Community / Scuola / Diving Center).
+  - 2 bottoni o `RadioGroup` per visibilità (Aperto / Su approvazione).
+- In `handleSaveSettings` includere tutti i nuovi campi nella chiamata `updateGroup`.
+
+### 3. Nessuna migrazione DB
+Tutti i campi esistono già nella tabella `groups` (`location`, `latitude`, `longitude`, `group_type`, `requires_approval`).
+
+### 4. i18n
+Riutilizzare le chiavi già esistenti usate in CreateGroup (`groupTypeLabel`, `groupTypeCommunity`, `groupTypeSchool`, `groupTypeDivingCenter`, `groupVisibility`, `visibilityOpen`, `visibilityApproval`, `groupLocationPlaceholder`). Aggiungere solo eventuali label mancanti.
+
+## Out of scope
+- Eventi e Corsi: già hanno `/events/:id/edit` e `/courses/:id/edit` con tutti i campi modificabili; nessuna modifica.
