@@ -5,8 +5,10 @@ import SpotFiltersSheet, { SpotFilters } from "@/components/spots/SpotFiltersShe
 import SpotBubble from "@/components/spots/SpotBubble";
 import { useSpots, SpotSession } from "@/hooks/useSpots";
 import { useSpotFavorites } from "@/hooks/useSpotFavorites";
+import { useEvents } from "@/hooks/useEvents";
+import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Search, SlidersHorizontal, Heart, Plus } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal, Heart, Plus, Calendar, GraduationCap } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -74,12 +76,16 @@ const Spots = () => {
   const { user } = useAuth();
   const { spots, spotSessions, loading, error } = useSpots();
   const { favoriteIds, toggleFavorite, isFavorite } = useSpotFavorites();
+  const { events } = useEvents();
+  const { courses } = useCourses();
 
   const [selectedSpotId, setSelectedSpotId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
   const [showFiltersSheet, setShowFiltersSheet] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<SpotFilters>(initialFilters);
+  const [showEvents, setShowEvents] = useState(true);
+  const [showCourses, setShowCourses] = useState(true);
 
   const filteredSpots = useMemo(() => {
     let result = spots;
@@ -144,6 +150,26 @@ const Spots = () => {
     }
   }, [currentSpot, user, toggleFavorite, isFavorite]);
 
+  const eventPoints = useMemo(
+    () =>
+      showEvents
+        ? events
+            .filter((e) => e.latitude != null && e.longitude != null)
+            .map((e) => ({ id: e.id, latitude: Number(e.latitude), longitude: Number(e.longitude), title: e.title }))
+        : [],
+    [events, showEvents],
+  );
+
+  const coursePoints = useMemo(
+    () =>
+      showCourses
+        ? courses
+            .filter((c) => c.latitude != null && c.longitude != null)
+            .map((c) => ({ id: c.id, latitude: Number(c.latitude), longitude: Number(c.longitude), title: c.title }))
+        : [],
+    [courses, showCourses],
+  );
+
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
@@ -175,6 +201,10 @@ const Spots = () => {
           onSelectSpot={handleSelectSpot}
           onDeselectSpot={handleDeselectSpot}
           className="h-full w-full"
+          events={eventPoints}
+          courses={coursePoints}
+          onSelectEvent={(id) => navigate(`/events/${id}`)}
+          onSelectCourse={(id) => navigate(`/courses/${id}`)}
         />
 
         <div className="absolute top-0 left-0 right-0 z-[1000] p-4 pt-[max(1rem,env(safe-area-inset-top))] pointer-events-none">
@@ -221,9 +251,46 @@ const Spots = () => {
                   </button>
                 );
               })}
+              <button
+                onClick={() => setShowEvents((v) => !v)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
+                  showEvents
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white/90 backdrop-blur-md border text-foreground hover:bg-white"
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                Eventi
+              </button>
+              <button
+                onClick={() => setShowCourses((v) => !v)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
+                  showCourses
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white/90 backdrop-blur-md border text-foreground hover:bg-white"
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                Corsi
+              </button>
             </div>
           </div>
         </div>
+
+        {(showEvents || showCourses) && (
+          <div
+            className="absolute left-3 z-[1000] pointer-events-none bg-background/85 backdrop-blur-md border rounded-lg px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5"
+            style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
+          >
+            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(200, 80%, 50%)" }} />Spot</div>
+            {showEvents && (
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(270, 70%, 55%)" }} />Eventi</div>
+            )}
+            {showCourses && (
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(30, 90%, 55%)" }} />Corsi</div>
+            )}
+          </div>
+        )}
 
         {user && (
           <button
