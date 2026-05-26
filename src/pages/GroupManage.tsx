@@ -57,6 +57,11 @@ const GroupManage = () => {
   const [groupName, setGroupName] = useState(group?.name || "");
   const [groupDescription, setGroupDescription] = useState(group?.description || "");
   const [groupAvatarUrl, setGroupAvatarUrl] = useState(group?.avatar_url || null);
+  const [groupLocation, setGroupLocation] = useState(group?.location || "");
+  const [groupType, setGroupType] = useState<"community" | "school" | "diving_center">(
+    (group?.group_type as any) || "community"
+  );
+  const [requiresApproval, setRequiresApproval] = useState<boolean>(group?.requires_approval || false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [requestingVerification, setRequestingVerification] = useState(false);
 
@@ -66,6 +71,9 @@ const GroupManage = () => {
       setGroupName(group.name);
       setGroupDescription(group.description || "");
       setGroupAvatarUrl(group.avatar_url);
+      setGroupLocation(group.location || "");
+      setGroupType((group.group_type as any) || "community");
+      setRequiresApproval(!!group.requires_approval);
     }
   }, [group]);
 
@@ -77,11 +85,18 @@ const GroupManage = () => {
       toast({ title: t("error"), description: t("groupNameRequired"), variant: "destructive" });
       return;
     }
+    if (!groupLocation.trim()) {
+      toast({ title: t("error"), description: t("groupLocationPlaceholder"), variant: "destructive" });
+      return;
+    }
 
     setSavingSettings(true);
     const { error } = await updateGroup({
       name: groupName.trim(),
       description: groupDescription.trim() || null,
+      location: groupLocation.trim(),
+      group_type: groupType,
+      requires_approval: requiresApproval,
     });
     setSavingSettings(false);
 
