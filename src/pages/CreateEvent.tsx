@@ -15,6 +15,7 @@ import { t, getEventTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react";
 import { useOwnedGroups } from "@/hooks/useOwnedGroups";
 import { useProfile } from "@/hooks/useProfile";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 
 interface ScheduleDay {
   day_number: number;
@@ -52,6 +53,7 @@ const CreateEvent = () => {
 
   const [hasSchedule, setHasSchedule] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   const addScheduleDay = () => {
     setSchedule(prev => [...prev, {
@@ -96,6 +98,7 @@ const CreateEvent = () => {
           contact_phone: form.contact_phone || null,
           contact_url: form.contact_url || null,
           group_id: form.group_id || null,
+          cover_image_url: coverUrl,
         })
         .select("id")
         .single();
@@ -137,6 +140,15 @@ const CreateEvent = () => {
       </header>
 
       <div className="space-y-5">
+        {user && (
+          <CoverImageUpload
+            currentUrl={coverUrl}
+            uploadPath={user.id}
+            entity="event"
+            onChange={setCoverUrl}
+          />
+        )}
+
         {/* Group selector (optional) */}
         {!groupsLoading && ownedGroups.length > 0 && (
           <div className="space-y-2">

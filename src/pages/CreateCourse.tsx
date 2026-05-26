@@ -15,6 +15,7 @@ import { t, getCourseTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { useOwnedGroups } from "@/hooks/useOwnedGroups";
 import { useProfile } from "@/hooks/useProfile";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 
 const CreateCourse = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const CreateCourse = () => {
   const { isInstructor } = useProfile();
 
   const courseTypes = getCourseTypes();
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -67,6 +69,7 @@ const CreateCourse = () => {
           contact_phone: form.contact_phone || null,
           contact_url: form.contact_url || null,
           group_id: form.group_id || null,
+          cover_image_url: coverUrl,
         })
         .select("id")
         .single();
@@ -94,6 +97,15 @@ const CreateCourse = () => {
       </header>
 
       <div className="space-y-5">
+        {user && (
+          <CoverImageUpload
+            currentUrl={coverUrl}
+            uploadPath={user.id}
+            entity="course"
+            onChange={setCoverUrl}
+          />
+        )}
+
         {/* Group selector (optional) */}
         {!groupsLoading && ownedGroups.length > 0 && (
           <div className="space-y-2">
