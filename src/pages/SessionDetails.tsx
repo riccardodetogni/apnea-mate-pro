@@ -27,7 +27,16 @@ import {
   Share2,
   MessageCircle,
   DollarSign,
+  MoreVertical,
+  Trash2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,6 +77,8 @@ const SessionDetails = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [safetyModalOpen, setSafetyModalOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleShare = async () => {
     try {
@@ -80,6 +91,48 @@ const SessionDetails = () => {
       await navigator.clipboard.writeText(window.location.href);
       toast({ title: t("linkCopied") });
     }
+  };
+
+  const handleDeleteSession = async () => {
+    if (!session || !id) return;
+    setDeleting(true);
+    const participants = session.participants.filter(
+      (p) => p.status === "confirmed" || p.status === "pending"
+    );
+    const { data, error } = await supabase.rpc("delete_session_cascade", {
+      _session_id: id,
+    });
+    setDeleting(false);
+    if (error) {
+      if (error.message?.includes("insufficient_privilege")) {
+        toast({
+          title: "Errore",
+          description: "Non hai i permessi per eliminare questo contenuto.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: "Impossibile eliminare. Riprova più tardi.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+    setDeleteDialogOpen(false);
+    const recipients = (data as Array<{ user_id: string }> | null)?.map((r) => r.user_id)
+      ?? participants.map((p) => p.user_id);
+    for (const uid of recipients) {
+      await createNotification({
+        userId: uid,
+        type: "session_cancelled",
+        title: "Sessione eliminata",
+        message: `La sessione "${session.title}" è stata eliminata dall'organizzatore`,
+        metadata: { session_id: session.id, session_title: session.title },
+      });
+    }
+    toast({ title: "Sessione eliminata" });
+    navigate("/community");
   };
 
   const handleJoinRequest = () => {
