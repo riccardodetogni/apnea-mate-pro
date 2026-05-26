@@ -795,6 +795,14 @@ const SessionDetails = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Elimina sessione"
+        description="Sei sicuro di voler eliminare questa sessione? I partecipanti verranno notificati della cancellazione. Questa azione è irreversibile."
+        loading={deleting}
+        onConfirm={handleDeleteSession}
+      />
     </div>
   );
 };
