@@ -57,6 +57,11 @@ const GroupManage = () => {
   const [groupName, setGroupName] = useState(group?.name || "");
   const [groupDescription, setGroupDescription] = useState(group?.description || "");
   const [groupAvatarUrl, setGroupAvatarUrl] = useState(group?.avatar_url || null);
+  const [groupLocation, setGroupLocation] = useState(group?.location || "");
+  const [groupType, setGroupType] = useState<"community" | "school" | "diving_center">(
+    (group?.group_type as any) || "community"
+  );
+  const [requiresApproval, setRequiresApproval] = useState<boolean>(group?.requires_approval || false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [requestingVerification, setRequestingVerification] = useState(false);
 
@@ -66,6 +71,9 @@ const GroupManage = () => {
       setGroupName(group.name);
       setGroupDescription(group.description || "");
       setGroupAvatarUrl(group.avatar_url);
+      setGroupLocation(group.location || "");
+      setGroupType((group.group_type as any) || "community");
+      setRequiresApproval(!!group.requires_approval);
     }
   }, [group]);
 
@@ -77,11 +85,18 @@ const GroupManage = () => {
       toast({ title: t("error"), description: t("groupNameRequired"), variant: "destructive" });
       return;
     }
+    if (!groupLocation.trim()) {
+      toast({ title: t("error"), description: t("groupLocationPlaceholder"), variant: "destructive" });
+      return;
+    }
 
     setSavingSettings(true);
     const { error } = await updateGroup({
       name: groupName.trim(),
       description: groupDescription.trim() || null,
+      location: groupLocation.trim(),
+      group_type: groupType,
+      requires_approval: requiresApproval,
     });
     setSavingSettings(false);
 
@@ -520,6 +535,71 @@ const GroupManage = () => {
                   placeholder={t("describeYourGroup")}
                   rows={3}
                 />
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2 mb-4">
+                <Label htmlFor="groupLoc" className="text-card-foreground">{t("groupMainZone")}</Label>
+                <Input
+                  id="groupLoc"
+                  value={groupLocation}
+                  onChange={(e) => setGroupLocation(e.target.value)}
+                  placeholder={t("groupLocationPlaceholder")}
+                />
+              </div>
+
+              {/* Group Type */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-card-foreground">{t("groupTypeLabel")}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(["community", "school", "diving_center"] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setGroupType(type)}
+                      className={`flex-1 min-w-[30%] py-2 px-3 rounded-full text-sm font-medium transition-colors ${
+                        groupType === type
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white/10 text-card-foreground border border-white/15"
+                      }`}
+                    >
+                      {type === "community"
+                        ? t("groupTypeCommunity")
+                        : type === "school"
+                        ? t("groupTypeSchool")
+                        : t("groupTypeDivingCenter")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Visibility */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-card-foreground">{t("groupVisibility")}</Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRequiresApproval(false)}
+                    className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-colors ${
+                      !requiresApproval
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white/10 text-card-foreground border border-white/15"
+                    }`}
+                  >
+                    {t("visibilityOpen")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRequiresApproval(true)}
+                    className={`flex-1 py-2 px-3 rounded-full text-sm font-medium transition-colors ${
+                      requiresApproval
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white/10 text-card-foreground border border-white/15"
+                    }`}
+                  >
+                    {t("visibilityApproval")}
+                  </button>
+                </div>
               </div>
 
               <Button
