@@ -10,7 +10,14 @@ import { EventCard } from "@/components/community/EventCard";
 import { CourseCard } from "@/components/community/CourseCard";
 import { Button } from "@/components/ui/button";
 import { t, mapActivityType } from "@/lib/i18n";
-import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle, List, CalendarDays } from "lucide-react";
+import { ArrowLeft, Share2, Settings, UserPlus, UserMinus, Loader2, Clock, MessageCircle, List, CalendarDays, MoreVertical, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 import { SessionCalendar, CalendarSession } from "@/components/sessions/SessionCalendar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +37,8 @@ const GroupDetails = () => {
   const { courses, loading: coursesLoading } = useCourses(id);
   const [showMembersSheet, setShowMembersSheet] = useState(false);
   const [sessionsView, setSessionsView] = useState<"list" | "calendar">("list");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const calendarSessions: CalendarSession[] = useMemo(() =>
     sessions.map(s => ({
@@ -97,6 +106,38 @@ const GroupDetails = () => {
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!group || !id) return;
+    setDeleting(true);
+    const snapshot = members.map((m) => m.user_id).filter((uid) => uid !== group.created_by);
+    const { data, error } = await supabase.rpc("delete_group_cascade", { _group_id: id });
+    setDeleting(false);
+    if (error) {
+      const isPerm = error.message?.includes("insufficient_privilege");
+      toast({
+        title: "Errore",
+        description: isPerm
+          ? "Non hai i permessi per eliminare questo contenuto."
+          : "Impossibile eliminare. Riprova più tardi.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDeleteDialogOpen(false);
+    const recipients = (data as Array<{ user_id: string }> | null)?.map((r) => r.user_id) ?? snapshot;
+    for (const uid of recipients) {
+      await createNotification({
+        userId: uid,
+        type: "group_deleted",
+        title: "Gruppo eliminato",
+        message: `Il gruppo "${group.name}" è stato eliminato`,
+        metadata: { group_id: group.id, group_name: group.name },
+      });
+    }
+    toast({ title: "Gruppo eliminato" });
+    navigate("/groups");
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -141,6 +182,24 @@ const GroupDetails = () => {
             <Settings className="w-4 h-4" />
             Gestisci
           </Button>
+        )}
+        {group.is_owner && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2" aria-label="Altre azioni">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Elimina
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
@@ -299,6 +358,14 @@ const GroupDetails = () => {
         totalCount={group.member_count}
         ownerId={group.created_by}
         groupId={id}
+      />
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Elimina gruppo"
+        description={"Sei sicuro di voler eliminare questo gruppo? I membri verranno rimossi dal gruppo. Le sessioni e i corsi associati non verranno eliminati e rimarranno visibili come contenuti indipendenti. Questa azione è irreversibile."}
+        loading={deleting}
+        onConfirm={handleDeleteGroup}
       />
     </AppLayout>
   );
