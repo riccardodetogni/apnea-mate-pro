@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { t, getEnvironmentTypes } from "@/lib/i18n";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 import "leaflet/dist/leaflet.css";
 
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -41,6 +42,7 @@ interface SpotCreatorProps {
     description?: string | null;
     latitude?: number | null;
     longitude?: number | null;
+    cover_image_url?: string | null;
   };
   hideHeader?: boolean;
 }
@@ -58,6 +60,9 @@ const SpotCreator = ({ onSpotCreated, onCancel, mode = "create", spotId, initial
     environment_type: initialValues?.environment_type ?? "sea",
     description: initialValues?.description ?? "",
   });
+  const [coverUrl, setCoverUrl] = useState<string | null>(
+    initialValues?.cover_image_url ?? null
+  );
   const [coordinates, setCoordinates] = useState<{
     lat: number;
     lng: number;
@@ -205,6 +210,7 @@ const SpotCreator = ({ onSpotCreated, onCancel, mode = "create", spotId, initial
             description: form.description?.trim() || null,
             latitude: coordinates?.lat ?? null,
             longitude: coordinates?.lng ?? null,
+            cover_image_url: coverUrl,
           })
           .eq("id", spotId);
 
@@ -225,6 +231,7 @@ const SpotCreator = ({ onSpotCreated, onCancel, mode = "create", spotId, initial
             latitude: coordinates?.lat || null,
             longitude: coordinates?.lng || null,
             created_by: user?.id ?? null,
+            cover_image_url: coverUrl,
           })
           .select("id")
           .single();
@@ -260,6 +267,15 @@ const SpotCreator = ({ onSpotCreated, onCancel, mode = "create", spotId, initial
             <X className="w-4 h-4" />
           </Button>
         </div>
+      )}
+
+      {user && (
+        <CoverImageUpload
+          currentUrl={coverUrl}
+          uploadPath={user.id}
+          entity="spot"
+          onChange={setCoverUrl}
+        />
       )}
 
       {/* Name */}

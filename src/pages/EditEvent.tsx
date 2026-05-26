@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { t, getEventTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,6 +64,7 @@ const EditEvent = () => {
 
   const [hasSchedule, setHasSchedule] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id || !user) return;
@@ -92,6 +94,7 @@ const EditEvent = () => {
         contact_phone: ev.contact_phone || "",
         contact_url: ev.contact_url || "",
       });
+      setCoverUrl(ev.cover_image_url ?? null);
       const { data: sch } = await supabase.from("event_schedule").select("*").eq("event_id", id).order("day_number");
       if (sch && sch.length > 0) {
         setHasSchedule(true);
@@ -138,6 +141,7 @@ const EditEvent = () => {
         contact_email: form.contact_email || null,
         contact_phone: form.contact_phone || null,
         contact_url: form.contact_url || null,
+        cover_image_url: coverUrl,
       }).eq("id", id);
       if (error) throw error;
 
@@ -196,6 +200,15 @@ const EditEvent = () => {
       </header>
 
       <div className="space-y-5">
+        {user && (
+          <CoverImageUpload
+            currentUrl={coverUrl}
+            uploadPath={user.id}
+            entity="event"
+            onChange={setCoverUrl}
+          />
+        )}
+
         <div className="space-y-2">
           <Label>{t("eventType")}</Label>
           <div className="flex gap-2">

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { t, getCourseTypes } from "@/lib/i18n";
 import { ChevronLeft, Loader2, Trash2 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,7 @@ const EditCourse = () => {
   const { isInstructor } = useProfile();
 
   const courseTypes = getCourseTypes();
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -80,6 +82,7 @@ const EditCourse = () => {
         contact_phone: c.contact_phone || "",
         contact_url: c.contact_url || "",
       });
+      setCoverUrl(c.cover_image_url ?? null);
       setFetching(false);
     })();
   }, [id, user]);
@@ -104,6 +107,7 @@ const EditCourse = () => {
         contact_email: form.contact_email || null,
         contact_phone: form.contact_phone || null,
         contact_url: form.contact_url || null,
+        cover_image_url: coverUrl,
       }).eq("id", id);
       if (error) throw error;
       toast({ title: t("saveChanges") });
@@ -146,6 +150,15 @@ const EditCourse = () => {
       </header>
 
       <div className="space-y-5">
+        {user && (
+          <CoverImageUpload
+            currentUrl={coverUrl}
+            uploadPath={user.id}
+            entity="course"
+            onChange={setCoverUrl}
+          />
+        )}
+
         <div className="space-y-2">
           <Label>{t("courseType")}</Label>
           <div className="flex gap-2 flex-wrap">
