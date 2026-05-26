@@ -9,8 +9,15 @@ import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil, Check, X, MoreVertical, Trash2 } from "lucide-react";
 import { createNotification } from "@/lib/notifications";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
 
 const courseTypeKeys: Record<string, string> = {
   beginner: "courseTypeBeginner",
@@ -34,6 +41,8 @@ const CourseDetails = () => {
   const [joining, setJoining] = useState(false);
   const [participants, setParticipants] = useState<Array<{ id: string; user_id: string; status: string; profile: { name: string | null; avatar_url: string | null } | null }>>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isCreator = !!user && !!course && user.id === course.creator_id;
 
@@ -206,6 +215,38 @@ const CourseDetails = () => {
     }
   };
 
+  const handleDeleteCourse = async () => {
+    if (!course || !id) return;
+    setDeleting(true);
+    const snapshot = participants.map((p) => p.user_id);
+    const { data, error } = await supabase.rpc("delete_course_cascade", { _course_id: id });
+    setDeleting(false);
+    if (error) {
+      const isPerm = error.message?.includes("insufficient_privilege");
+      toast({
+        title: "Errore",
+        description: isPerm
+          ? "Non hai i permessi per eliminare questo contenuto."
+          : "Impossibile eliminare. Riprova più tardi.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDeleteDialogOpen(false);
+    const recipients = (data as Array<{ user_id: string }> | null)?.map((r) => r.user_id) ?? snapshot;
+    for (const uid of recipients) {
+      await createNotification({
+        userId: uid,
+        type: "course_cancelled",
+        title: "Corso eliminato",
+        message: `Il corso "${course.title}" è stato eliminato dall'organizzatore`,
+        metadata: { course_id: course.id, course_title: course.title },
+      });
+    }
+    toast({ title: "Corso eliminato" });
+    navigate("/community");
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -246,6 +287,24 @@ const CourseDetails = () => {
         <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
           <Share2 className="w-4 h-4" /> {t("share")}
         </Button>
+        {isCreator && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2" aria-label="Altre azioni">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Elimina
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Hero */}
@@ -402,6 +461,14 @@ const CourseDetails = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Elimina corso"
+        description="Sei sicuro di voler eliminare questo corso? I partecipanti iscritti verranno notificati. Questa azione è irreversibile."
+        loading={deleting}
+        onConfirm={handleDeleteCourse}
+      />
     </AppLayout>
   );
 };
