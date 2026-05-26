@@ -122,8 +122,8 @@ const SpotSelector = ({
           </div>
           <SpotMap
             spots={filteredSpots}
-            selectedSpotId={selectedSpotId}
-            onSelectSpot={handleSelectFromMap}
+            selected={selectedSpotId ? { type: "spot", id: selectedSpotId } : undefined}
+            onSelect={(item) => { if (item.type === "spot") handleSelectFromMap(item.id); }}
           />
         </div>
         {selectedSpot && (

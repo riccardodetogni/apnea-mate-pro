@@ -1,44 +1,46 @@
-# Eventi e corsi sulla mappa
+# Bubble per eventi/corsi e gestione marker sovrapposti
 
 ## Problema
-La mappa nella tab **Spots** mostra solo gli **spot** (luoghi associati a sessioni). Eventi e corsi non hanno mai marker, anche se hanno coordinate (`latitude`/`longitude`) proprie nelle rispettive tabelle.
+1. Tappando un marker evento/corso si va dritti alla pagina di dettaglio, mentre per gli spot si apre prima una bubble in basso con anteprima.
+2. Se uno spot (con sessione) e un evento/corso si trovano nello stesso luogo (stesse coordinate), i marker si sovrappongono e quello sotto non è cliccabile.
 
 ## Soluzione
-Mostrare anche eventi e corsi come marker distinti sulla stessa mappa.
 
-### 1. Dati
-- Usare gli hook esistenti `useEvents` e `useCourses` dentro `src/pages/Spots.tsx`.
-- Filtrare solo elementi con `latitude` e `longitude` valorizzati e con `status = 'active'` ed `end_date >= oggi` (così la mappa non si riempie di eventi passati).
+### 1. Bubble unificata
+Estendere il pattern di `SpotBubble` per supportare anche eventi e corsi.
 
-### 2. Marker
-Estendere `src/components/spots/SpotMap.tsx` accettando due nuovi prop opzionali:
-- `events: { id, latitude, longitude, title, start_date }[]`
-- `courses: { id, latitude, longitude, title, start_date }[]`
+- Creare `MapItemBubble` (o estendere `SpotBubble` con varianti) che mostri:
+  - **Spot** (come ora): emoji ambiente, nome, location, "sessioni disponibili", cuore preferiti.
+  - **Evento**: icona Calendar viola, titolo, location, data (`start_date` formattata), nessun cuore.
+  - **Corso**: icona GraduationCap arancione, titolo, location, data, nessun cuore.
+- Tap sulla bubble → naviga alla pagina di dettaglio (`/spots/:id`, `/events/:id`, `/courses/:id`).
+- Tap fuori dal marker → chiude la bubble (già implementato per spot).
 
-Renderizzare con colori distinti (riusando lo stile `createColoredMarker`):
-- Spot: blu/grigio (come ora)
-- Eventi: viola (`hsl(270, 70%, 55%)`)
-- Corsi: arancione (`hsl(30, 90%, 55%)`)
+### 2. Stato di selezione unificato in `Spots.tsx`
+Sostituire `selectedSpotId?: string` con:
+```ts
+selected?: { type: 'spot' | 'event' | 'course'; id: string }
+```
+Gli handler `onSelectEvent`/`onSelectCourse` in `SpotMap` non navigheranno più, ma chiameranno un callback che aggiorna lo stato. La pagina di dettaglio si apre solo dal tap sulla bubble.
 
-Click sul marker → `navigate('/events/:id')` o `/courses/:id`.
+### 3. Highlight del marker selezionato
+Estendere `SpotMap` perché anche i marker evento/corso supportino lo stato selezionato (stesso ingrandimento + bordo più scuro già usato per gli spot). Passare a `extraMarkersRef` l'id selezionato corrente.
 
-### 3. Filtri rapidi
-Aggiungere due chip nella barra dei quick filter accanto a "Tutti" / "Preferiti":
-- **Eventi** (icona Calendar)
-- **Corsi** (icona GraduationCap)
+### 4. Marker sovrapposti (stessa location)
+Per evitare che marker nello stesso punto si nascondano:
+- **Offset visivo automatico**: quando 2+ elementi (di qualsiasi tipo) hanno coordinate identiche (o entro ~5m), distribuirli su un piccolo arco attorno al punto reale (offset di ~10–15 px a seconda dello zoom). Algoritmo semplice: raggruppare per `"${lat.toFixed(5)},${lng.toFixed(5)}"`, e se il gruppo ha N>1 elementi, spostarli su un cerchio di raggio fisso (calcolato in gradi dal livello di zoom corrente).
+- L'offset viene applicato solo alla posizione visiva del marker; la bubble e la navigazione usano comunque l'id originale.
+- I marker restano tutti cliccabili individualmente.
 
-Comportamento: i filtri sono additivi (toggle indipendenti). Di default tutti e tre i tipi sono visibili. Disattivando un tipo, i relativi marker spariscono. Il filtro "Preferiti" continua a riguardare solo gli spot.
-
-### 4. Legenda
-Piccola legenda compatta in basso a sinistra della mappa con i tre colori, mostrata solo quando più di un tipo è attivo.
+Alternativa più semplice (se l'offset risulta complesso): all'inizializzazione di Leaflet usare l'opzione `riseOnHover: true` e dare un piccolo z-index incrementale ai marker successivi nello stesso punto, così almeno tappando ripetutamente si riesce a raggiungere ognuno. Si parte con questa, l'offset arriva solo se serve davvero.
 
 ## Dettagli tecnici
-- Nessuna modifica DB: `events` e `courses` hanno già `latitude`/`longitude` e RLS pubbliche.
-- `useEvents`/`useCourses` già caricano i dati necessari; verificare che ritornino le coordinate, altrimenti aggiungerle alla SELECT.
-- `SpotMap.tsx`: mantenere `markersRef` separati per tipo (`spotMarkersRef`, `eventMarkersRef`, `courseMarkersRef`) per pulizia/rerender indipendenti.
-- Performance: con poche decine di elementi nessun clustering necessario.
+- **File modificati**: `src/components/spots/SpotMap.tsx`, `src/components/spots/SpotBubble.tsx` (rinominato o affiancato da `MapItemBubble.tsx`), `src/pages/Spots.tsx`.
+- **Hook**: `useEvents`/`useCourses` già forniscono `start_date` e `location`, non servono modifiche DB.
+- **Colori**: riusare quelli già definiti (viola eventi, arancione corsi).
+- **i18n**: aggiungere le poche stringhe necessarie ("Vedi evento", "Vedi corso") al file `src/lib/i18n.ts`.
 
 ## Fuori scopo
-- Cluster di marker
-- Filtri avanzati per eventi/corsi (data, gruppo)
-- Bubble di anteprima al tap (per ora click → pagina dettaglio)
+- Bubble multipla che mostri più elementi quando coincidono (es. lista a scorrimento): per ora un solo elemento selezionato alla volta.
+- Cluster di marker.
+- Preview con immagine di copertina nella bubble.
