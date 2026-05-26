@@ -1,0 +1,13 @@
+UPDATE events SET latitude=37.4742763, longitude=14.1385298 WHERE id='5428276b-b643-4787-b7f2-b056dffa640c';
+UPDATE events SET latitude=42.7902379, longitude=10.3402239 WHERE id='e5a57199-a442-4df1-b914-201078578cc2';
+UPDATE events SET latitude=42.7978119, longitude=10.2992572 WHERE id='ca6c9032-f95c-4f11-8e52-55644287e2bf';
+UPDATE events SET latitude=52.2319581, longitude=21.0067249 WHERE id='ab84b545-4205-4c51-99f0-b6fdf167fddf';
+UPDATE events SET latitude=42.8618513, longitude=10.4196620 WHERE id='45c46b96-edb6-4089-9d2e-490dda67b49f';
+UPDATE events SET latitude=43.0374371, longitude=9.8225555 WHERE id='bb839db9-48f0-4a29-b2fc-b84d96308052';
+UPDATE events SET latitude=42.8618513, longitude=10.4196620 WHERE id='d9676699-6368-4680-9d97-e7120a2c9c96';
+UPDATE events SET latitude=45.9344082, longitude=8.5580062 WHERE id='51f3cdbc-fad1-416f-85a5-ba24f7e811b6';
+UPDATE events SET latitude=45.9344082, longitude=8.5580062 WHERE id='49ba36d9-f392-4543-ba30-7f8b593f8f31';
+UPDATE courses SET latitude=45.9344082, longitude=8.5580062 WHERE id='c6e9cbe4-9390-4b58-aeae-45a5743a0891';
+UPDATE courses SET latitude=45.9344082, longitude=8.5580062 WHERE id='13e0b692-a9b1-4cf8-98a5-29a8e283e544';
+UPDATE courses SET latitude=45.5669538, longitude=8.0869120 WHERE id='a42a6251-eab9-4d0e-9c11-3f00d3862586';
+UPDATE courses SET latitude=42.6384261, longitude=12.6742970 WHERE id='6d2cda6a-b5fd-4697-8104-8e12db982ca8';
