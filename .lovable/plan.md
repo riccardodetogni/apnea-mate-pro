@@ -1,25 +1,49 @@
-## Fix avatar stretching
+## Aggiungere Cognome e Data di nascita alla registrazione
 
-### Root cause
+### 1. Database
 
-`src/components/ui/avatar.tsx` — the shadcn `AvatarImage` primitive applies `aspect-square h-full w-full` but **omits `object-cover`**. Default `<img>` behavior is `object-fit: fill`, which stretches non-square photos. Every avatar in the app (profile page, session/event/course cards, chat, search, member lists, upload preview) flows through this primitive, so a one-line fix in the primitive fixes all of them.
+Migrazione su `profiles`:
+- aggiungere `last_name TEXT` (nullable)
+- aggiungere `birth_date DATE` (nullable)
 
-### Fix
+Aggiornare la funzione trigger `handle_new_user` per leggere anche `last_name` e `birth_date` da `raw_user_meta_data` e scriverli nel profilo appena creato.
 
-In `src/components/ui/avatar.tsx`, add `object-cover` to `AvatarImage` className:
+Gli utenti esistenti mantengono i due campi a `NULL`: nessuna interruzione, nessuna migrazione di dati.
 
-```tsx
-className={cn("aspect-square h-full w-full object-cover", className)}
+### 2. Form di registrazione (`src/pages/Auth.tsx`)
+
+Solo in modalità **register**, prima dei campi email/password:
+- **Nome** (testo, obbligatorio)
+- **Cognome** (testo, obbligatorio)
+- **Data di nascita** (`<input type="date">`, obbligatorio)
+
+Validazioni in italiano:
+- Nome e Cognome: trim, non vuoti, max 60 caratteri.
+- Data di nascita: data valida nel passato; età ≥ 18 anni alla data odierna, altrimenti errore "Devi avere almeno 18 anni per registrarti".
+
+Login invariato (solo email + password).
+
+### 3. `AuthContext.signUp`
+
+Estendere la firma:
+```ts
+signUp(email, password, { name, lastName, birthDate })
 ```
+Passare i tre valori dentro `options.data` di `supabase.auth.signUp`, così finiscono in `raw_user_meta_data` e il trigger li scrive nel profilo. Aggiornare il tipo del context.
 
-`Avatar` root already enforces fixed size (`h-10 w-10` default, overridden per call site) and `rounded-full overflow-hidden`, so width/height are explicit and the circular crop is preserved.
+### 4. Utenti esistenti — completamento opzionale dal Profilo
 
-### Verification
+Su `src/pages/Profile.tsx` (o equivalente), se l'utente loggato ha `last_name` **o** `birth_date` a `NULL`, mostrare in alto un banner non-bloccante:
 
-All other avatar renders are raw `<img>` tags that already include `object-cover` and explicit `w-*/h-*` (verified: `UserProfile`, `CourseDetails`, `EventDetails`, `ChatThread`, `ConversationItem`, `SessionCard`, `EventCard`, `CourseCard`, `GroupHeroCard`). No changes needed there.
+> "Completa il tuo profilo aggiungendo cognome e data di nascita."
 
-The upload preview (`AvatarUpload.tsx`) uses `Avatar`/`AvatarImage`, so it inherits the fix automatically — the user will see the exact circular crop before saving.
+Tap → apre un dialog con i due campi (stesse validazioni del form di registrazione, incluso il check 18+ sulla data di nascita). Al salvataggio, aggiorna `profiles.last_name` e `profiles.birth_date`; il banner scompare. L'utente può continuare a usare l'app anche senza completarlo.
 
-### Scope
+### 5. Onboarding
 
-One file changed: `src/components/ui/avatar.tsx`. No layout, color, or sizing changes.
+Nessuna modifica. Il campo "Nome" di onboarding resta com'è (precompilato da `profiles.name`).
+
+### Note tecniche
+- `birth_date` salvato come `DATE` (no timezone), formato `YYYY-MM-DD` dall'`<input type="date">`.
+- Il check 18+ è solo client-side, in linea con le altre validazioni del form.
+- Nessun cambio alle RLS di `profiles`.

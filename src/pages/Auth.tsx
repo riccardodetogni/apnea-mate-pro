@@ -35,6 +35,9 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
@@ -71,6 +74,15 @@ const Auth = () => {
     return emailRegex.test(email);
   };
 
+  const calculateAge = (dob: string): number => {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -94,13 +106,56 @@ const Auth = () => {
       return;
     }
 
-    if (mode === "register" && password !== confirmPassword) {
-      toast({
-        title: "Errore",
-        description: "Le password non coincidono",
-        variant: "destructive",
-      });
-      return;
+    if (mode === "register") {
+      if (!firstName.trim() || !lastName.trim()) {
+        toast({
+          title: "Errore",
+          description: "Inserisci nome e cognome",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (firstName.trim().length > 60 || lastName.trim().length > 60) {
+        toast({
+          title: "Errore",
+          description: "Nome e cognome devono essere massimo 60 caratteri",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!birthDate) {
+        toast({
+          title: "Errore",
+          description: "Inserisci la tua data di nascita",
+          variant: "destructive",
+        });
+        return;
+      }
+      const dob = new Date(birthDate);
+      if (isNaN(dob.getTime()) || dob >= new Date()) {
+        toast({
+          title: "Errore",
+          description: "Inserisci una data di nascita valida",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (calculateAge(birthDate) < 18) {
+        toast({
+          title: "Errore",
+          description: "Devi avere almeno 18 anni per registrarti",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast({
+          title: "Errore",
+          description: "Le password non coincidono",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (password.length < 6) {
@@ -137,7 +192,11 @@ const Auth = () => {
           setNeedsConfirmation(false);
         }
       } else {
-        const { error } = await signUp(trimmedEmail, password);
+        const { error } = await signUp(trimmedEmail, password, {
+          name: firstName.trim(),
+          lastName: lastName.trim(),
+          birthDate,
+        });
         if (error) {
           if (error.message.includes("already registered")) {
             toast({
@@ -420,6 +479,52 @@ const Auth = () => {
 
         {/* Email form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === "register" && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">Nome</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Mario"
+                    maxLength={60}
+                    autoComplete="given-name"
+                    className="rounded-xl h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Cognome</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Rossi"
+                    maxLength={60}
+                    autoComplete="family-name"
+                    className="rounded-xl h-12"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Data di nascita</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="rounded-xl h-12"
+                />
+                <p className="text-xs text-muted">Devi avere almeno 18 anni.</p>
+              </div>
+            </>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">{t("email")}</Label>
             <Input

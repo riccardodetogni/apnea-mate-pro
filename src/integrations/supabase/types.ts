@@ -769,12 +769,14 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          birth_date: string | null
           created_at: string
           email: string
           freediving_since: number | null
           has_insurance: boolean
           id: string
           insurance_provider: string | null
+          last_name: string | null
           location: string | null
           marketing_consent: boolean
           name: string
@@ -785,12 +787,14 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string
           email: string
           freediving_since?: number | null
           has_insurance?: boolean
           id?: string
           insurance_provider?: string | null
+          last_name?: string | null
           location?: string | null
           marketing_consent?: boolean
           name: string
@@ -801,12 +805,14 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string
           freediving_since?: number | null
           has_insurance?: boolean
           id?: string
           insurance_provider?: string | null
+          last_name?: string | null
           location?: string | null
           marketing_consent?: boolean
           name?: string
