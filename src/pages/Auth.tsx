@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { t } from "@/lib/i18n";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, CheckCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/Logo";
 
@@ -476,6 +476,20 @@ const Auth = () => {
             {mode === "login" ? t("loginSubtitle") : t("registerSubtitle")}
           </p>
         </div>
+
+        {mode === "register" && (
+          <div className="mb-6 rounded-xl border border-border bg-card/50 p-3 flex gap-2">
+            <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                {t("registerPersonalInfoTitle")}
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {t("registerPersonalInfoDesc")}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Email form */}
         <form onSubmit={handleSubmit} className="space-y-4">
