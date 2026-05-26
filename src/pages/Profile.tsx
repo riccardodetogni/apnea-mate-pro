@@ -12,6 +12,7 @@ import { CertificationStatusBadge, CertificationBadge } from "@/components/certi
 import { CertificationForm } from "@/components/certification/CertificationForm";
 import { PersonalBestsCard } from "@/components/profile/PersonalBestsCard";
 import { ProfileEditDialog } from "@/components/profile/ProfileEditDialog";
+import { CompleteProfileDialog } from "@/components/profile/CompleteProfileDialog";
 import { ReviewSummary } from "@/components/reviews/ReviewSummary";
 import { ReviewCard } from "@/components/reviews/ReviewCard";
 
@@ -56,6 +57,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [completeProfileOpen, setCompleteProfileOpen] = useState(false);
 
   // Inline edit state
   const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | "freediving_since" | null>(null);
@@ -97,6 +99,8 @@ const Profile = () => {
     return null;
   }
 
+  const needsProfileCompletion = !profile.last_name || !profile.birth_date;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -111,6 +115,26 @@ const Profile = () => {
       </header>
 
       <div className="px-4 py-6 max-w-[430px] mx-auto">
+        {/* Profile completion banner for existing users */}
+        {needsProfileCompletion && (
+          <button
+            onClick={() => setCompleteProfileOpen(true)}
+            className="w-full mb-4 rounded-xl border border-primary/30 bg-primary/5 p-4 text-left flex items-center gap-3 hover:bg-primary/10 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+              <Pencil className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-card-foreground">
+                Completa il tuo profilo
+              </p>
+              <p className="text-xs text-[hsl(var(--card-muted))]">
+                Aggiungi cognome e data di nascita.
+              </p>
+            </div>
+          </button>
+        )}
+
         {/* Profile card */}
         <div className="card-session !rounded-2xl !p-6 text-center mb-6">
           {/* Tappable Avatar */}
