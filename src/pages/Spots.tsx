@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/layout/BottomNav";
 import SpotFiltersSheet, { SpotFilters } from "@/components/spots/SpotFiltersSheet";
-import SpotBubble from "@/components/spots/SpotBubble";
+import MapItemBubble from "@/components/spots/MapItemBubble";
 import { useSpots, SpotSession } from "@/hooks/useSpots";
 import { useSpotFavorites } from "@/hooks/useSpotFavorites";
 import { useEvents } from "@/hooks/useEvents";
@@ -12,7 +12,7 @@ import { Loader2, Search, SlidersHorizontal, Heart, Plus, Calendar, GraduationCa
 import { t } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import SpotMap from "@/components/spots/SpotMap";
+import SpotMap, { SelectedMapItem } from "@/components/spots/SpotMap";
 
 type QuickFilterType = "all" | "favorites";
 
@@ -79,7 +79,7 @@ const Spots = () => {
   const { events } = useEvents();
   const { courses } = useCourses();
 
-  const [selectedSpotId, setSelectedSpotId] = useState<string | undefined>();
+  const [selected, setSelected] = useState<SelectedMapItem | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
   const [showFiltersSheet, setShowFiltersSheet] = useState(false);
@@ -113,21 +113,31 @@ const Spots = () => {
   }, [spots, quickFilter, advancedFilters, searchQuery, favoriteIds, spotSessions]);
 
   const currentSpot = useMemo(() => {
-    if (!selectedSpotId) return undefined;
-    return filteredSpots.find((s) => s.id === selectedSpotId);
-  }, [filteredSpots, selectedSpotId]);
+    if (selected?.type !== "spot") return undefined;
+    return filteredSpots.find((s) => s.id === selected.id);
+  }, [filteredSpots, selected]);
 
-  const handleSelectSpot = useCallback((spotId: string) => {
-    setSelectedSpotId(spotId);
+  const currentEvent = useMemo(() => {
+    if (selected?.type !== "event") return undefined;
+    return events.find((e) => e.id === selected.id);
+  }, [events, selected]);
+
+  const currentCourse = useMemo(() => {
+    if (selected?.type !== "course") return undefined;
+    return courses.find((c) => c.id === selected.id);
+  }, [courses, selected]);
+
+  const handleSelect = useCallback((item: SelectedMapItem) => {
+    setSelected(item);
   }, []);
 
-  const handleDeselectSpot = useCallback(() => {
-    setSelectedSpotId(undefined);
+  const handleDeselect = useCallback(() => {
+    setSelected(undefined);
   }, []);
 
   const handleQuickFilterChange = useCallback((filter: QuickFilterType) => {
     setQuickFilter(filter);
-    setSelectedSpotId(undefined);
+    setSelected(undefined);
   }, []);
 
   const handleResetFilters = useCallback(() => {
@@ -197,14 +207,12 @@ const Spots = () => {
       <div className="flex-1 relative">
         <SpotMap
           spots={filteredSpots}
-          selectedSpotId={selectedSpotId}
-          onSelectSpot={handleSelectSpot}
-          onDeselectSpot={handleDeselectSpot}
+          selected={selected}
+          onSelect={handleSelect}
+          onDeselect={handleDeselect}
           className="h-full w-full"
           events={eventPoints}
           courses={coursePoints}
-          onSelectEvent={(id) => navigate(`/events/${id}`)}
-          onSelectCourse={(id) => navigate(`/courses/${id}`)}
         />
 
         <div className="absolute top-0 left-0 right-0 z-[1000] p-4 pt-[max(1rem,env(safe-area-inset-top))] pointer-events-none">
@@ -305,11 +313,26 @@ const Spots = () => {
       </div>
 
       {currentSpot && (
-        <SpotBubble
-          spot={currentSpot}
-          isFavorite={isFavorite(currentSpot.id)}
-          onToggleFavorite={handleToggleFavorite}
+        <MapItemBubble
+          item={{
+            type: "spot",
+            data: currentSpot,
+            isFavorite: isFavorite(currentSpot.id),
+            onToggleFavorite: handleToggleFavorite,
+          }}
           onViewDetails={() => navigate(`/spots/${currentSpot.id}`)}
+        />
+      )}
+      {currentEvent && (
+        <MapItemBubble
+          item={{ type: "event", data: currentEvent }}
+          onViewDetails={() => navigate(`/events/${currentEvent.id}`)}
+        />
+      )}
+      {currentCourse && (
+        <MapItemBubble
+          item={{ type: "course", data: currentCourse }}
+          onViewDetails={() => navigate(`/courses/${currentCourse.id}`)}
         />
       )}
 
