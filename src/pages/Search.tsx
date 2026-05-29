@@ -424,7 +424,9 @@ const Search = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground truncate">{person.name}</p>
+                        <p className="font-semibold text-foreground truncate">
+                          {`${person.name}${person.last_name ? ` ${person.last_name}` : ""}`}
+                        </p>
                         {person.isCertified && (
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full shrink-0">
                             {language === "it" ? "Certificato" : "Certified"}
