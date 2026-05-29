@@ -81,7 +81,9 @@ const DiscoverFreedivers = () => {
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-card-foreground truncate">{user.name}</h3>
+              <h3 className="font-semibold text-card-foreground truncate">
+                {`${user.name}${user.last_name ? ` ${user.last_name}` : ""}`}
+              </h3>
               {getRoleBadge(user.role)}
             </div>
             

@@ -24,6 +24,7 @@ interface PersonResult {
   id: string;
   user_id: string;
   name: string;
+  last_name: string | null;
   location: string | null;
   avatar_url: string | null;
   nextSession?: {
@@ -85,15 +86,19 @@ const Search = () => {
       return;
     }
 
-    const pattern = `%${q}%`;
-
-    // Get profiles with search_visibility=true
-    const { data: profiles } = await supabase
+    // Tokenize so "Mario Rossi" matches name=Mario AND last_name=Rossi.
+    // Each token must match either name or last_name (AND across tokens).
+    const tokens = q.trim().split(/\s+/).filter(Boolean);
+    let profilesQuery = supabase
       .from("profiles")
-      .select("id, user_id, name, location, avatar_url")
-      .eq("search_visibility", true)
-      .ilike("name", pattern)
-      .limit(20);
+      .select("id, user_id, name, last_name, location, avatar_url")
+      .eq("search_visibility", true);
+    for (const tok of tokens) {
+      profilesQuery = profilesQuery.or(
+        `name.ilike.%${tok}%,last_name.ilike.%${tok}%`
+      );
+    }
+    const { data: profiles } = await profilesQuery.limit(20);
 
     if (!profiles || profiles.length === 0) {
       setPeople([]);
@@ -176,6 +181,7 @@ const Search = () => {
           id: p.id,
           user_id: p.user_id,
           name: p.name,
+          last_name: p.last_name,
           location: p.location,
           avatar_url: p.avatar_url,
           nextSession: nextSession ? {
@@ -418,7 +424,9 @@ const Search = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground truncate">{person.name}</p>
+                        <p className="font-semibold text-foreground truncate">
+                          {`${person.name}${person.last_name ? ` ${person.last_name}` : ""}`}
+                        </p>
                         {person.isCertified && (
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full shrink-0">
                             {language === "it" ? "Certificato" : "Certified"}
