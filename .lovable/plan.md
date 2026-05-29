@@ -1,46 +1,44 @@
-# Bubble per eventi/corsi e gestione marker sovrapposti
+## Problem
 
-## Problema
-1. Tappando un marker evento/corso si va dritti alla pagina di dettaglio, mentre per gli spot si apre prima una bubble in basso con anteprima.
-2. Se uno spot (con sessione) e un evento/corso si trovano nello stesso luogo (stesse coordinate), i marker si sovrappongono e quello sotto non è cliccabile.
+When users added their surname (`last_name` column on `profiles`), search was never updated. Today all profile lookups only do `ilike("name", "%query%")`, so typing "Mario Rossi" returns nothing because `name` is `"Mario"` and `last_name` is `"Rossi"` are stored in separate columns.
 
-## Soluzione
+## Fix strategy
 
-### 1. Bubble unificata
-Estendere il pattern di `SpotBubble` per supportare anche eventi e corsi.
+Split the query on whitespace and match each token against `name` OR `last_name`. Single-token queries (e.g. just "Mario") still work — they match either column — so the change is fully retrocompatible with profiles that only have `name`.
 
-- Creare `MapItemBubble` (o estendere `SpotBubble` con varianti) che mostri:
-  - **Spot** (come ora): emoji ambiente, nome, location, "sessioni disponibili", cuore preferiti.
-  - **Evento**: icona Calendar viola, titolo, location, data (`start_date` formattata), nessun cuore.
-  - **Corso**: icona GraduationCap arancione, titolo, location, data, nessun cuore.
-- Tap sulla bubble → naviga alla pagina di dettaglio (`/spots/:id`, `/events/:id`, `/courses/:id`).
-- Tap fuori dal marker → chiude la bubble (già implementato per spot).
-
-### 2. Stato di selezione unificato in `Spots.tsx`
-Sostituire `selectedSpotId?: string` con:
+In supabase-js, chained `.or()` calls are AND-combined, so for tokens `[t1, t2]` we do:
 ```ts
-selected?: { type: 'spot' | 'event' | 'course'; id: string }
+let q = supabase.from("profiles").select(...);
+tokens.forEach(t => {
+  q = q.or(`name.ilike.%${t}%,last_name.ilike.%${t}%`);
+});
 ```
-Gli handler `onSelectEvent`/`onSelectCourse` in `SpotMap` non navigheranno più, ma chiameranno un callback che aggiorna lo stato. La pagina di dettaglio si apre solo dal tap sulla bubble.
 
-### 3. Highlight del marker selezionato
-Estendere `SpotMap` perché anche i marker evento/corso supportino lo stato selezionato (stesso ingrandimento + bordo più scuro già usato per gli spot). Passare a `extraMarkersRef` l'id selezionato corrente.
+## Changes
 
-### 4. Marker sovrapposti (stessa location)
-Per evitare che marker nello stesso punto si nascondano:
-- **Offset visivo automatico**: quando 2+ elementi (di qualsiasi tipo) hanno coordinate identiche (o entro ~5m), distribuirli su un piccolo arco attorno al punto reale (offset di ~10–15 px a seconda dello zoom). Algoritmo semplice: raggruppare per `"${lat.toFixed(5)},${lng.toFixed(5)}"`, e se il gruppo ha N>1 elementi, spostarli su un cerchio di raggio fisso (calcolato in gradi dal livello di zoom corrente).
-- L'offset viene applicato solo alla posizione visiva del marker; la bubble e la navigazione usano comunque l'id originale.
-- I marker restano tutti cliccabili individualmente.
+### 1. `src/hooks/useSearch.ts` (global search bar)
+- Select `last_name` along with `name`.
+- Replace the single `ilike("name", pattern)` with the tokenized OR-per-token approach above.
+- Build display name as `${name} ${last_name ?? ""}`.trim() in the mapped result so the dropdown shows the full name.
 
-Alternativa più semplice (se l'offset risulta complesso): all'inizializzazione di Leaflet usare l'opzione `riseOnHover: true` e dare un piccolo z-index incrementale ai marker successivi nello stesso punto, così almeno tappando ripetutamente si riesce a raggiungere ognuno. Si parte con questa, l'offset arriva solo se serve davvero.
+### 2. `src/pages/Search.tsx` — `searchPeople`
+- Same tokenized matching against `name` + `last_name`.
+- Select `last_name`, expose it on `PersonResult`, and render `${p.name} ${p.last_name ?? ""}`.trim() in the people list (line ~421) and the avatar fallback initial.
 
-## Dettagli tecnici
-- **File modificati**: `src/components/spots/SpotMap.tsx`, `src/components/spots/SpotBubble.tsx` (rinominato o affiancato da `MapItemBubble.tsx`), `src/pages/Spots.tsx`.
-- **Hook**: `useEvents`/`useCourses` già forniscono `start_date` e `location`, non servono modifiche DB.
-- **Colori**: riusare quelli già definiti (viola eventi, arancione corsi).
-- **i18n**: aggiungere le poche stringhe necessarie ("Vedi evento", "Vedi corso") al file `src/lib/i18n.ts`.
+### 3. `src/hooks/useDiscoverFreedivers.ts`
+- Add `last_name` to the profiles select (line 58 area) and to the `SuggestedUser` mapping (line ~196).
+- Update the client-side `filteredSuggestions` filter (lines 280–284) to also match `last_name` and to match all whitespace-separated tokens, so "Mario Rossi" works here too.
+- Display full name in the suggestion card.
 
-## Fuori scopo
-- Bubble multipla che mostri più elementi quando coincidono (es. lista a scorrimento): per ora un solo elemento selezionato alla volta.
-- Cluster di marker.
-- Preview con immagine di copertina nella bubble.
+### Out of scope (intentionally)
+
+- Other profile lookups (`useEvents`, `useCourses`, `useSessionDetails`, chat, etc.) only fetch by `user_id` and just need the display label — these can stay as-is for this task. If you want full-name everywhere, that's a separate, larger pass and not required to fix search.
+- No DB migration needed; we keep `name` and `last_name` as separate columns.
+
+## Verification
+
+- Search "Mario" → finds users named Mario (existing behavior preserved).
+- Search "Rossi" → now finds users whose surname is Rossi.
+- Search "Mario Rossi" → finds the user with `name=Mario`, `last_name=Rossi`.
+- Search "mario ros" → still matches (substring + case-insensitive).
+- Profiles without `last_name` still appear for first-name queries.
