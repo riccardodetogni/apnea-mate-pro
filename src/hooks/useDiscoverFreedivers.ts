@@ -10,6 +10,7 @@ export interface SuggestedUser {
   id: string;
   user_id: string;
   name: string;
+  last_name: string | null;
   avatar_url: string | null;
   location: string | null;
   role: AppRole | null;
@@ -194,6 +195,7 @@ export const useDiscoverFreedivers = () => {
           id: profile.id,
           user_id: profile.user_id,
           name: profile.name,
+          last_name: (profile as { last_name?: string | null }).last_name ?? null,
           avatar_url: profile.avatar_url,
           location: profile.location,
           role,
@@ -276,12 +278,19 @@ export const useDiscoverFreedivers = () => {
     }
   }, [user, followingIds]);
 
-  // Filter suggestions by search query
-  const filteredSuggestions = searchQuery
-    ? suggestions.filter(s => 
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (s.location?.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
+  // Filter suggestions by search query.
+  // Each whitespace-separated token must match name, last_name, or location.
+  // Single-token queries stay backward-compatible (still match any of the three).
+  const filteredSuggestions = searchQuery.trim()
+    ? (() => {
+        const tokens = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        return suggestions.filter(s => {
+          const name = s.name?.toLowerCase() ?? "";
+          const last = s.last_name?.toLowerCase() ?? "";
+          const loc = s.location?.toLowerCase() ?? "";
+          return tokens.every(t => name.includes(t) || last.includes(t) || loc.includes(t));
+        });
+      })()
     : suggestions;
 
   return {
