@@ -53,6 +53,7 @@ export const useSearch = () => {
 
     try {
       const searchPattern = `%${searchQuery}%`;
+      const tokens = searchQuery.trim().split(/\s+/).filter(Boolean);
 
       // Search sessions
       const { data: sessionsData } = await supabase
@@ -78,18 +79,29 @@ export const useSearch = () => {
         .limit(5);
 
       // Search profiles (only those with search_visibility = true)
-      const { data: profilesData } = await supabase
+      // Match each whitespace-separated token against name OR last_name (AND across tokens),
+      // so "Mario Rossi" finds users with name=Mario and last_name=Rossi.
+      let profilesQuery = supabase
         .from("profiles")
-        .select("id, name, user_id")
-        .eq("search_visibility", true)
-        .ilike("name", searchPattern)
-        .limit(5);
+        .select("id, name, last_name, user_id")
+        .eq("search_visibility", true);
+      for (const tok of tokens) {
+        profilesQuery = profilesQuery.or(
+          `name.ilike.%${tok}%,last_name.ilike.%${tok}%`
+        );
+      }
+      const { data: profilesData } = await profilesQuery.limit(5);
 
       setResults({
         sessions: (sessionsData || []).map(s => ({ ...s, type: "session" as const })),
         groups: (groupsData || []).map(g => ({ ...g, type: "group" as const })),
         spots: (spotsData || []).map(s => ({ ...s, type: "spot" as const })),
-        profiles: (profilesData || []).map(p => ({ ...p, type: "profile" as const })),
+        profiles: (profilesData || []).map(p => ({
+          id: p.id,
+          user_id: p.user_id,
+          name: `${p.name ?? ""}${p.last_name ? ` ${p.last_name}` : ""}`.trim(),
+          type: "profile" as const,
+        })),
       });
     } catch (err) {
       console.error("Search error:", err);
