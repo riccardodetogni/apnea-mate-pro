@@ -63,7 +63,8 @@ export const useCommunityContext = () => {
     itemLon: number | null
   ): boolean => {
     if (!filters.nearbyOnly) return true;
-    if (!location || !itemLat || !itemLon) return true; // Show if no location data
+    if (!location) return true; // Can't filter without user location — show everything
+    if (itemLat == null || itemLon == null) return false; // Hide items with no coordinates
     
     const distance = calculateDistance(
       location.latitude,

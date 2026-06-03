@@ -7,14 +7,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SessionFilters, SessionFilterState, defaultSessionFilters } from "@/components/community/SessionFilters";
 import { applySessionFilters } from "@/lib/sessionFilters";
 import { useSessions } from "@/hooks/useSessions";
+import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { t } from "@/lib/i18n";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 
 const AllSessions = () => {
   const navigate = useNavigate();
-  const { sessions, loading } = useSessions({ excludeJoined: false });
+  const { sessions, rawSessions, loading } = useSessions({ excludeJoined: false });
+  const { filters, isWithinRadius, toggleNearbyFilter } = useCommunityContext();
   const [sessionFilters, setSessionFilters] = useState<SessionFilterState>(defaultSessionFilters);
-  const filtered = applySessionFilters(sessions, sessionFilters);
+
+  const rawMap = new Map(rawSessions.map((s) => [s.id, s]));
+  const nearbyFiltered = filters.nearbyOnly
+    ? sessions.filter((s) => {
+        const raw = rawMap.get(s.id);
+        return isWithinRadius(raw?.spot?.latitude ?? null, raw?.spot?.longitude ?? null);
+      })
+    : sessions;
+  const filtered = applySessionFilters(nearbyFiltered, sessionFilters);
 
   return (
     <AppLayout>
@@ -28,6 +38,16 @@ const AllSessions = () => {
         </button>
         <h1 className="text-xl font-bold text-foreground">{t("sessionsForYou")}</h1>
       </div>
+
+      {filters.nearbyOnly && (
+        <button
+          onClick={toggleNearbyFilter}
+          className="mb-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/15 text-primary text-xs font-medium hover:bg-primary/25 transition-colors"
+        >
+          <MapPin className="w-3.5 h-3.5" />
+          <span>{t("nearYou")} · {filters.radiusKm} km ✕</span>
+        </button>
+      )}
 
       <SessionFilters
         sessions={sessions}
