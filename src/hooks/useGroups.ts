@@ -37,6 +37,7 @@ export interface GroupWithDetails {
   isInstructorLed: boolean;
   isVerified: boolean;
   groupType: string;
+  avatarUrl: string | null;
 }
 
 async function fetchGroupsData(userId: string | undefined) {
