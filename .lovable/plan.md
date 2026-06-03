@@ -1,55 +1,49 @@
 ## Goal
 
-Make the "Vedi tutti / Vedi tutte" links on the Community page actually navigate somewhere useful. Currently 4 are broken (3 no-ops + "Sessions for you" pointing at the spots map).
+Add proper filtering to the four new list pages (`/sessions`, `/sessions/following`, `/events`, `/courses`) so they behave like the Community sections, not just dumped lists.
 
-## New list pages
+## Sessions pages (`/sessions` and `/sessions/following`)
 
-Create four lightweight listing pages that reuse existing hooks + cards. Each page = `AppLayout` + back button + title + filter strip (where it already exists) + a single vertical scroll column of the same cards used on Community.
+Reuse the existing `SessionFilters` component and the `applySessionFilters` logic already used in `Community.tsx`. The cleanest way is to extract that filter logic into a small shared helper instead of duplicating it across 3 places.
 
-| Route | Page file | Data source | Card |
-|---|---|---|---|
-| `/sessions` | `src/pages/AllSessions.tsx` | `useSessions()` (existing — already powers "Sessions for you") | `SessionCard` |
-| `/sessions/following` | `src/pages/FollowingSessions.tsx` | `useSessionsFromFollowing()` (existing) | `SessionCard` |
-| `/events` | `src/pages/AllEvents.tsx` | `useEvents()` with no `groupId` (existing) | `EventCard` |
-| `/courses` | `src/pages/AllCourses.tsx` | `useCourses()` with no `groupId` (existing) | `CourseCard` |
+1. New file `src/lib/sessionFilters.ts`
+   - Export `applySessionFilters(sessions, filters)` — pure function copied verbatim from `Community.tsx` (date range incl. custom, spot, paid/free).
+   - Move imports of `date-fns` (`startOfDay`, `endOfDay`, `addDays`, `startOfWeek`, `endOfWeek`, `addWeeks`, `isWithinInterval`) here.
 
-Each page:
-- Header: back arrow → `navigate(-1)`, page title (`t("sessionsForYou")` / `t("fromPeopleYouFollow")` / `t("upcomingEvents")` / `t("availableCoursesSection")`).
-- For `/sessions`: include the existing `SessionFilters` component (same as Community) so the full list is filterable. For `/sessions/following`: just the list (no filters, matches Community).
-- Loading: 4 skeletons. Empty: same `EmptyCard` message used today on Community.
-- Click handlers mirror Community: `SessionCard.onClick` → `/sessions/:id`, `EventCard.onClick` → `/events/:id`, `CourseCard.onClick` → `/courses/:id`. For `SessionCard` reuse `handleJoinSession` logic — to avoid duplicating the safety-modal flow, the simplest fix is: on these listing pages clicking a card just navigates to the session detail (which already has the inline join + safety modal). No join button on the list itself. This keeps each page small and avoids duplicating the safety-warning state machine.
+2. `src/pages/Community.tsx`
+   - Replace the inline `applySessionFilters` with the imported helper. No behavior change.
 
-## Wire the routes
+3. `src/pages/AllSessions.tsx`
+   - Add `useState<SessionFilterState>(defaultSessionFilters)`.
+   - Render `<SessionFilters sessions={sessions} filters={...} onFiltersChange={...} />` directly under the page header.
+   - Pass `applySessionFilters(sessions, filters)` to the list render.
+   - Keep the existing empty state.
 
-`src/App.tsx` — add inside `RequireAuth`:
-```
-<Route path="/sessions" element={<RequireAuth><AllSessions /></RequireAuth>} />
-<Route path="/sessions/following" element={<RequireAuth><FollowingSessions /></RequireAuth>} />
-<Route path="/events" element={<RequireAuth><AllEvents /></RequireAuth>} />
-<Route path="/courses" element={<RequireAuth><AllCourses /></RequireAuth>} />
-```
-(Pluralized, matches the routing convention.)
+4. `src/pages/FollowingSessions.tsx` — same treatment as `AllSessions.tsx`.
 
-## Update Community.tsx
+## Events & Courses pages (`/events`, `/courses`)
 
-Replace the broken `onAction` props:
+There is no existing filter component for events/courses. Add a small, focused date-range chip filter — it covers ~90% of real-world use without overengineering.
 
-- "Sessions for you" → `navigate("/sessions")` (was `/spots`)
-- "From people you follow" → `navigate("/sessions/following")` (was no-op)
-- "Upcoming Events" → `navigate("/events")` (was no-op)
-- "Available Courses" → `navigate("/courses")` (was no-op)
+5. New file `src/components/community/DateRangeChips.tsx`
+   - Renders a horizontal chip row identical in style to the date chips inside `SessionFilters`.
+   - Options: `all`, `today`, `thisWeek`, `thisMonth`, `nextMonth` (labels via `t()` — `all`, `today`, `thisWeek` already exist; add `thisMonth` + `nextMonth` to `src/lib/i18n.ts` IT + EN).
+   - Props: `value`, `onChange`.
 
-`Your groups` and `Groups near you` already point at `/groups` — leave them.
+6. `src/pages/AllEvents.tsx` and `src/pages/AllCourses.tsx`
+   - Add `useState<DateRange>("all")` and render `<DateRangeChips />` under the header.
+   - Filter the list by `start_date` against the chosen range using `date-fns` (`startOfDay`, `endOfDay`, `startOfWeek`, `endOfWeek`, `startOfMonth`, `endOfMonth`, `addMonths`, `isWithinInterval`).
+   - Show the existing empty state when the filtered list is empty.
 
 ## Out of scope
 
-- No new hooks, no DB migration, no schema change.
-- No new translations needed (all titles already exist in `i18n.ts`).
-- Listing pages intentionally skip the inline join+safety modal — users join from the detail page, which already supports it.
+- No new hooks, no DB changes.
+- No new filter dimensions on events/courses beyond date range (price/location etc. can come later if asked).
+- Spot filter inside `SessionFilters` keeps working as-is on the new sessions pages — `SessionFilters` derives the spot dropdown from the sessions you pass it.
 
 ## Verification
 
-1. From `/community`, every "Vedi tutti / Vedi tutte" navigates to a page that loads and shows the matching list.
-2. Empty states render correctly when there's no data.
-3. Back button returns to `/community`.
-4. Existing Community page behavior is unchanged.
+1. `/sessions` and `/sessions/following`: date chips, spot picker, and paid/free filters all visibly narrow the list.
+2. `/events` and `/courses`: date-range chips narrow the list to events/courses whose `start_date` falls in the selected window.
+3. Community page still works exactly as before (no regression from extracting the helper).
+4. Empty states still show with the right "create" CTA when filters yield zero results.
