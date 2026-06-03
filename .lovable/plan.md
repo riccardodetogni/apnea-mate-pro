@@ -1,21 +1,5 @@
-## Fix
+The 'Vicino a te' (near you) filter currently defaults to 200 km, which is too wide. Change it to 100 km.
 
-`src/pages/Groups.tsx` lists each prop passed to `GroupCard` explicitly (line 113-128) and was never updated when we added `avatarUrl` to `GroupWithDetails`. So the card always renders the initial.
-
-Add one line:
-
-```tsx
-<GroupCard
-  ...
-  groupType={group.groupType}
-  avatarUrl={group.avatarUrl}
-  onJoin={...}
-  onViewProfile={...}
-/>
-```
-
-No other changes. Community already works because it uses `{...group}`.
-
-## Verification
-
-`/groups` shows uploaded group avatars; groups without an avatar still show the initial.
+Changes needed:
+1. Update `DEFAULT_RADIUS_KM` in `src/hooks/useCommunityContext.ts` from `200` to `100`.
+2. Update project memory `mem://features/community-sorting-and-radius` to reflect the new 100 km default.
