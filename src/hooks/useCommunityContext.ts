@@ -8,8 +8,8 @@ export interface CommunityFilters {
   radiusKm: number;
 }
 
-const DEFAULT_RADIUS_KM = 100;
-const FILTERS_STORAGE_KEY = "apnea-mate-community-filters-v3";
+const DEFAULT_RADIUS_KM = 150;
+const FILTERS_STORAGE_KEY = "apnea-mate-community-filters-v4";
 
 export const useCommunityContext = () => {
   const { user, loading: authLoading } = useAuth();
