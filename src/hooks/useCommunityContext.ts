@@ -9,7 +9,7 @@ export interface CommunityFilters {
 }
 
 const DEFAULT_RADIUS_KM = 150;
-const FILTERS_STORAGE_KEY = "apnea-mate-community-filters-v4";
+const FILTERS_STORAGE_KEY = "apnea-mate-community-filters-v5";
 
 export const useCommunityContext = () => {
   const { user, loading: authLoading } = useAuth();
@@ -20,7 +20,14 @@ export const useCommunityContext = () => {
     try {
       const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          nearbyOnly: !!parsed?.nearbyOnly,
+          radiusKm:
+            typeof parsed?.radiusKm === "number" && parsed.radiusKm > 0
+              ? parsed.radiusKm
+              : DEFAULT_RADIUS_KM,
+        };
       }
     } catch (e) {
       // Invalid storage

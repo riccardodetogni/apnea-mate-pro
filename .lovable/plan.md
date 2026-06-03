@@ -1,35 +1,26 @@
-## Findings
+## Root cause
 
-I checked the 'Vicino a te' filter and found two real issues:
+The message still says "100 km" because the radius value is read from `localStorage["apnea-mate-community-filters-v4"]`, which was written while the default was still 100 km (during the previous fix step). When the default was bumped to 150 the storage key was left at `v4`, so any user who had already opened the app keeps the stale `{ radiusKm: 100 }` value forever. Fresh installs correctly get 150.
 
-**1. Sessions without coordinates bypass the filter.**
-In `useCommunityContext.ts` (`isWithinRadius`):
-```ts
-if (!filters.nearbyOnly) return true;
-if (!location || !itemLat || !itemLon) return true; // ← shows the item
-```
-When `nearbyOnly` is ON but a session/spot has no lat/lon, the function returns `true`, so those sessions still appear. The user toggles "near me" expecting only nearby results and gets locationless ones too.
+The rest of the flow is wired correctly:
 
-**2. The filter only runs on the Community page.**
-The "Vicino a te" chip lives in `SearchBar`, which is only rendered on `/community`. The new list pages (`/sessions`, `/sessions/following`) — and Events/Courses — do not apply the radius filter at all, even though they share the same session pool. So a user filtering on Community, then tapping "Vedi tutte", loses the filter silently.
+- `DEFAULT_RADIUS_KM = 150` in `src/hooks/useCommunityContext.ts`
+- `isWithinRadius` uses `filters.radiusKm` (not a hardcoded value)
+- `Community.tsx`, `AllSessions.tsx`, `FollowingSessions.tsx` all render `{filters.radiusKm}` dynamically
+- i18n string `noSessionNearby` uses `{radius}` placeholder, replaced with `filters.radiusKm`
+- No hardcoded `100` anywhere in the radius flow (the only `100km` reference is an unrelated comment in `useDiscoverFreedivers.ts`)
 
-**3. (Confirmed working)** The 100 km radius change itself is wired up: `DEFAULT_RADIUS_KM = 100`, persisted under `apnea-mate-community-filters-v3`, applied via `withDistance.filter(s => isWithinRadius(s.lat, s.lon))` in Community.tsx. Distances use the Haversine formula on `spot.latitude/longitude` from the sessions query.
+## Fix
 
-## Proposed Fix
+1. In `src/hooks/useCommunityContext.ts`:
+   - Bump `FILTERS_STORAGE_KEY` from `"apnea-mate-community-filters-v4"` to `"apnea-mate-community-filters-v5"` so existing users pick up the new 150 km default.
+   - Harden the loader so a saved `radiusKm` that doesn't match the current default still gets refreshed for users on the old key: when parsing saved filters, if `radiusKm` is missing or not a number, fall back to `DEFAULT_RADIUS_KM`. (Keeps user's `nearbyOnly` toggle state.)
 
-**Fix #1 (bug):** In `isWithinRadius`, when `nearbyOnly` is true and the item has no coordinates, return `false` (exclude) instead of `true`. Sessions without a known location should not pass a "near me" filter.
+That's the only change needed — every consumer already reads `filters.radiusKm` reactively, so the message, chips and filtering logic will all switch to 150 km together.
 
-**Fix #2 (scope):** Apply the same radius filter to `AllSessions.tsx` and `FollowingSessions.tsx` by:
-- Using `useCommunityContext()` to read `filters.nearbyOnly`, `isWithinRadius`, and `getDistanceKm`.
-- Mapping each session to its raw spot lat/lon (same pattern as Community.tsx).
-- Filtering with `isWithinRadius` when `nearbyOnly` is true.
-- The chip toggle stays on Community; these list pages just respect the persisted setting (no new UI needed). Optionally we can add a small badge "Filtro Vicino a te attivo" with a clear button — let me know if you want that.
+## Verification
 
-**Not changing:** Events and Courses pages. They use a separate data shape and are not session-based; leaving them out unless you want the same filter there.
-
-## Verification steps after fix
-
-1. Open Community with nearbyOnly off → see all sessions including ones >100 km away.
-2. Toggle "Vicino a te" → sessions >100 km and sessions with no spot location disappear.
-3. Tap "Vedi tutte" → AllSessions shows the same filtered set.
-4. Toggle off → all sessions reappear on both pages.
+1. Hard-reload `/community` with "Vicino a te" enabled → empty-state message reads "Nessuna sessione entro 150km…".
+2. The "Vicino a te · 150 km ✕" chip on `/sessions` and `/sessions/following` shows 150.
+3. Toggle the chip off then on → still 150, persisted across reloads under the `v5` key.
+4. `grep` confirms no remaining hardcoded `100` in the radius flow.
