@@ -23,7 +23,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { t } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, addWeeks, isWithinInterval } from "date-fns";
+import { applySessionFilters } from "@/lib/sessionFilters";
 
 const Community = () => {
   const navigate = useNavigate();
@@ -239,67 +239,7 @@ const Community = () => {
   const availableSessions = getFilteredSortedSessions(sessions, rawSessions);
   const availableFollowingSessions = getFilteredSortedSessions(followingSessions, rawFollowingSessions);
 
-  // Apply session filters
-  const applySessionFilters = (list: typeof availableSessions) => {
-    let result = list;
-
-    // Date filter
-    if (sessionFilters.dateRange !== "all") {
-      const now = new Date();
-      const today = startOfDay(now);
-      let from: Date | undefined;
-      let to: Date | undefined;
-
-      switch (sessionFilters.dateRange) {
-        case "today":
-          from = today;
-          to = endOfDay(now);
-          break;
-        case "tomorrow":
-          from = startOfDay(addDays(now, 1));
-          to = endOfDay(addDays(now, 1));
-          break;
-        case "thisWeek":
-          from = startOfWeek(now, { weekStartsOn: 1 });
-          to = endOfWeek(now, { weekStartsOn: 1 });
-          break;
-        case "nextWeek":
-          from = startOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
-          to = endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
-          break;
-        case "custom":
-          from = sessionFilters.customFrom ? startOfDay(sessionFilters.customFrom) : undefined;
-          to = sessionFilters.customTo ? endOfDay(sessionFilters.customTo) : undefined;
-          break;
-      }
-
-      if (from || to) {
-        result = result.filter((s) => {
-          const sDate = new Date(s.rawDateTime);
-          if (from && to) return isWithinInterval(sDate, { start: from, end: to });
-          if (from) return sDate >= from;
-          if (to) return sDate <= to;
-          return true;
-        });
-      }
-    }
-
-    // Spot filter
-    if (sessionFilters.spotName) {
-      result = result.filter((s) => s.spotName === sessionFilters.spotName);
-    }
-
-    // Paid filter
-    if (sessionFilters.paidFilter === "free") {
-      result = result.filter((s) => !s.isPaid);
-    } else if (sessionFilters.paidFilter === "paid") {
-      result = result.filter((s) => s.isPaid);
-    }
-
-    return result;
-  };
-
-  const filteredSessions = applySessionFilters(availableSessions);
+  const filteredSessions = applySessionFilters(availableSessions, sessionFilters);
 
   const myGroups = groups.filter(g => g.isMember);
   const availableGroups = groups.filter(g => !g.isMember && !g.isPending);
