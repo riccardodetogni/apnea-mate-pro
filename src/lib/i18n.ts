@@ -469,6 +469,8 @@ const translations = {
     filterTomorrow: "Domani",
     filterThisWeek: "Questa settimana",
     filterNextWeek: "Prossima settimana",
+    filterThisMonth: "Questo mese",
+    filterNextMonth: "Prossimo mese",
     filterCustomDate: "Personalizza",
     filterAllSpots: "Tutti gli spot",
     filterAllSessions: "Tutte",
