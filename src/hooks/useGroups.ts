@@ -239,6 +239,7 @@ export const useGroups = () => {
     isInstructorLed: group.creator_is_instructor || false,
     isVerified: (group as any).verified || false,
     groupType: (group as any).group_type || 'community',
+    avatarUrl: group.avatar_url ?? null,
   }));
 
   return {
