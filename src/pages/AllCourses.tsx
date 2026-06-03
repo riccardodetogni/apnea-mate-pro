@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CourseCard } from "@/components/community/CourseCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DateRangeChips, DateRange, isDateInRange } from "@/components/community/DateRangeChips";
 import { useCourses } from "@/hooks/useCourses";
 import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
 import { useProfile } from "@/hooks/useProfile";
@@ -15,6 +17,8 @@ const AllCourses = () => {
   const { canCreateEventsOrCourses } = useVerifiedGroups();
   const { isAdmin } = useProfile();
   const canCreateEvents = canCreateEventsOrCourses || isAdmin;
+  const [dateRange, setDateRange] = useState<DateRange>("all");
+  const filtered = courses.filter((c) => isDateInRange(c.start_date, dateRange));
 
   return (
     <AppLayout>
@@ -29,6 +33,8 @@ const AllCourses = () => {
         <h1 className="text-xl font-bold text-foreground">{t("availableCoursesSection")}</h1>
       </div>
 
+      <DateRangeChips value={dateRange} onChange={setDateRange} />
+
       <div className="flex flex-col gap-3 [&_.card-session]:!min-w-0 [&_.card-session]:!max-w-none [&_.card-session]:w-full">
         {loading ? (
           <>
@@ -36,8 +42,8 @@ const AllCourses = () => {
             <Skeleton className="h-[180px] rounded-2xl" />
             <Skeleton className="h-[180px] rounded-2xl" />
           </>
-        ) : courses.length > 0 ? (
-          courses.map((course) => (
+        ) : filtered.length > 0 ? (
+          filtered.map((course) => (
             <CourseCard
               key={course.id}
               course={course}
