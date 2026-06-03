@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { EventCard } from "@/components/community/EventCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DateRangeChips, DateRange, isDateInRange } from "@/components/community/DateRangeChips";
 import { useEvents } from "@/hooks/useEvents";
 import { useVerifiedGroups } from "@/hooks/useVerifiedGroups";
 import { useProfile } from "@/hooks/useProfile";
@@ -15,6 +17,8 @@ const AllEvents = () => {
   const { canCreateEventsOrCourses } = useVerifiedGroups();
   const { isAdmin } = useProfile();
   const canCreateEvents = canCreateEventsOrCourses || isAdmin;
+  const [dateRange, setDateRange] = useState<DateRange>("all");
+  const filtered = events.filter((e) => isDateInRange(e.start_date, dateRange));
 
   return (
     <AppLayout>
@@ -29,6 +33,8 @@ const AllEvents = () => {
         <h1 className="text-xl font-bold text-foreground">{t("upcomingEvents")}</h1>
       </div>
 
+      <DateRangeChips value={dateRange} onChange={setDateRange} />
+
       <div className="flex flex-col gap-3 [&_.card-session]:!min-w-0 [&_.card-session]:!max-w-none [&_.card-session]:w-full">
         {loading ? (
           <>
@@ -36,8 +42,8 @@ const AllEvents = () => {
             <Skeleton className="h-[180px] rounded-2xl" />
             <Skeleton className="h-[180px] rounded-2xl" />
           </>
-        ) : events.length > 0 ? (
-          events.map((event) => (
+        ) : filtered.length > 0 ? (
+          filtered.map((event) => (
             <EventCard
               key={event.id}
               event={event}

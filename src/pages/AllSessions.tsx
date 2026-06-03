@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { SessionCard } from "@/components/community/SessionCard";
 import { EmptyCard } from "@/components/community/EmptyCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SessionFilters, SessionFilterState, defaultSessionFilters } from "@/components/community/SessionFilters";
+import { applySessionFilters } from "@/lib/sessionFilters";
 import { useSessions } from "@/hooks/useSessions";
 import { t } from "@/lib/i18n";
 import { ArrowLeft } from "lucide-react";
@@ -10,6 +13,8 @@ import { ArrowLeft } from "lucide-react";
 const AllSessions = () => {
   const navigate = useNavigate();
   const { sessions, loading } = useSessions({ excludeJoined: false });
+  const [sessionFilters, setSessionFilters] = useState<SessionFilterState>(defaultSessionFilters);
+  const filtered = applySessionFilters(sessions, sessionFilters);
 
   return (
     <AppLayout>
@@ -24,6 +29,12 @@ const AllSessions = () => {
         <h1 className="text-xl font-bold text-foreground">{t("sessionsForYou")}</h1>
       </div>
 
+      <SessionFilters
+        sessions={sessions}
+        filters={sessionFilters}
+        onFiltersChange={setSessionFilters}
+      />
+
       <div className="flex flex-col gap-3 [&_.card-session]:!min-w-0 [&_.card-session]:!max-w-none [&_.card-session]:w-full">
         {loading ? (
           <>
@@ -32,8 +43,8 @@ const AllSessions = () => {
             <Skeleton className="h-[200px] rounded-2xl" />
             <Skeleton className="h-[200px] rounded-2xl" />
           </>
-        ) : sessions.length > 0 ? (
-          sessions.map((session) => (
+        ) : filtered.length > 0 ? (
+          filtered.map((session) => (
             <SessionCard
               key={session.id}
               {...session}
