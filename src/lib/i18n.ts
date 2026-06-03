@@ -1345,6 +1345,8 @@ const translations = {
     filterTomorrow: "Tomorrow",
     filterThisWeek: "This week",
     filterNextWeek: "Next week",
+    filterThisMonth: "This month",
+    filterNextMonth: "Next month",
     filterCustomDate: "Custom",
     filterAllSpots: "All spots",
     filterAllSessions: "All",
