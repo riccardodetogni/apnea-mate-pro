@@ -37,6 +37,7 @@ export interface GroupWithDetails {
   isInstructorLed: boolean;
   isVerified: boolean;
   groupType: string;
+  avatarUrl: string | null;
 }
 
 async function fetchGroupsData(userId: string | undefined) {
@@ -238,6 +239,7 @@ export const useGroups = () => {
     isInstructorLed: group.creator_is_instructor || false,
     isVerified: (group as any).verified || false,
     groupType: (group as any).group_type || 'community',
+    avatarUrl: group.avatar_url ?? null,
   }));
 
   return {

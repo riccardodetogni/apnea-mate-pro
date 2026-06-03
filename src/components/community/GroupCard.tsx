@@ -15,6 +15,7 @@ interface GroupCardProps {
   isVerified?: boolean;
   isInstructorLed?: boolean;
   groupType?: string;
+  avatarUrl?: string | null;
   onJoin?: () => void;
   onViewProfile?: () => void;
 }
@@ -31,6 +32,7 @@ export const GroupCard = ({
   isVerified = false,
   isInstructorLed = false,
   groupType = 'community',
+  avatarUrl,
   onJoin,
   onViewProfile,
 }: GroupCardProps) => {
@@ -78,7 +80,13 @@ export const GroupCard = ({
     >
       {/* Top - avatar and info */}
       <div className="flex items-center gap-2.5">
-        <div className="avatar-group">{initial}</div>
+        <div className="avatar-group overflow-hidden">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            initial
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <h3 className="text-[15px] font-semibold text-card-foreground truncate">{name}</h3>
