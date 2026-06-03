@@ -406,7 +406,7 @@ const Community = () => {
       <SectionHeader 
         title={t("sessionsForYou")}
         actionLabel={t("viewAll")}
-        onAction={() => navigate("/spots")}
+        onAction={() => navigate("/sessions")}
       />
       <SessionFilters
         sessions={availableSessions}
@@ -450,7 +450,7 @@ const Community = () => {
         <SectionHeader 
           title={t("fromPeopleYouFollow")} 
           actionLabel={t("viewAll")}
-          onAction={() => {}}
+          onAction={() => navigate("/sessions/following")}
         />
         <div className="scroll-row">
           {followingLoading ? (
@@ -484,7 +484,7 @@ const Community = () => {
         <SectionHeader 
           title={t("upcomingEvents")} 
           actionLabel={t("viewAll")}
-          onAction={() => {}}
+          onAction={() => navigate("/events")}
         />
         <div className="scroll-row">
           {eventsLoading ? (
@@ -515,7 +515,7 @@ const Community = () => {
         <SectionHeader 
           title={t("availableCoursesSection")} 
           actionLabel={t("viewAll")}
-          onAction={() => {}}
+          onAction={() => navigate("/courses")}
         />
         <div className="scroll-row">
           {coursesLoading ? (

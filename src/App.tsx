@@ -44,6 +44,10 @@ const EditEvent = lazy(() => import("./pages/EditEvent"));
 const EditCourse = lazy(() => import("./pages/EditCourse"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const AllSessions = lazy(() => import("./pages/AllSessions"));
+const FollowingSessions = lazy(() => import("./pages/FollowingSessions"));
+const AllEvents = lazy(() => import("./pages/AllEvents"));
+const AllCourses = lazy(() => import("./pages/AllCourses"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +93,10 @@ const App = () => (
                 <Route path="/create/session" element={<RequireAuth><CreateSession /></RequireAuth>} />
                 <Route path="/sessions/:id" element={<RequireAuth><SessionDetails /></RequireAuth>} />
                 <Route path="/sessions/:id/edit" element={<RequireAuth><EditSession /></RequireAuth>} />
+               <Route path="/sessions" element={<RequireAuth><AllSessions /></RequireAuth>} />
+               <Route path="/sessions/following" element={<RequireAuth><FollowingSessions /></RequireAuth>} />
+               <Route path="/events" element={<RequireAuth><AllEvents /></RequireAuth>} />
+               <Route path="/courses" element={<RequireAuth><AllCourses /></RequireAuth>} />
                 <Route path="/my-sessions" element={<RequireAuth><MySessions /></RequireAuth>} />
                 <Route path="/groups" element={<RequireAuth><Groups /></RequireAuth>} />
                 <Route path="/groups/:id" element={<RequireAuth><GroupDetails /></RequireAuth>} />
