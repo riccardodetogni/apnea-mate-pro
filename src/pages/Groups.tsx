@@ -123,6 +123,7 @@ const Groups = () => {
                 isVerified={group.isVerified}
                 isInstructorLed={group.isInstructorLed}
                 groupType={group.groupType}
+                avatarUrl={group.avatarUrl}
                 onJoin={!group.isMember && !group.isPending ? () => handleJoinGroup(group.id) : undefined}
                 onViewProfile={() => navigate(`/groups/${group.id}`)}
               />
