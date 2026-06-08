@@ -19,15 +19,13 @@ Deno.serve(async (req) => {
       throw new Error("Password must not contain single quote characters");
     }
 
+    // Escape single quotes for SQL string literal (defensive — we already rejected them above)
+    const escaped = password.replace(/'/g, "''");
     const client = new Client(dbUrl);
     await client.connect();
     try {
-      // ALTER ROLE does not support parameter binding, so we inject the literal via quote_literal
       await client.queryArray(
-        `DO $$ BEGIN
-           EXECUTE format('ALTER ROLE analytics_rw WITH LOGIN PASSWORD %L', $1);
-         END $$;`,
-        [password],
+        `ALTER ROLE analytics_rw WITH LOGIN PASSWORD '${escaped}'`,
       );
     } finally {
       await client.end();
