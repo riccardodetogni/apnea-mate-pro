@@ -1,57 +1,84 @@
-## Goal
+## Obiettivo
 
-Export production data as downloadable `.sql` files (one per table) ready to be imported into the staging DB. Anonymize emails for everyone except the 5 whitelisted UUIDs. Skip messaging, notifications, feedback, waitlist, and all email/suppression tables.
+Creare un utente Postgres dedicato (`analytics_rw`) da usare con un IDE esterno (DBeaver, TablePlus, ecc.) per:
+- Leggere tutti i dati di `public`
+- Eseguire `INSERT / UPDATE / DELETE` (datafix puntuali)
+- **NON** poter eseguire DDL: niente `CREATE / ALTER / DROP TABLE`, niente modifiche a funzioni, triggers, policies, ruoli, enum
 
-## Tables included (19)
+## Come funziona a livello Postgres
 
-`profiles`, `user_roles`, `certifications`, `spots`, `spot_favorites`, `groups`, `group_members`, `group_tags`, `sessions`, `session_participants`, `courses`, `course_participants`, `events`, `event_participants`, `event_schedule`, `follows`, `reviews`, `personal_bests`, `training_presets`.
+In Postgres i permessi DDL su una tabella appartengono SOLO al proprietario della tabella (o a un superuser). Quindi basta:
 
-## Tables excluded (per your request)
+1. Creare il ruolo `analytics_rw` con `LOGIN` + password, **senza** `SUPERUSER`, **senza** `CREATEDB`, **senza** `CREATEROLE`.
+2. Dargli `USAGE` sullo schema `public` (no `CREATE` → non può creare oggetti nello schema).
+3. Dargli `SELECT, INSERT, UPDATE, DELETE` su tutte le tabelle esistenti di `public`.
+4. Impostare i **default privileges** così che le tabelle future create dagli altri ruoli (es. dalle migrazioni Lovable) gli concedano automaticamente gli stessi DML.
+5. Concedere `USAGE` sulle sequence (necessario quando fa `INSERT` su tabelle con `serial`/`identity`) ma **non** `UPDATE` sulle sequence.
+6. Nessun grant su `auth`, `storage`, `vault`, `pgmq`, `realtime`, `supabase_functions` → quelle restano off-limits.
 
-`messages`, `conversations`, `conversation_participants`, `notifications`, `feedback`, `waitlist`, `email_send_log`, `email_send_state`, `email_unsubscribe_tokens`, `suppressed_emails`.
+Risultato: l'utente può leggere/modificare dati ovunque in `public`, ma se prova `ALTER TABLE` / `DROP TABLE` / `CREATE TABLE` Postgres risponde `permission denied`.
 
-## Email anonymization (only affects `profiles`)
+Nota importante su RLS: i grant a un ruolo non-bypass-RLS sono comunque filtrati dalle policy. Per un account "datafix" da IDE serve poter vedere/modificare TUTTI i record, quindi `analytics_rw` riceverà l'attributo `BYPASSRLS`. Questo non gli dà DDL — solo gli toglie il filtro RLS sulle righe.
 
-Whitelist (kept as-is):
-- `6049c4b1-0656-4fe5-ba41-f9ba84cb0247`
-- `06904323-1bf5-4a25-8223-8e86a4b951eb`
-- `3f5b72d1-48dd-44d9-bfa0-4765e0997631`
-- `3927f428-a5f1-4e4c-aca9-de3eb2824f27`
-- `da3a09f8-a983-4a46-92a5-bd0d484d7044`
+## Cosa farò in build mode
 
-(You wrote "4 UUIDs" but listed 5 — I'll treat all 5 as whitelist. Confirm if wrong.)
+1. **Migrazione SQL** che esegue tutto quanto sopra. La password verrà letta da un secret `ANALYTICS_RW_PASSWORD` con `current_setting`, così non finisce hard-coded nella migrazione.
+2. **Aggiunta del secret** `ANALYTICS_RW_PASSWORD` (te la chiederò io tramite il form sicuro — scegli tu il valore).
+3. Ti fornirò le **stringhe di connessione pronte** per DBeaver, sia Session Pooler (porta 6543) sia Direct (porta 5432), usando l'host del tuo progetto.
 
-Everyone else gets `user-<short_uuid>@staging.local`. The `name` / `last_name` fields are left untouched (you only asked about emails).
+## Dettagli tecnici della migrazione
 
-## Output format
+```sql
+-- 1. Ruolo
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'analytics_rw') THEN
+    EXECUTE format(
+      'CREATE ROLE analytics_rw LOGIN PASSWORD %L BYPASSRLS',
+      current_setting('app.analytics_rw_password')
+    );
+  END IF;
+END$$;
 
-- One file per table: `/mnt/documents/staging-seed/01_profiles.sql`, `02_user_roles.sql`, … numbered in FK-safe import order (profiles & user_roles first, then spots/groups, then sessions/courses/events, then participants/follows/reviews/etc.).
-- Each file: `TRUNCATE ... CASCADE;` (commented out by default) + `INSERT INTO ... VALUES (...), (...);` batches.
-- Plus a master `00_import_all.sql` that `\i`-includes them in order.
-- Bundled as a downloadable `.zip` artifact and individual `.sql` artifacts.
+-- 2. Schema
+GRANT USAGE ON SCHEMA public TO analytics_rw;
+-- NOTA: niente GRANT CREATE ON SCHEMA public
 
-## Important caveat (please read before I run this)
+-- 3. Tabelle esistenti
+GRANT SELECT, INSERT, UPDATE, DELETE
+  ON ALL TABLES IN SCHEMA public TO analytics_rw;
 
-`profiles.user_id`, `user_roles.user_id`, and every other `user_id` column reference `auth.users` rows that **do not exist on the staging DB**. Inserts will either:
+-- 4. Sequence (necessarie per INSERT con identity/serial)
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO analytics_rw;
 
-- **fail** if you keep the FK to `auth.users` (Supabase manages that schema, we can't insert there from a seed file), or
-- **succeed but orphan** — RLS policies using `auth.uid()` won't match any real session.
+-- 5. Default privileges per oggetti FUTURI creati da postgres / supabase_admin
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO analytics_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE ON SEQUENCES TO analytics_rw;
+```
 
-Two ways to handle it — tell me which you want:
+La password verrà iniettata via secret e poi `ALTER ROLE analytics_rw PASSWORD ...` se già esistente.
 
-1. **Skip auth-coupled data**: only export `spots`, `groups`, `group_tags` (the truly shareable reference data). Staging users sign up fresh.
-2. **Full export as planned**: I generate everything; on staging you'll need to either (a) recreate the same `auth.users` rows manually with the same UUIDs via the Supabase dashboard / admin API before importing, or (b) accept that the seeded profiles will be "ghost" rows without working logins.
+## Cosa NON farò
 
-Option 2 is what you asked for literally — just want to be sure you know the auth side won't magically follow.
+- Niente modifiche a schema `auth`, `storage`, `vault`, `pgmq`.
+- Niente cambi a policies o tabelle esistenti.
+- Niente creazione di nuove tabelle/funzioni applicative.
 
-## Technical details
+## Connessione da DBeaver (dopo la migrazione)
 
-- Use `supabase--read_query` to pull each table.
-- Python script writes properly escaped SQL (handles NULLs, JSONB, timestamps, numerics, UUIDs).
-- Output goes to `/mnt/documents/staging-seed/` and surfaces as `<presentation-artifact>` downloads.
+```
+Host:     aws-1-eu-west-1.pooler.supabase.com
+Porta:    6543               (Session Pooler — consigliata da IDE)
+Database: postgres
+User:     analytics_rw.vjvhaegbfjepysptcygz
+Password: <quella che mi darai nel secret>
+SSL:      require
+```
 
-## Confirm before I execute
+Per connessione diretta (no pooler) host = `db.vjvhaegbfjepysptcygz.supabase.co`, porta `5432`, user `analytics_rw`.
 
-1. Option 1 or Option 2 above?
-2. The 5-UUID whitelist is correct?
-3. OK to leave names/bios untouched, anonymize only emails?
+## Domanda prima di procedere
+
+Confermi che vuoi `BYPASSRLS` attivo (vedi/modifica TUTTE le righe ignorando le policy)? È la scelta giusta per "verifiche e datafix" da IDE, ma volevo essere esplicito perché significa che chiunque abbia quella password vede tutti i dati personali degli utenti — quindi va custodita come fosse la password admin.
