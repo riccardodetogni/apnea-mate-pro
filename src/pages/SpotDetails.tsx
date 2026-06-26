@@ -82,13 +82,9 @@ const SpotDetails = () => {
     setJoiningSessionId(pendingJoinSession.id);
     setSafetyModalOpen(false);
 
-    const { error: joinError } = await supabase
-      .from("session_participants")
-      .insert({
-        session_id: pendingJoinSession.id,
-        user_id: user.id,
-        status: "pending",
-      });
+    const { error: joinError } = await supabase.rpc("rejoin_session", {
+      _session_id: pendingJoinSession.id,
+    });
 
     if (joinError) {
       if (joinError.message?.includes("duplicate")) {

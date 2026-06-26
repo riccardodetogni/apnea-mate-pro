@@ -6,9 +6,11 @@ interface Member {
   user_id: string;
   profile: {
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
   } | null;
 }
+
 
 interface GroupMembersSectionProps {
   members: Member[];

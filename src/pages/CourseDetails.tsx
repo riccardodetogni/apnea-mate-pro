@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { t } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
+
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil, Check, X, MoreVertical, Trash2 } from "lucide-react";
@@ -39,7 +41,7 @@ const CourseDetails = () => {
   const [userStatus, setUserStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [participants, setParticipants] = useState<Array<{ id: string; user_id: string; status: string; profile: { name: string | null; avatar_url: string | null } | null }>>([]);
+  const [participants, setParticipants] = useState<Array<{ id: string; user_id: string; status: string; profile: { name: string | null; last_name: string | null; avatar_url: string | null } | null }>>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -57,10 +59,11 @@ const CourseDetails = () => {
       return;
     }
     const userIds = [...new Set(data.map((p) => p.user_id))];
-    const { data: profilesData } = await supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds);
-    const profileMap = new Map<string, { name: string | null; avatar_url: string | null }>();
-    profilesData?.forEach((p) => profileMap.set(p.user_id, { name: p.name, avatar_url: p.avatar_url }));
+    const { data: profilesData } = await supabase.from("profiles").select("user_id, name, last_name, avatar_url").in("user_id", userIds);
+    const profileMap = new Map<string, { name: string | null; last_name: string | null; avatar_url: string | null }>();
+    profilesData?.forEach((p) => profileMap.set(p.user_id, { name: p.name, last_name: p.last_name, avatar_url: p.avatar_url }));
     setParticipants(data.map((p) => ({ ...p, profile: profileMap.get(p.user_id) || null })));
+
   };
 
   useEffect(() => {
@@ -72,7 +75,7 @@ const CourseDetails = () => {
       setCourse(courseData);
 
       const [profileRes, participantsRes] = await Promise.all([
-        supabase.from("profiles").select("name, avatar_url").eq("user_id", courseData.creator_id).single(),
+        supabase.from("profiles").select("name, last_name, avatar_url").eq("user_id", courseData.creator_id).single(),
         supabase.from("course_participants").select("user_id, status").eq("course_id", id).in("status", ["pending", "confirmed"]),
       ]);
 
@@ -95,7 +98,7 @@ const CourseDetails = () => {
       return;
     }
     setJoining(true);
-    const { error } = await supabase.from("course_participants").insert({ course_id: id, user_id: user.id, status: "pending" });
+    const { error } = await supabase.rpc("rejoin_course", { _course_id: id });
     if (error) {
       if (error.message?.includes("course_full")) {
         toast({ title: t("courseFull"), description: t("courseFullDesc"), variant: "destructive" });
@@ -139,10 +142,21 @@ const CourseDetails = () => {
   const handleLeave = async () => {
     if (!user || !id) return;
     setJoining(true);
-    await supabase.from("course_participants").delete().eq("course_id", id).eq("user_id", user.id);
-    setUserStatus(null);
-    toast({ title: t("registrationCancelled") });
+    const { data, error } = await supabase
+      .from("course_participants")
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user.id })
+      .eq("course_id", id)
+      .eq("user_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .select("id");
     setJoining(false);
+    if (error || !data || data.length === 0) {
+      toast({ title: t("error"), description: error?.message || t("cannotCancelParticipation"), variant: "destructive" });
+      return;
+    }
+    setUserStatus(null);
+    setReservedCount(c => Math.max(0, c - 1));
+    toast({ title: t("registrationCancelled") });
   };
 
   const handleApprove = async (participantId: string, participantUserId: string) => {
@@ -180,7 +194,7 @@ const CourseDetails = () => {
   const handleReject = async (participantId: string, participantUserId: string) => {
     if (!id || !course) return;
     setActionLoading(participantId);
-    const { error } = await supabase.from("course_participants").delete().eq("id", participantId);
+    const { error } = await supabase.from("course_participants").update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user?.id ?? null }).eq("id", participantId);
     setActionLoading(null);
     if (error) {
       toast({ title: t("error"), description: t("cannotReject"), variant: "destructive" });
@@ -358,6 +372,18 @@ const CourseDetails = () => {
         )}
       </div>
 
+      {/* Cover image */}
+      {course.cover_image_url && (
+        <div className="mb-4 rounded-2xl overflow-hidden">
+          <img
+            src={course.cover_image_url}
+            alt={course.title}
+            className="w-full h-auto object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
+
       {/* Description */}
       {course.description && (
         <div className="mb-4">
@@ -388,7 +414,7 @@ const CourseDetails = () => {
               (creatorProfile?.name || "U").charAt(0).toUpperCase()
             )}
           </div>
-          <span className="font-medium text-foreground">{creatorProfile?.name || t("user")}</span>
+          <span className="font-medium text-foreground">{fullName(creatorProfile, t("user"))}</span>
         </button>
       </div>
 
@@ -414,7 +440,8 @@ const CourseDetails = () => {
                       </div>
                     )}
                     <span className="flex-1 text-sm text-card-foreground cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
-                      {p.profile?.name || t("user")}
+                      {fullName(p.profile, t("user"))}
+
                     </span>
                     <div className="flex gap-1">
                       <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/20" onClick={() => handleApprove(p.id, p.user_id)} disabled={!!actionLoading}>
@@ -449,7 +476,7 @@ const CourseDetails = () => {
                       </div>
                     )}
                     <span className="flex-1 text-sm text-card-foreground cursor-pointer" onClick={() => navigate(`/users/${p.user_id}`)}>
-                      {p.profile?.name || t("user")}
+                      {fullName(p.profile, t("user"))}
                     </span>
                     <Check className="w-4 h-4 text-success" />
                   </div>

@@ -26,8 +26,10 @@ export interface SpotSession {
   creator: {
     id: string;
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
   };
+
   myStatus: "none" | "pending" | "confirmed";
 }
 
@@ -91,7 +93,7 @@ export const useSpotDetails = (spotId: string | undefined) => {
           // Get creator profile
           const { data: profileData } = await supabase
             .from("profiles")
-            .select("user_id, name, avatar_url")
+            .select("user_id, name, last_name, avatar_url")
             .eq("user_id", session.creator_id)
             .single();
 
@@ -128,8 +130,10 @@ export const useSpotDetails = (spotId: string | undefined) => {
             creator: {
               id: profileData?.user_id || session.creator_id,
               name: profileData?.name || "Unknown",
+              last_name: profileData?.last_name ?? null,
               avatar_url: profileData?.avatar_url || null,
             },
+
             myStatus,
           };
         })

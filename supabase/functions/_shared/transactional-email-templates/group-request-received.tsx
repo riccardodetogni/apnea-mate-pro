@@ -3,8 +3,7 @@ import * as React from 'npm:react@18.3.1'
 import { Body, Button, Container, Head, Heading, Html, Img, Preview, Text } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_URL = 'https://apneamate.com'
-const LOGO = 'https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png'
+import { SITE_URL, LOGO_URL as LOGO, SUPPORT_EMAIL } from '../email-env.ts'
 const ICON_BUDDY = `${SITE_URL}/assets/icons/buddy.png`
 const ICON_SPOT = `${SITE_URL}/assets/icons/spot.png`
 const inlineIcon = { verticalAlign: 'middle' as const, marginRight: '6px', display: 'inline-block' as const }

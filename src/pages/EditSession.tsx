@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 
 const EditSession = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +49,7 @@ const EditSession = () => {
   const [submitting, setSubmitting] = useState(false);
   const [durationInput, setDurationInput] = useState("60");
   const [participantsInput, setParticipantsInput] = useState("6");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -79,6 +81,7 @@ const EditSession = () => {
       });
       setDurationInput(String(session.duration_minutes));
       setParticipantsInput(String(session.max_participants));
+      setCoverUrl((session as any).cover_image_url ?? null);
     }
   }, [session]);
 
@@ -168,6 +171,7 @@ const EditSession = () => {
           duration_minutes: form.duration_minutes,
           max_participants: form.max_participants,
           is_paid: isInstructor ? form.is_paid : false,
+          cover_image_url: coverUrl,
         })
         .eq("id", id);
 
@@ -249,6 +253,15 @@ const EditSession = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Cover image */}
+          {user && (
+            <CoverImageUpload
+              currentUrl={coverUrl}
+              uploadPath={user.id}
+              entity="session"
+              onChange={setCoverUrl}
+            />
+          )}
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">{t("titleRequired")}</Label>

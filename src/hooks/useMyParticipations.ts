@@ -23,7 +23,9 @@ export interface MyParticipation {
     } | null;
     creator?: {
       name: string;
+      last_name: string | null;
     } | null;
+
   };
   confirmed_count?: number;
 }
@@ -104,18 +106,19 @@ async function fetchParticipationsData(userId: string): Promise<ParticipationsDa
   }
 
   const creatorIds = [...new Set(data?.map(p => (p.session as any)?.creator_id).filter(Boolean) || [])];
-  let creatorProfiles: Record<string, { name: string }> = {};
+  let creatorProfiles: Record<string, { name: string; last_name: string | null }> = {};
 
   if (creatorIds.length > 0) {
     const { data: profilesData } = await supabase
       .from("profiles")
-      .select("user_id, name")
+      .select("user_id, name, last_name")
       .in("user_id", creatorIds);
 
     if (profilesData) {
-      profilesData.forEach(p => { creatorProfiles[p.user_id] = { name: p.name }; });
+      profilesData.forEach(p => { creatorProfiles[p.user_id] = { name: p.name, last_name: p.last_name }; });
     }
   }
+
 
   const participations = (data || []).map(p => {
     const session = p.session as any;
@@ -169,11 +172,16 @@ export const useMyParticipations = () => {
 
   const cancelParticipation = async (participationId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("session_participants")
-      .delete()
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user.id })
       .eq("id", participationId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .select("id");
+    if (!error && (!data || data.length === 0)) {
+      return { error: new Error("No active participation to cancel") };
+    }
     return { error };
   };
 

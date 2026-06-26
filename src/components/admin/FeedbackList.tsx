@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Trash2, MessageSquare } from "lucide-react";
 import { useAllFeedback, useUpdateFeedback, useDeleteFeedback, FeedbackStatus, FeedbackCategory } from "@/hooks/useFeedback";
 import { t } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
+
 import { toast } from "@/hooks/use-toast";
 
 const statusLabel = (s: FeedbackStatus) =>
@@ -56,7 +58,7 @@ export const FeedbackList = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Link to={`/users/${f.user_id}`} className="font-medium text-card-foreground truncate hover:underline">
-                    {f.profile?.name || "Unknown"}
+                    {fullName(f.profile, "Unknown")}
                   </Link>
                   <Badge variant="outline" className="text-[10px]">{categoryLabel(f.category)}</Badge>
                 </div>

@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunityContext } from "@/hooks/useCommunityContext";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
+
 import { createNotification } from "@/lib/notifications";
 import { getOrCreateSessionConversation } from "@/hooks/useConversations";
 import { Button } from "@/components/ui/button";
@@ -167,24 +169,14 @@ const SessionDetails = () => {
     setJoining(true);
     setSafetyModalOpen(false);
 
-    const { error } = await supabase
-      .from("session_participants")
-      .insert({
-        session_id: session.id,
-        user_id: user.id,
-        status: "pending",
-      });
+    const { error } = await supabase.rpc("rejoin_session", {
+      _session_id: session.id,
+    });
 
     setJoining(false);
 
     if (error) {
-      if (error.message?.includes("duplicate")) {
-        toast({
-          title: t("alreadyRequested"),
-          description: t("alreadyRequestedDesc"),
-          variant: "destructive",
-        });
-      } else if (error.message?.includes("session_full")) {
+      if (error.message?.includes("session_full")) {
         toast({
           title: t("sessionFull"),
           description: t("sessionFullDesc"),
@@ -361,15 +353,18 @@ const SessionDetails = () => {
     if (!session?.myParticipation || !user) return;
 
     setActionLoading("leave");
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("session_participants")
-      .delete()
-      .eq("id", session.myParticipation.id);
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user.id })
+      .eq("id", session.myParticipation.id)
+      .eq("user_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .select("id");
 
     setActionLoading(null);
 
-    if (error) {
-      toast({ title: t("error"), description: t("cannotCancelParticipation"), variant: "destructive" });
+    if (error || !data || data.length === 0) {
+      toast({ title: t("error"), description: error?.message || t("cannotCancelParticipation"), variant: "destructive" });
     } else {
       toast({ title: t("participationCancelled"), description: t("participationCancelledDesc") });
       await refetch();
@@ -529,6 +524,18 @@ const SessionDetails = () => {
           </div>
         </div>
 
+        {/* Cover image */}
+        {((session as any).cover_image_url || session.spot?.cover_image_url) && (
+          <div className="mb-4 rounded-2xl overflow-hidden">
+            <img
+              src={(session as any).cover_image_url || session.spot?.cover_image_url}
+              alt={session.title}
+              className="w-full h-auto object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+
         {/* Chat button for confirmed participants only */}
         {(session.isCreator || (session.myParticipation?.status === 'confirmed')) && (
           <Button
@@ -563,7 +570,7 @@ const SessionDetails = () => {
             </div>
           )}
           <div className="flex-1">
-            <p className="font-medium text-card-foreground">{session.creator?.name || "Organizzatore"}</p>
+            <p className="font-medium text-card-foreground">{fullName(session.creator, "Organizzatore")}</p>
             <p className="text-sm text-[hsl(var(--card-muted))] flex items-center gap-1">
               {session.creatorRole === "instructor" && (
                 <>
@@ -648,7 +655,8 @@ const SessionDetails = () => {
                         className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
-                        {p.profile?.name || t("user")}
+                        {fullName(p.profile, t("user"))}
+
                       </span>
                       <div className="flex gap-1">
                         <Button
@@ -713,7 +721,7 @@ const SessionDetails = () => {
                         className="flex-1 text-sm text-card-foreground cursor-pointer hover:text-primary transition-colors"
                         onClick={() => navigate(`/users/${p.user_id}`, { state: { from: `/sessions/${id}` } })}
                       >
-                        {p.profile?.name || t("user")}
+                        {fullName(p.profile, t("user"))}
                       </span>
                       <Check className="w-4 h-4 text-success" />
                     </div>

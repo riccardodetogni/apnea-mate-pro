@@ -17,8 +17,9 @@ export interface Feedback {
 }
 
 export interface FeedbackWithProfile extends Feedback {
-  profile?: { name: string; avatar_url: string | null; email: string } | null;
+  profile?: { name: string; last_name: string | null; avatar_url: string | null; email: string } | null;
 }
+
 
 export const useMyFeedback = () => {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ export const useAllFeedback = (enabled: boolean) => {
       if (ids.length === 0) return [] as FeedbackWithProfile[];
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, name, avatar_url, email")
+        .select("user_id, name, last_name, avatar_url, email")
         .in("user_id", ids);
       const map = new Map((profiles || []).map((p: any) => [p.user_id, p]));
       const enriched: FeedbackWithProfile[] = rows.map((r) => ({

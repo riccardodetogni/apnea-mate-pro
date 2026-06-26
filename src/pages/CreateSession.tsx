@@ -37,6 +37,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import BatchDatePicker, { type SelectedDate } from "@/components/sessions/BatchDatePicker";
+import { CoverImageUpload } from "@/components/ui/CoverImageUpload";
 
 // Map environment_type to session_type
 const environmentToSessionType: Record<string, string> = {
@@ -64,6 +65,7 @@ const CreateSession = () => {
   const [selectedDates, setSelectedDates] = useState<SelectedDate[]>([]);
   const [durationInput, setDurationInput] = useState("60");
   const [participantsInput, setParticipantsInput] = useState("6");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -197,6 +199,7 @@ const CreateSession = () => {
               creator_id: user.id,
               is_public: isPublic,
               is_paid: isInstructor ? form.is_paid : false,
+              cover_image_url: coverUrl,
               status: "active",
             })
             .select("id")
@@ -285,6 +288,15 @@ const CreateSession = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Cover image */}
+            {user && (
+              <CoverImageUpload
+                currentUrl={coverUrl}
+                uploadPath={user.id}
+                entity="session"
+                onChange={setCoverUrl}
+              />
+            )}
             {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">{t("titleRequired")}</Label>

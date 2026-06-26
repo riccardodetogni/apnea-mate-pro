@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import RequireAuth from "./components/auth/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
+import EnvBadge from "./components/dev/EnvBadge";
 
 // Lazy-loaded pages
 const Auth = lazy(() => import("./pages/Auth"));
@@ -73,6 +74,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <EnvBadge />
           <BrowserRouter>
             <ErrorBoundary>
               <Suspense fallback={<PageSpinner />}>

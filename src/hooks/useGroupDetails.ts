@@ -10,8 +10,10 @@ export interface GroupMember {
   joined_at: string;
   profile: {
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
   } | null;
+
 }
 
 export interface GroupSession {
@@ -94,7 +96,7 @@ export const useGroupDetails = (groupId: string | undefined) => {
         const userIds = membersData.map(m => m.user_id);
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("user_id, name, avatar_url")
+          .select("user_id, name, last_name, avatar_url")
           .in("user_id", userIds);
 
         const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);

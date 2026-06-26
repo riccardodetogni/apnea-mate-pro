@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { fullName } from "@/lib/format";
+
 
 export interface EventWithDetails {
   id: string;
@@ -58,7 +60,7 @@ async function fetchEvents(userId: string | undefined, groupId?: string) {
   const groupIds = [...new Set(events.map(e => e.group_id).filter((g): g is string => !!g))];
 
   const [profilesRes, rolesRes, participantsRes, groupsRes] = await Promise.all([
-    supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", creatorIds),
+    supabase.from("profiles").select("user_id, name, last_name, avatar_url").in("user_id", creatorIds),
     supabase.from("user_roles").select("user_id, role").in("user_id", creatorIds),
     supabase.from("event_participants").select("event_id, user_id, status").in("event_id", eventIds).in("status", ["pending", "confirmed"]),
     groupIds.length > 0
@@ -66,8 +68,9 @@ async function fetchEvents(userId: string | undefined, groupId?: string) {
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
-  const profiles: Record<string, { name: string; avatar_url: string | null }> = {};
+  const profiles: Record<string, { name: string; last_name: string | null; avatar_url: string | null }> = {};
   profilesRes.data?.forEach(p => { profiles[p.user_id] = p; });
+
 
   const instructors = new Set<string>();
   rolesRes.data?.forEach(r => { if (r.role === "instructor" || r.role === "admin") instructors.add(r.user_id); });
@@ -110,7 +113,7 @@ async function fetchEvents(userId: string | undefined, groupId?: string) {
       contact_phone: e.contact_phone,
       contact_url: e.contact_url,
       created_at: e.created_at,
-      creator_name: profiles[e.creator_id]?.name || "Utente",
+      creator_name: fullName(profiles[e.creator_id], "Utente"),
       creator_avatar: profiles[e.creator_id]?.avatar_url || null,
       creator_is_instructor: instructors.has(e.creator_id),
       participant_count: counts[e.id] || 0,
@@ -148,19 +151,22 @@ export const useEvents = (groupId?: string) => {
 
   const joinEvent = async (eventId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
-      .from("event_participants")
-      .insert({ event_id: eventId, user_id: user.id, status: "pending" });
+    const { error } = await supabase.rpc("rejoin_event", { _event_id: eventId });
     return { error };
   };
 
   const leaveEvent = async (eventId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("event_participants")
-      .delete()
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user.id })
       .eq("event_id", eventId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .select("id");
+    if (!error && (!data || data.length === 0)) {
+      return { error: new Error("No active participation to cancel") };
+    }
     return { error };
   };
 

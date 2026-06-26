@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { fullName } from "@/lib/format";
+
 
 export interface CourseWithDetails {
   id: string;
@@ -57,7 +59,7 @@ async function fetchCourses(userId: string | undefined, groupId?: string) {
   const groupIds = [...new Set(courses.map(c => c.group_id).filter((g): g is string => !!g))];
 
   const [profilesRes, rolesRes, participantsRes, groupsRes] = await Promise.all([
-    supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", creatorIds),
+    supabase.from("profiles").select("user_id, name, last_name, avatar_url").in("user_id", creatorIds),
     supabase.from("user_roles").select("user_id, role").in("user_id", creatorIds),
     supabase.from("course_participants").select("course_id, user_id, status").in("course_id", courseIds).in("status", ["pending", "confirmed"]),
     groupIds.length > 0
@@ -65,8 +67,9 @@ async function fetchCourses(userId: string | undefined, groupId?: string) {
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
-  const profiles: Record<string, { name: string; avatar_url: string | null }> = {};
+  const profiles: Record<string, { name: string; last_name: string | null; avatar_url: string | null }> = {};
   profilesRes.data?.forEach(p => { profiles[p.user_id] = p; });
+
 
   const instructors = new Set<string>();
   rolesRes.data?.forEach(r => { if (r.role === "instructor" || r.role === "admin") instructors.add(r.user_id); });
@@ -104,7 +107,7 @@ async function fetchCourses(userId: string | undefined, groupId?: string) {
     contact_phone: c.contact_phone,
     contact_url: c.contact_url,
     created_at: c.created_at,
-    creator_name: profiles[c.creator_id]?.name || "Utente",
+    creator_name: fullName(profiles[c.creator_id], "Utente"),
     creator_avatar: profiles[c.creator_id]?.avatar_url || null,
     creator_is_instructor: instructors.has(c.creator_id),
     participant_count: counts[c.id] || 0,
@@ -140,19 +143,22 @@ export const useCourses = (groupId?: string) => {
 
   const joinCourse = async (courseId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
-      .from("course_participants")
-      .insert({ course_id: courseId, user_id: user.id, status: "pending" });
+    const { error } = await supabase.rpc("rejoin_course", { _course_id: courseId });
     return { error };
   };
 
   const leaveCourse = async (courseId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("course_participants")
-      .delete()
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user.id })
       .eq("course_id", courseId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .select("id");
+    if (!error && (!data || data.length === 0)) {
+      return { error: new Error("No active participation to cancel") };
+    }
     return { error };
   };
 

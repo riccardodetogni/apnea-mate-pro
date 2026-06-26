@@ -18,6 +18,7 @@ import { ReviewCard } from "@/components/reviews/ReviewCard";
 
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
+import { fullName } from "@/lib/format";
 import { 
   Settings, 
   LogOut, 
@@ -153,9 +154,9 @@ const Profile = () => {
           {/* Tappable Name */}
           <button
             onClick={() => setEditField("name")}
-            className="inline-flex items-center gap-1.5 group"
+            className="inline-flex items-center gap-1.5 group mx-auto"
           >
-            <h2 className="text-xl font-bold text-card-foreground">{profile.name}</h2>
+            <h2 className="text-xl font-bold text-card-foreground">{fullName(profile, profile.name)}</h2>
             <Pencil className="w-3.5 h-3.5 text-[hsl(var(--card-muted))] opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
           

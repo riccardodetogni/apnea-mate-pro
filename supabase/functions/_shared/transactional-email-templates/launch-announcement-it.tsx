@@ -13,7 +13,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_URL = 'https://apneamate.com'
+import { SITE_URL, LOGO_URL, SUPPORT_EMAIL } from '../email-env.ts'
 
 const LaunchAnnouncementIt = () => (
   <Html lang="it" dir="ltr">
@@ -22,7 +22,7 @@ const LaunchAnnouncementIt = () => (
     <Body style={main}>
       <Container style={container}>
         <Img
-          src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png"
+          src={LOGO_URL}
           alt="Apnea Mate"
           width="180"
           style={logo}

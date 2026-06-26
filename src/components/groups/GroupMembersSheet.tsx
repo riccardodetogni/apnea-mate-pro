@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { t } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
 import { Search, Crown, Shield, User } from "lucide-react";
 
 interface Member {
@@ -12,9 +13,11 @@ interface Member {
   role: string;
   profile: {
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
   } | null;
 }
+
 
 interface GroupMembersSheetProps {
   open: boolean;
@@ -50,8 +53,9 @@ export const GroupMembersSheet = ({
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((m) =>
-        m.profile?.name.toLowerCase().includes(query)
+        fullName(m.profile).toLowerCase().includes(query)
       );
+
     }
 
     // Sort: owners first, then admins, then members
@@ -131,8 +135,9 @@ export const GroupMembersSheet = ({
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-card-foreground truncate">
-                      {member.profile?.name || "Unknown"}
+                      {fullName(member.profile, "Unknown")}
                     </p>
+
                   </div>
 
                   {/* Role badge */}

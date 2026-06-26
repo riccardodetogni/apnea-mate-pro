@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { createNotification } from "@/lib/notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { t } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
+
 import { 
   ArrowLeft, 
   Loader2, 
@@ -324,7 +326,8 @@ const GroupManage = () => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-card-foreground truncate">
-              {member.profile?.name || t("user")}
+              {fullName(member.profile, t("user"))}
+
             </span>
             {getRoleIcon(member.role)}
           </div>
@@ -394,7 +397,7 @@ const GroupManage = () => {
         
         <div className="flex-1 min-w-0">
           <span className="font-medium text-card-foreground truncate block">
-            {member.profile?.name || t("user")}
+            {fullName(member.profile, t("user"))}
           </span>
           <span className="text-xs text-white/55">{t("pendingRequest")}</span>
         </div>

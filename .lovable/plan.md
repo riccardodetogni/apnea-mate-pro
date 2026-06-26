@@ -1,84 +1,44 @@
-## Obiettivo
+## Audit result
 
-Creare un utente Postgres dedicato (`analytics_rw`) da usare con un IDE esterno (DBeaver, TablePlus, ecc.) per:
-- Leggere tutti i dati di `public`
-- Eseguire `INSERT / UPDATE / DELETE` (datafix puntuali)
-- **NON** poter eseguire DDL: niente `CREATE / ALTER / DROP TABLE`, niente modifiche a funzioni, triggers, policies, ruoli, enum
+The DB-level fix from the recent migration (`cancelled_at`, soft-cancel UPDATE policy, `rejoin_session/event/course` RPCs, capacity triggers that ignore `status = cancelled`) was applied uniformly to **all three** tables — sessions, events, courses. No DB work is needed.
 
-## Come funziona a livello Postgres
+On the **client side**, however, the join flow was only fully migrated for events and courses. One session path was missed:
 
-In Postgres i permessi DDL su una tabella appartengono SOLO al proprietario della tabella (o a un superuser). Quindi basta:
+| Surface | Join path | Uses RPC? | Notes |
+|---|---|---|---|
+| `EventDetails.handleJoin` | `rpc("rejoin_event")` | ✅ | Fixed |
+| `CourseDetails.handleJoin` | `rpc("rejoin_course")` | ✅ | Fixed |
+| `SpotDetails.confirmJoin` (inline session join) | `rpc("rejoin_session")` | ✅ | Fixed |
+| `useSessions.joinSession` (session list) | `rpc("rejoin_session")` | ✅ | Fixed |
+| **`SessionDetails.handleJoinRequest`** | **raw `.insert(...)` on `session_participants`** | ❌ | **Broken — fails to rejoin after a previous cancellation with a duplicate-key error** |
 
-1. Creare il ruolo `analytics_rw` con `LOGIN` + password, **senza** `SUPERUSER`, **senza** `CREATEDB`, **senza** `CREATEROLE`.
-2. Dargli `USAGE` sullo schema `public` (no `CREATE` → non può creare oggetti nello schema).
-3. Dargli `SELECT, INSERT, UPDATE, DELETE` su tutte le tabelle esistenti di `public`.
-4. Impostare i **default privileges** così che le tabelle future create dagli altri ruoli (es. dalle migrazioni Lovable) gli concedano automaticamente gli stessi DML.
-5. Concedere `USAGE` sulle sequence (necessario quando fa `INSERT` su tabelle con `serial`/`identity`) ma **non** `UPDATE` sulle sequence.
-6. Nessun grant su `auth`, `storage`, `vault`, `pgmq`, `realtime`, `supabase_functions` → quelle restano off-limits.
+`handleLeave`, `handleReject`, `approveParticipant`, and `rejectParticipant` on the session side already do soft-cancel UPDATEs with `cancelled_at` / `cancelled_by`, matching events/courses. Those don't need changes.
 
-Risultato: l'utente può leggere/modificare dati ovunque in `public`, ma se prova `ALTER TABLE` / `DROP TABLE` / `CREATE TABLE` Postgres risponde `permission denied`.
+## Fix (single file)
 
-Nota importante su RLS: i grant a un ruolo non-bypass-RLS sono comunque filtrati dalle policy. Per un account "datafix" da IDE serve poter vedere/modificare TUTTI i record, quindi `analytics_rw` riceverà l'attributo `BYPASSRLS`. Questo non gli dà DDL — solo gli toglie il filtro RLS sulle righe.
+### `src/pages/SessionDetails.tsx` — `handleJoinRequest`
 
-## Cosa farò in build mode
+Replace the raw INSERT block (around lines 172–201) with the same `rpc("rejoin_session", { _session_id: session.id })` pattern used by `EventDetails.handleJoin`:
 
-1. **Migrazione SQL** che esegue tutto quanto sopra. La password verrà letta da un secret `ANALYTICS_RW_PASSWORD` con `current_setting`, così non finisce hard-coded nella migrazione.
-2. **Aggiunta del secret** `ANALYTICS_RW_PASSWORD` (te la chiederò io tramite il form sicuro — scegli tu il valore).
-3. Ti fornirò le **stringhe di connessione pronte** per DBeaver, sia Session Pooler (porta 6543) sia Direct (porta 5432), usando l'host del tuo progetto.
+- Call `supabase.rpc("rejoin_session", { _session_id: session.id })` instead of `.insert(...)`.
+- Keep the existing pre-flight `reserved >= max_participants` check (consistent with EventDetails) and the post-success branches (creator auto-confirm, notification, edge function invoke).
+- Drop the obsolete `error.message.includes("duplicate")` branch — `rejoin_session` uses `INSERT ... ON CONFLICT` and never surfaces a duplicate error. Keep `session_full` and generic error branches.
+- No type or signature changes; `useSessionDetails` already has `cancelled` in the status union and tracks soft cancellations correctly.
 
-## Dettagli tecnici della migrazione
+## Out of scope
 
-```sql
--- 1. Ruolo
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'analytics_rw') THEN
-    EXECUTE format(
-      'CREATE ROLE analytics_rw LOGIN PASSWORD %L BYPASSRLS',
-      current_setting('app.analytics_rw_password')
-    );
-  END IF;
-END$$;
+- No DB migration. Schema, triggers, RLS, and the `rejoin_session` RPC are already in place on staging and prod.
+- No changes to leave / reject / approve flows — already on the soft-cancel pattern.
+- No notification copy or i18n changes.
 
--- 2. Schema
-GRANT USAGE ON SCHEMA public TO analytics_rw;
--- NOTA: niente GRANT CREATE ON SCHEMA public
+## Backcompat / prod port
 
--- 3. Tabelle esistenti
-GRANT SELECT, INSERT, UPDATE, DELETE
-  ON ALL TABLES IN SCHEMA public TO analytics_rw;
+- Pure frontend, single-file change. Safe to cherry-pick to the prod repo.
+- The `rejoin_session` RPC and supporting columns are already present in prod from the earlier promoted migration, so the new client code works against current prod without a schema change.
 
--- 4. Sequence (necessarie per INSERT con identity/serial)
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO analytics_rw;
+## Test checklist after build mode
 
--- 5. Default privileges per oggetti FUTURI creati da postgres / supabase_admin
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO analytics_rw;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-  GRANT USAGE ON SEQUENCES TO analytics_rw;
-```
-
-La password verrà iniettata via secret e poi `ALTER ROLE analytics_rw PASSWORD ...` se già esistente.
-
-## Cosa NON farò
-
-- Niente modifiche a schema `auth`, `storage`, `vault`, `pgmq`.
-- Niente cambi a policies o tabelle esistenti.
-- Niente creazione di nuove tabelle/funzioni applicative.
-
-## Connessione da DBeaver (dopo la migrazione)
-
-```
-Host:     aws-1-eu-west-1.pooler.supabase.com
-Porta:    6543               (Session Pooler — consigliata da IDE)
-Database: postgres
-User:     analytics_rw.vjvhaegbfjepysptcygz
-Password: <quella che mi darai nel secret>
-SSL:      require
-```
-
-Per connessione diretta (no pooler) host = `db.vjvhaegbfjepysptcygz.supabase.co`, porta `5432`, user `analytics_rw`.
-
-## Domanda prima di procedere
-
-Confermi che vuoi `BYPASSRLS` attivo (vedi/modifica TUTTE le righe ignorando le policy)? È la scelta giusta per "verifiche e datafix" da IDE, ma volevo essere esplicito perché significa che chiunque abbia quella password vede tutti i dati personali degli utenti — quindi va custodita come fosse la password admin.
+1. Join a session → leave it → try to join again. Should succeed and end as `pending` (today this fails with a duplicate-key toast).
+2. Have the organizer reject your request → try to join again. Should succeed.
+3. Fill a session to capacity → attempt to join → expect `sessionFull` toast.
+4. Creator joining own session → still auto-confirms.

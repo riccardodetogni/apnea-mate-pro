@@ -259,6 +259,33 @@
     background: rgba(255, 255, 255, 0.10);
     color: rgba(255, 255, 255, 0.70);
   }
+
+  /* Solid chips - used when a cover image is present so labels stay readable */
+  .chip-solid {
+    @apply rounded-full py-0.5 px-2 text-xs whitespace-nowrap inline-flex items-center gap-1;
+    background: rgba(15, 23, 42, 0.78);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .chip-solid-accent {
+    @apply rounded-full py-1 px-2.5 text-xs whitespace-nowrap inline-flex items-center gap-1 font-medium text-white;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  /* When a cover image is mounted, suppress the decorative radial blobs so the photo reads cleanly */
+  .card-session.has-cover::before,
+  .card-session.has-cover::after {
+    display: none;
+  }
+  .card-session.has-cover {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .cover-text-shadow {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  }
   
   /* Avatar styles - gradient */
   .avatar-user {

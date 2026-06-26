@@ -9,7 +9,7 @@ import { useConversations } from "@/hooks/useConversations";
 const ChatThread = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { messages, loading, sendMessage, markAsRead } = useChat(id);
+  const { messages, loading, sendMessage, editMessage, deleteMessage, markAsRead } = useChat(id);
   const { conversations } = useConversations();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +74,15 @@ const ChatThread = () => {
           messages.map((msg, i) => {
             const prevMsg = messages[i - 1];
             const showSender = !msg.is_mine && (!prevMsg || prevMsg.sender_id !== msg.sender_id);
-            return <ChatBubble key={msg.id} message={msg} showSender={showSender} />;
+            return (
+              <ChatBubble
+                key={msg.id}
+                message={msg}
+                showSender={showSender}
+                onEdit={editMessage}
+                onDelete={deleteMessage}
+              />
+            );
           })
         )}
         <div ref={bottomRef} />

@@ -1,6 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
+import { LOGO_URL } from '../email-env.ts'
 
 import {
   Body,
@@ -33,7 +34,7 @@ export const EmailChangeEmail = ({
     <Preview>Conferma il cambio email per Apnea Mate</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style={logo} />
+        <Img src={LOGO_URL} alt="Apnea Mate" width="180" style={logo} />
         <Heading style={h1}>Conferma il cambio email</Heading>
         <Text style={text}>
           Hai richiesto di cambiare il tuo indirizzo email per Apnea Mate da{' '}

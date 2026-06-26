@@ -143,7 +143,7 @@ const UserProfile = () => {
             )}
           </div>
           
-          <h2 className="text-xl font-bold text-card-foreground">{profile.name}</h2>
+          <h2 className="text-xl font-bold text-card-foreground">{[profile.name, profile.last_name].filter(Boolean).join(" ")}</h2>
           
           {profile.location && (
             <p className="text-sm text-[hsl(var(--card-muted))] flex items-center justify-center gap-1 mt-1">

@@ -25,6 +25,7 @@ interface SessionCardProps {
   onJoin?: () => void;
   onDetails?: () => void;
   onClick?: () => void;
+  coverImageUrl?: string | null;
 }
 
 const levelLabels = {
@@ -57,6 +58,7 @@ export const SessionCard = ({
   onJoin,
   onDetails,
   onClick,
+  coverImageUrl,
 }: SessionCardProps) => {
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't trigger card click if clicking on button
@@ -107,31 +109,58 @@ export const SessionCard = ({
     return "pill" as const;
   };
 
+  const hasCover = !!coverImageUrl;
+  const chipClass = hasCover ? "chip-solid" : "chip-session";
+  const softText = hasCover ? "text-white/85 cover-text-shadow" : "text-white/55";
+  const titleText = hasCover ? "text-white cover-text-shadow" : "text-card-foreground";
+  const nameText = hasCover ? "text-white cover-text-shadow" : "text-card-foreground";
+
   return (
     <div 
-      className="card-session min-w-[260px] animate-fade-in cursor-pointer transition-all hover:scale-[1.02]"
+      className={`card-session min-w-[260px] animate-fade-in cursor-pointer transition-all hover:scale-[1.02] ${hasCover ? "has-cover min-h-[210px]" : ""}`}
       onClick={handleCardClick}
     >
+      {hasCover && (
+        <>
+          <div
+            aria-hidden
+            className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none brightness-[0.85] saturate-[0.9]"
+            style={{ backgroundImage: `url(${coverImageUrl})` }}
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-[40%] z-0 bg-gradient-to-b from-black/55 via-black/15 to-transparent pointer-events-none"
+          />
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-[70%] z-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent pointer-events-none"
+          />
+        </>
+      )}
       {/* Top section - tags and meta */}
       <div className="flex flex-col gap-0.5 text-xs">
         <div className="flex gap-1.5 flex-wrap">
-          <span className="chip-session">{spotName} · {environmentType}</span>
-          <span className="chip-session">{sessionType}</span>
+          <span className={chipClass}>{spotName} · {environmentType}</span>
+          <span className={hasCover ? "chip-solid-accent bg-primary" : "chip-session"}>{sessionType}</span>
         </div>
-        <div className="text-xs text-white/55 mt-1">{dateTime}</div>
+        <div className={`text-xs mt-1 ${softText}`}>{dateTime}</div>
       </div>
 
       {/* Title */}
-      <h3 className="text-base font-semibold text-card-foreground">{title}</h3>
+      <h3 className={`text-base font-semibold ${titleText}`}>
+        {hasCover ? (
+          <span className="bg-black/55 box-decoration-clone px-1.5 py-0.5 rounded-md">{title}</span>
+        ) : title}
+      </h3>
 
       {/* Badges */}
       <div className="flex gap-1.5 flex-wrap mt-0.5">
-        <span className="badge-level">{t(levelLabels[level])}</span>
-        <span className={`badge-spots ${isFull ? "!bg-destructive/15 !text-destructive" : ""}`}>
+        <span className={hasCover ? "chip-solid" : "badge-level"}>{t(levelLabels[level])}</span>
+        <span className={`${hasCover ? "chip-solid" : "badge-spots"} ${isFull ? "!bg-destructive !text-destructive-foreground" : ""}`}>
           {isFull ? t("fullShort") : `${spotsAvailable} ${t("spotsFree")}`}
         </span>
         {isPaid && (
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400">
+          <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${hasCover ? "bg-amber-500 text-white" : "bg-amber-500/15 text-amber-400"}`}>
             <DollarSign className="w-3 h-3" />
             {t("paidSession")}
           </span>
@@ -143,7 +172,7 @@ export const SessionCard = ({
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {groupName ? (
             <>
-              <div className="avatar-creator flex-shrink-0 overflow-hidden">
+              <div className={`avatar-creator flex-shrink-0 overflow-hidden ${hasCover ? "ring-2 ring-white/80 shadow-md" : ""}`}>
                 {groupAvatar ? (
                   <img src={groupAvatar} className="w-full h-full rounded-full object-cover" alt="" />
                 ) : (
@@ -151,19 +180,19 @@ export const SessionCard = ({
                 )}
               </div>
               <div className="flex flex-col gap-px min-w-0">
-                <span className="text-[13px] font-medium text-card-foreground truncate flex items-center gap-1">
+                <span className={`text-[13px] font-medium truncate flex items-center gap-1 ${nameText}`}>
                   {groupName}
                   {groupVerified && <BadgeCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
                 </span>
-                <span className="text-[11px] text-white/55">{t("organizer" as any)}</span>
+                <span className={`text-[11px] ${softText}`}>{t("organizer" as any)}</span>
               </div>
             </>
           ) : (
             <>
-              <div className="avatar-creator flex-shrink-0">{creatorInitial}</div>
+              <div className={`avatar-creator flex-shrink-0 ${hasCover ? "ring-2 ring-white/80 shadow-md" : ""}`}>{creatorInitial}</div>
               <div className="flex flex-col gap-px min-w-0">
-                <span className="text-[13px] font-medium text-card-foreground truncate">{creatorName}</span>
-                <span className="text-[11px] text-white/55">
+                <span className={`text-[13px] font-medium truncate ${nameText}`}>{creatorName}</span>
+                <span className={`text-[11px] ${softText}`}>
                   {t("organizer" as any)}{creatorRole !== "user" ? ` · ${t(creatorRole)}` : ""}
                 </span>
               </div>

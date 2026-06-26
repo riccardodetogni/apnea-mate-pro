@@ -9,6 +9,7 @@ export interface SessionParticipant {
   joined_at: string;
   profile?: {
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
   } | null;
 }
@@ -26,6 +27,7 @@ export interface SessionDetails {
   status: string;
   creator_id: string;
   created_at: string;
+  cover_image_url: string | null;
   spot: {
     id: string;
     name: string;
@@ -33,13 +35,16 @@ export interface SessionDetails {
     location: string;
     latitude: number | null;
     longitude: number | null;
+    cover_image_url: string | null;
   } | null;
   creator: {
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
     user_id: string;
   } | null;
   creatorRole: "user" | "instructor";
+
   participants: SessionParticipant[];
   confirmedCount: number;
   pendingCount: number;
@@ -71,7 +76,7 @@ export const useSessionDetails = (sessionId: string | undefined) => {
         .from("sessions")
         .select(`
           *,
-          spot:spots (id, name, environment_type, location, latitude, longitude)
+          spot:spots (id, name, environment_type, location, latitude, longitude, cover_image_url)
         `)
         .eq("id", sessionId)
         .maybeSingle();
@@ -86,7 +91,7 @@ export const useSessionDetails = (sessionId: string | undefined) => {
       // Fetch creator profile
       const { data: creatorProfile } = await supabase
         .from("profiles")
-        .select("user_id, name, avatar_url")
+        .select("user_id, name, last_name, avatar_url")
         .eq("user_id", sessionData.creator_id)
         .maybeSingle();
 
@@ -108,17 +113,17 @@ export const useSessionDetails = (sessionId: string | undefined) => {
 
       // Fetch participant profiles
       const participantUserIds = participantsData?.map(p => p.user_id) || [];
-      let participantProfiles: Record<string, { name: string; avatar_url: string | null }> = {};
+      let participantProfiles: Record<string, { name: string; last_name: string | null; avatar_url: string | null }> = {};
 
       if (participantUserIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("user_id, name, avatar_url")
+          .select("user_id, name, last_name, avatar_url")
           .in("user_id", participantUserIds);
 
         if (profilesData) {
           profilesData.forEach(p => {
-            participantProfiles[p.user_id] = { name: p.name, avatar_url: p.avatar_url };
+            participantProfiles[p.user_id] = { name: p.name, last_name: p.last_name, avatar_url: p.avatar_url };
           });
         }
       }
@@ -140,9 +145,11 @@ export const useSessionDetails = (sessionId: string | undefined) => {
         spot: sessionData.spot as SessionDetails["spot"],
         creator: creatorProfile ? {
           name: creatorProfile.name,
+          last_name: creatorProfile.last_name,
           avatar_url: creatorProfile.avatar_url,
           user_id: creatorProfile.user_id,
         } : null,
+
         creatorRole: creatorRoleData ? "instructor" : "user",
         participants,
         confirmedCount,
@@ -199,7 +206,7 @@ export const useSessionDetails = (sessionId: string | undefined) => {
   const rejectParticipant = async (participantId: string) => {
     const { error } = await supabase
       .from("session_participants")
-      .update({ status: "cancelled" })
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user?.id ?? null })
       .eq("id", participantId);
 
     return { error };

@@ -35,18 +35,12 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
   reauthentication: ReauthenticationEmail,
 }
 
-// Configuration
-const SITE_NAME = "Apnea Mate"
-const SENDER_DOMAIN = "notify.apneamate.com"
-const ROOT_DOMAIN = "apneamate.com"
-const FROM_DOMAIN = "apneamate.com" // Domain shown in From address (may be root or sender subdomain)
+// Configuration — env-driven so staging and prod use different domains.
+// See supabase/functions/_shared/email-env.ts for defaults and overrides.
+import { SITE_NAME, SENDER_DOMAIN, ROOT_DOMAIN, FROM_DOMAIN, APP_PREVIEW_URL } from '../_shared/email-env.ts'
 
 // Sample data for preview mode ONLY (not used in actual email sending).
-// URLs are baked in at scaffold time from the project's real data.
-// The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
-// can always find-and-replace it with the actual recipient when sending test emails,
-// even if the project's domain has changed since the template was scaffolded.
-const SAMPLE_PROJECT_URL = "https://apnea-mate.lovable.app"
+const SAMPLE_PROJECT_URL = APP_PREVIEW_URL
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
   signup: {

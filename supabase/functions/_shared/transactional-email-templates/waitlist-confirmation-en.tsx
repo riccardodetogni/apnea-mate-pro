@@ -13,7 +13,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_URL = 'https://apneamate.com'
+import { SITE_URL, LOGO_URL, SUPPORT_EMAIL } from '../email-env.ts'
 const ICON_BUDDY = `${SITE_URL}/assets/icons/buddy.png`
 const ICON_GRUPPI = `${SITE_URL}/assets/icons/gruppi.png`
 
@@ -25,7 +25,7 @@ const WaitlistConfirmationEmailEn = () => (
     <Preview>You're on the Apnea Mate waitlist</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src="https://vjvhaegbfjepysptcygz.supabase.co/storage/v1/object/public/email-assets/apnea-mate-logo.png" alt="Apnea Mate" width="180" style={logo} />
+        <Img src={LOGO_URL} alt="Apnea Mate" width="180" style={logo} />
         <Heading style={h1}>
           You're on the list!{' '}
           <Img src={ICON_BUDDY} alt="Buddy" width="24" height="24" style={inlineIconStyle} />

@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { mapSessionType, mapEnvironmentType } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
+
 
 export interface Session {
   id: string;
@@ -18,6 +20,7 @@ export interface Session {
   is_public: boolean;
   status: string;
   created_at: string;
+  cover_image_url: string | null;
   spot?: {
     id: string;
     name: string;
@@ -25,12 +28,15 @@ export interface Session {
     location: string;
     latitude?: number | null;
     longitude?: number | null;
+    cover_image_url?: string | null;
   } | null;
   creator?: {
     name: string;
+    last_name: string | null;
     avatar_url: string | null;
     user_id: string;
   } | null;
+
   creatorRole?: "user" | "instructor" | "instructorF";
   participants_count?: number;
   is_joined?: boolean;
@@ -61,6 +67,7 @@ export interface SessionWithDetails {
   groupName?: string | null;
   groupAvatar?: string | null;
   groupVerified?: boolean;
+  coverImageUrl?: string | null;
 }
 
 const formatSessionDateTime = (dateTime: string, durationMinutes: number): string => {
@@ -125,7 +132,7 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
     .from("sessions")
     .select(`
       *,
-      spot:spots(id, name, environment_type, location, latitude, longitude)
+      spot:spots(id, name, environment_type, location, latitude, longitude, cover_image_url)
     `)
     .eq("status", "active")
     .gte("date_time", new Date().toISOString())
@@ -142,7 +149,7 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
   const creatorIds = [...new Set(sessionsData?.map(s => s.creator_id) || [])];
   const groupIds = [...new Set((sessionsData || []).map(s => (s as any).group_id).filter((g: any): g is string => !!g))];
   
-  let creatorProfiles: Record<string, { name: string; avatar_url: string | null; user_id: string }> = {};
+  let creatorProfiles: Record<string, { name: string; last_name: string | null; avatar_url: string | null; user_id: string }> = {};
   let creatorRoles: Record<string, string> = {};
   const groupsMap: Record<string, { name: string; avatar_url: string | null; verified: boolean }> = {};
 
@@ -159,14 +166,15 @@ async function fetchSessionsData(user: { id: string } | null, excludeJoined: boo
   if (creatorIds.length > 0) {
     const { data: profilesData } = await supabase
       .from("profiles")
-      .select("user_id, name, avatar_url")
+      .select("user_id, name, last_name, avatar_url")
       .in("user_id", creatorIds);
 
     if (profilesData) {
       profilesData.forEach(p => {
-        creatorProfiles[p.user_id] = { name: p.name, avatar_url: p.avatar_url, user_id: p.user_id };
+        creatorProfiles[p.user_id] = { name: p.name, last_name: p.last_name, avatar_url: p.avatar_url, user_id: p.user_id };
       });
     }
+
 
     const { data: rolesData } = await supabase
       .from("user_roles")
@@ -268,9 +276,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
 
   const joinSession = async (sessionId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
-      .from("session_participants")
-      .insert({ session_id: sessionId, user_id: user.id, status: "pending" });
+    const { error } = await supabase.rpc("rejoin_session", { _session_id: sessionId });
 
     if (!error) {
       // Get the creator_id from raw sessions data
@@ -336,11 +342,16 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
 
   const leaveSession = async (sessionId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("session_participants")
-      .delete()
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user.id })
       .eq("session_id", sessionId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .in("status", ["pending", "confirmed"])
+      .select("id");
+    if (!error && (!data || data.length === 0)) {
+      return { error: new Error("No active participation to cancel") };
+    }
     return { error };
   };
 
@@ -354,7 +365,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     level: mapLevelToType(session.level),
     spotsAvailable: Math.max(0, session.max_participants - (session.participants_count || 0)),
     spotsTotal: session.max_participants,
-    creatorName: session.creator?.name || "Utente",
+    creatorName: fullName(session.creator, "Utente"),
     creatorInitial: (session.creator?.name || "U").charAt(0).toUpperCase(),
     creatorRole: session.creatorRole || "user",
     creatorId: session.creator_id,
@@ -368,6 +379,7 @@ export const useSessions = (options: UseSessionsOptions = {}) => {
     groupName: (session as any).group_name ?? null,
     groupAvatar: (session as any).group_avatar ?? null,
     groupVerified: (session as any).group_verified ?? false,
+    coverImageUrl: (session as any).cover_image_url ?? session.spot?.cover_image_url ?? null,
   }));
 
   return {

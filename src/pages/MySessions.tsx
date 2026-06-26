@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMyParticipations, MyCreatedSession } from "@/hooks/useMyParticipations";
 import { useSessions } from "@/hooks/useSessions";
 import { t, mapSessionType } from "@/lib/i18n";
+import { fullName } from "@/lib/format";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,7 +115,7 @@ const MySessions = () => {
             {mapSessionType(session.session_type)} · {participation.confirmed_count}/{session.max_participants} {t("participantsLabel")}
           </span>
           <span className="text-xs text-[hsl(var(--card-muted))]">
-            {t("organizerLabel")}: {session.creator?.name || "—"}
+            {t("organizerLabel")}: {fullName(session.creator, "—")}
           </span>
         </div>
       </button>

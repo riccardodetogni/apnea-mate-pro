@@ -46,12 +46,15 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
     // Last message
     const { data: lastMsgArr } = await supabase
       .from("messages")
-      .select("content, created_at, sender_id")
+      .select("content, created_at, sender_id, deleted_at")
       .eq("conversation_id", conv.id)
       .order("created_at", { ascending: false })
       .limit(1);
 
-    const lastMsg = lastMsgArr?.[0] || null;
+    const lastMsg = (lastMsgArr?.[0] as { content: string; created_at: string; sender_id: string; deleted_at: string | null } | undefined) || null;
+    const lastMessagePreview = lastMsg
+      ? (lastMsg.deleted_at ? "Messaggio eliminato" : lastMsg.content)
+      : null;
     const lastRead = lastReadMap.get(conv.id);
 
     // Unread count
@@ -115,13 +118,16 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
       if (otherParticipants?.[0]) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, avatar_url")
+          .select("name, last_name, avatar_url")
           .eq("user_id", otherParticipants[0].user_id)
           .single();
-        name = profile?.name || "Utente";
+        const parts = [profile?.name, profile?.last_name]
+          .filter((v): v is string => typeof v === "string" && v.trim().length > 0);
+        name = parts.join(" ") || "Utente";
         avatarInitial = name.charAt(0).toUpperCase();
         avatarUrl = profile?.avatar_url || null;
       }
+
     }
 
     results.push({
@@ -134,7 +140,7 @@ async function fetchConversations(userId: string): Promise<ConversationListItem[
       name,
       avatarInitial,
       avatarUrl,
-      lastMessage: lastMsg?.content || null,
+      lastMessage: lastMessagePreview,
       lastMessageAt: lastMsg?.created_at || null,
       unreadCount,
     });
@@ -167,6 +173,13 @@ export const useConversations = () => {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["conversations", user.id] });
         }

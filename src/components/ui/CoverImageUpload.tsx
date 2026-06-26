@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 interface CoverImageUploadProps {
   currentUrl: string | null;
   uploadPath: string; // folder, typically the user id
-  entity: "spot" | "event" | "course";
+  entity: "spot" | "event" | "course" | "session";
   onChange: (url: string | null) => void;
   className?: string;
 }
