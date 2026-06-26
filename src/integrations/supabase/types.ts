@@ -142,6 +142,8 @@ export type Database = {
       }
       course_participants: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           course_id: string
           id: string
           joined_at: string
@@ -149,6 +151,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           course_id: string
           id?: string
           joined_at?: string
@@ -156,6 +160,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           course_id?: string
           id?: string
           joined_at?: string
@@ -341,6 +347,8 @@ export type Database = {
       }
       event_participants: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           event_id: string
           id: string
           joined_at: string
@@ -348,6 +356,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           event_id: string
           id?: string
           joined_at?: string
@@ -355,6 +365,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           event_id?: string
           id?: string
           joined_at?: string
@@ -854,6 +866,8 @@ export type Database = {
       }
       session_participants: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           id: string
           joined_at: string
           session_id: string
@@ -861,6 +875,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           id?: string
           joined_at?: string
           session_id: string
@@ -868,6 +884,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           id?: string
           joined_at?: string
           session_id?: string
@@ -1253,6 +1271,9 @@ export type Database = {
           read_ct: number
         }[]
       }
+      rejoin_course: { Args: { _course_id: string }; Returns: string }
+      rejoin_event: { Args: { _event_id: string }; Returns: string }
+      rejoin_session: { Args: { _session_id: string }; Returns: string }
     }
     Enums: {
       app_role: "regular" | "certified" | "instructor" | "admin"
