@@ -886,6 +886,7 @@ export type Database = {
       }
       sessions: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           creator_id: string
           date_time: string
@@ -904,6 +905,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           creator_id: string
           date_time: string
@@ -922,6 +924,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           creator_id?: string
           date_time?: string

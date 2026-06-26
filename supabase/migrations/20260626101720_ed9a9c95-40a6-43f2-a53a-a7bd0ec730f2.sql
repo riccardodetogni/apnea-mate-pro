@@ -1,0 +1,1 @@
+ALTER TABLE public.sessions ADD COLUMN cover_image_url text;
