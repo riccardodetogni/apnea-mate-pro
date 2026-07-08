@@ -1,33 +1,17 @@
-I was wrong to rely on the old `sent` rows. For this recovery we should treat all signup verification emails before the domain fix as unreliable, regardless of status.
+## Problem
 
-## Plan
+The share thumbnail at `public/og-image.png` uses a stylized illustration of three human figures with long tails — not the real Apnea Mate brand mark (three curved wave strokes with separate dot heads above them, next to lowercase "apnea mate"). So when the app is shared on WhatsApp / iMessage / Slack / LinkedIn / X, the preview shows off-brand artwork.
 
-1. **Define the affected window**
-   - Use the timestamp when `notify.apneamate.com` became verified / fixed as the cutoff.
-   - Consider signup verification emails before that cutoff as potentially not delivered.
+## Fix
 
-2. **Identify affected accounts**
-   - Find users who:
-     - signed up before the cutoff,
-     - still have an unconfirmed email address,
-     - are not suppressed/blocked from receiving email,
-     - match signup/verification activity in the email logs where available.
-   - Include your test addresses like `detogni.riccardo+test1` and `detogni.riccardo+test2` in the check.
+1. Replace `public/og-image.png` with a new 1200×630 OG image built from the real brand assets in `src/assets/logos/`:
+   - Use `apnea_mate_pittogramma_white.png` (the actual 3-wave pictogram) + wordmark from `apnea_mate_logo_orizzontale_white.png`, composited onto the existing deep-blue gradient background with the wave motif.
+   - Keep the tagline "Connect. Dive. Explore."
+   - Keep filename `og-image.png` so all existing `<meta og:image>` / `twitter:image` URLs keep working.
+2. No changes to `index.html` meta tags are required (URL stays the same).
+3. Tell the user that WhatsApp / LinkedIn / Slack cache OG previews — the new thumbnail won't show up in already-shared links until each platform re-scrapes, and they can force a refresh via each platform's link-preview debugger (e.g. LinkedIn Post Inspector, Facebook Sharing Debugger).
 
-3. **Re-trigger fresh verification emails**
-   - Send new signup confirmation emails through the now-working `notify.apneamate.com` setup.
-   - Do not replay old queue entries, because old auth links may be expired and old `sent` status is not trustworthy.
+## Out of scope
 
-4. **Validate the recovery**
-   - Confirm new verification emails were logged after the fix timestamp.
-   - Confirm there are no new failed/dead-letter/suppressed rows for those recipients.
-   - Ask you to confirm actual inbox receipt for at least the test addresses.
-
-5. **Optional app improvement**
-   - Add a visible “Resend verification email” action on the login screen so affected users can self-recover without manual intervention.
-
-## Technical notes
-
-- The safe resend mechanism is a fresh auth confirmation resend, not a replay of historical email records.
-- I will ignore pre-fix `sent` status when selecting who needs recovery.
-- I will keep this limited to unconfirmed signup verification emails, not old join-request notifications.
+- No per-route OG images (would need `react-helmet-async` + separate design).
+- No changes to favicon or in-app logos — those already use the correct brand files.
