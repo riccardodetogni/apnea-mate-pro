@@ -321,7 +321,18 @@ const Spots = () => {
                 );
               })}
               <button
-                onClick={() => setShowEvents((v) => !v)}
+                onClick={() => toggleCategory("spots")}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
+                  showSpots
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white/90 backdrop-blur-md border text-foreground hover:bg-white"
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                Spot
+              </button>
+              <button
+                onClick={() => toggleCategory("events")}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
                   showEvents
                     ? "bg-primary text-primary-foreground"
@@ -332,7 +343,7 @@ const Spots = () => {
                 Eventi
               </button>
               <button
-                onClick={() => setShowCourses((v) => !v)}
+                onClick={() => toggleCategory("courses")}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
                   showCourses
                     ? "bg-primary text-primary-foreground"
@@ -346,12 +357,14 @@ const Spots = () => {
           </div>
         </div>
 
-        {(showEvents || showCourses) && (
+        {(showSpots || showEvents || showCourses) && (
           <div
             className="absolute left-3 z-[1000] pointer-events-none bg-background/85 backdrop-blur-md border rounded-lg px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5"
             style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
           >
-            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(200, 80%, 50%)" }} />Spot</div>
+            {showSpots && (
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(200, 80%, 50%)" }} />Spot</div>
+            )}
             {showEvents && (
               <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(270, 70%, 55%)" }} />Eventi</div>
             )}
