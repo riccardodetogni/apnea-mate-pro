@@ -27,8 +27,8 @@ interface SessionCalendarProps {
 const getStatusConfig = () => ({
   confirmed: { label: t("statusConfirmed"), dotClass: "bg-[hsl(var(--success))]", badgeClass: "bg-success/10 text-success border-success/30" },
   pending: { label: t("statusPending"), dotClass: "bg-[hsl(var(--warning))]", badgeClass: "bg-warning/10 text-warning border-warning/30" },
-  created: { label: t("statusCreatedByYou"), dotClass: "bg-[hsl(var(--primary))]", badgeClass: "bg-primary/10 text-primary border-primary/30" },
-  available: { label: t("statusAvailable"), dotClass: "bg-[hsl(var(--muted-foreground))]", badgeClass: "bg-muted/30 text-muted-foreground border-muted-foreground/30" },
+  created: { label: t("statusCreatedByYou"), dotClass: "bg-[hsl(280_85%_68%)]", badgeClass: "bg-[hsl(280_85%_68%)]/10 text-[hsl(280_85%_78%)] border-[hsl(280_85%_68%)]/30" },
+  available: { label: t("statusAvailable"), dotClass: "bg-[hsl(var(--accent))]", badgeClass: "bg-accent/10 text-accent border-accent/30" },
 });
 
 export const SessionCalendar = ({ sessions, onSessionClick, navigateFrom }: SessionCalendarProps) => {
