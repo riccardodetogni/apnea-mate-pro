@@ -1,64 +1,80 @@
-# Fix ordinamento e sessioni passate in My Sessions (e verifica Community)
+# Fix Calendario Sessioni — pagina Gruppo
 
-## Cosa dice il codice oggi
+## Cosa ho letto dal task Notion
 
-### My Sessions (`useMyParticipations.ts`)
-Le due liste "In attesa" e "Confermate" arrivano da questa query:
+Titolo: "Calendario Sessioni scuola" · Bug · Priority Medium · Assegnato a Riccardo.
+
+Due problemi segnalati sulla pagina di dettaglio del gruppo (Ocean Freediving, Sergio Soria):
+
+1. **Sessioni mancanti**: la scuola ha 17 sessioni a giugno + altre nei mesi successivi. Sul calendario ne vediamo meno di 17 a giugno e zero nei mesi successivi.
+2. **Colori dei puntini di stato**: quello "Disponibile" quasi non si vede, e "Created by (you)" rischia di scomparire sullo sfondo blu (il giorno selezionato è anch'esso primario/blu).
+
+## Diagnosi
+
+### Bug 1 — è reale
+`src/hooks/useGroupDetails.ts` fetcha le sessioni del gruppo con:
 
 ```ts
-supabase.from("session_participants")
-  .select("... session:sessions(...)")
-  .eq("user_id", userId)
-  .in("status", ["pending", "confirmed"])
-  .order("joined_at", { ascending: false });
+.eq("group_id", groupId)
+.eq("status", "active")
+.gte("date_time", now())
+.order("date_time", { ascending: true })
+.limit(5);   // <— hard cap a 5
 ```
 
-Due bug reali:
-1. **Nessun filtro sulla data della sessione** → le sessioni già passate restano visibili finché la partecipazione non è cancellata.
-2. **Ordinamento per `joined_at`** (data di iscrizione) invece che per `date_time` della sessione → l'ordine visto in UI è "chi si è iscritto più di recente", non "cosa succede prima".
+Lo stesso array `sessions` viene passato sia a `GroupSessionsList` (che è ok essere corto) sia al `SessionCalendar` (che così ne vede solo 5 in tutto il futuro). Ecco perché a giugno "spariscono" le sessioni oltre le prime 5 e i mesi dopo restano vuoti.
 
-La sezione "Create da te" invece è già corretta (filtra `date_time >= now()` e ordina per `date_time asc`).
+Bonus: anche `useSessions` (community/AllSessions) ha `.limit(30)`, che è un altro tappo silenzioso — lo segnalo ma non è il difetto denunciato nel task.
 
-### Community (`useSessions.ts` + `Community.tsx`)
-- La query DB filtra già `date_time >= now()` e ordina per `date_time asc`: **niente sessioni passate**.
-- In `Community.tsx` `getFilteredSortedSessions` poi **ri-ordina per distanza** quando l'utente ha la geolocalizzazione attiva (le più vicine prima, a parità di distanza mantiene l'ordine per data). Quindi non è "per data di iscrizione", ma neppure "per data": è "per vicinanza".
+### Bug 2 — è reale
+In `src/components/sessions/SessionCalendar.tsx` `getStatusConfig()`:
 
-Non trovo un bug sull'ordinamento in Community. Sospetto che la segnalazione esterna confonda i due casi. Confermo comunque i comportamenti sotto.
+- `available` → `bg-[hsl(var(--muted-foreground))]` (grigio molto tenue sul tema scuro → poco leggibile)
+- `created` → `bg-[hsl(var(--primary))]` (blu, uguale al `day_selected: !bg-primary` → il puntino sparisce quando il giorno è selezionato o sull'header blu)
 
-## Modifiche proposte
+Nel calendario di gruppo, tutte le sessioni sono mappate a `status: "available"` in `GroupDetails.tsx` (riga ~46), quindi tutti i puntini prendono il colore meno visibile.
 
-### 1. Fix My Sessions (bug certo)
-In `src/hooks/useMyParticipations.ts`:
-- Rimuovere `.order("joined_at", ...)` sulla query participations.
-- Dopo aver enriched i dati, filtrare fuori le sessioni con `session.date_time < now()`.
-- Ordinare `participations` per `session.date_time` **ascendente** (la sessione più imminente in cima).
+## Fix proposti
 
-Nessuna modifica al componente `MySessions.tsx` (usa già i due array `pendingParticipations` / `confirmedParticipations` derivati dall'hook).
+### A. Rimuovere il tappo delle sessioni del gruppo
+`src/hooks/useGroupDetails.ts`:
+- Dividere in due fetch:
+  - `sessionsListLimited` (5, per `GroupSessionsList`) — mantiene la lista compatta
+  - `sessionsCalendarAll` — stessa query senza `.limit(5)`, ma con un tetto ragionevole (es. `.limit(500)` come safety net) e finestra temporale limitata a **prossimi 12 mesi** per evitare payload enormi
+- Ritornare entrambe dall'hook: `sessions` (invariato) e `calendarSessions`
+- `GroupDetails.tsx` costruisce `calendarSessions` dal nuovo array esteso
 
-Effetto: le sezioni "In attesa" e "Confermate" mostrano solo sessioni future, ordinate per data della sessione.
+Alternativa più semplice: un unico fetch senza limit ma con finestra `date_time BETWEEN now AND now+12mo`, e la lista prende `.slice(0, 5)` client-side. Preferisco questa: meno round-trip, meno codice.
 
-### 2. Community — cosa preferisci? (domanda aperta)
-Oggi "Sessions for you" ordina **per distanza** quando hai la geolocalizzazione. Alternative:
+### B. Palette puntini di stato ripensata
+`SessionCalendar.tsx`:
+- `available` → verde acqua/ciano brillante (usa `--info` o un token dedicato) con `ring-1 ring-background` per staccarsi dal fondo blu
+- `created` → viola/ambra (non blu) così non si confonde con `day_selected`
+- `confirmed` → resta verde success
+- `pending` → resta giallo warning
+- Sul giorno selezionato: aumentare il contrasto dei puntini aggiungendo un anello bianco (`ring-1 ring-white/70`) così restano visibili anche sopra il cerchio primario
 
-- **A. Lasciare così** (nearest-first, poi data). È il default attuale ed è coerente con il filtro "vicino a te".
-- **B. Ordinare sempre per data ascendente** e usare la distanza solo per il filtro (`nearbyOnly`).
-- **C. Ibrido**: raggruppa per data (Oggi → Domani → prossimi 7 giorni → oltre) e dentro ogni gruppo ordina per distanza.
+Aggiornare la legenda di conseguenza (usa gli stessi token, quindi si aggiorna da sola).
 
-Non tocco nulla su Community finché non mi dici quale vuoi. Se scegli B o C aggiornerò `Community.tsx` e `AllSessions.tsx` di conseguenza.
+### C. (Bonus, se vuoi) Alzare/togliere `.limit(30)` in `useSessions`
+Impatta AllSessions/Community. Non richiesto dal task — te lo segnalo ma non lo tocco senza tuo ok.
 
-## Il modo corretto (mia opinione)
+## Il modo corretto secondo me
 
-- **My Sessions**: sempre e solo per **data della sessione ascendente**, sessioni passate nascoste. Le persone aprono questa pagina per sapere "cosa devo fare prossimamente".
-- **Community "Sessions for you"**: opzione **B** (sempre per data). Il chip "Vicino a te" già gestisce la prossimità come filtro; usare la distanza anche come sort implicito è sorprendente per l'utente e produce l'impressione di "lista disordinata". La distanza resta visibile in card.
+- **Sessioni calendario**: mai un limite fisso di riga tipo 5; il calendario per definizione mostra tutto il futuro. Finestra temporale (12 mesi) + tetto di sicurezza alto, e la lista visuale sotto il calendario si limita da sola.
+- **Colori stato**: due regole
+  1. Nessun stato può usare lo stesso hue del `day_selected` (il primario blu è "riservato" alla selezione).
+  2. Ogni puntino ha un anello di contrasto (`ring-1 ring-background` o `ring-white/70` quando su cella selezionata) per garantire visibilità su qualsiasi sfondo.
 
-## Dettagli tecnici
+## File toccati
 
-- File toccati (fase 1): `src/hooks/useMyParticipations.ts`.
-- Query participations: rimuovo l'`order` server-side (irrilevante perché rifiltriamo/ordiniamo in memoria dopo l'enrich), filtro `.filter(p => new Date(p.session.date_time) >= now)` prima del `map`, poi `.sort((a,b) => a.session.date_time.localeCompare(b.session.date_time))`.
-- Nessuna migrazione DB.
-- Fase 2 (Community) parte solo dopo tua scelta A/B/C.
+- `src/hooks/useGroupDetails.ts` (query sessioni + tipo di ritorno)
+- `src/pages/GroupDetails.tsx` (usa il nuovo array per il calendario)
+- `src/components/sessions/SessionCalendar.tsx` (`getStatusConfig`, classi CSS dei puntini, eventuale `ring-` per il giorno selezionato)
+- Nessuna migrazione DB, nessun cambio a RLS
 
 ## Fuori scope
 
-- Storico "sessioni passate" in una tab separata (potrebbe essere una feature futura, non richiesta).
-- Cambi a Events/Courses (già filtrano per `end_date >= today`).
+- Alzare `.limit(30)` in `useSessions` (Community/AllSessions) — te lo propongo separatamente
+- Vista mese/lista con contatori per giorno
+- Aggiornare la card "task" su Notion (posso farlo se me lo chiedi esplicitamente)

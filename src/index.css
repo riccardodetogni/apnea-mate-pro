@@ -416,6 +416,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
+  box-shadow: 0 0 0 1.5px hsl(var(--card));
 }
 .session-dot-confirmed::after {
   background-color: hsl(var(--success));
@@ -424,10 +425,20 @@
   background-color: hsl(var(--warning));
 }
 .session-dot-created::after {
-  background-color: hsl(var(--primary));
+  /* Distinct violet — never collides with the primary-blue "day selected" ring */
+  background-color: hsl(280 85% 68%);
 }
 .session-dot-available::after {
-  background-color: hsl(var(--muted-foreground));
+  /* Bright teal accent — clearly visible on the navy calendar surface */
+  background-color: hsl(var(--accent));
+}
+/* On the selected day (primary blue circle), swap the halo to white so dots
+   stay legible over the primary fill. */
+.rdp-day_selected.session-dot-confirmed::after,
+.rdp-day_selected.session-dot-pending::after,
+.rdp-day_selected.session-dot-created::after,
+.rdp-day_selected.session-dot-available::after {
+  box-shadow: 0 0 0 1.5px hsl(0 0% 100%);
 }
 
   .safe-area-bottom {

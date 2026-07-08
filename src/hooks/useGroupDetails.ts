@@ -111,7 +111,12 @@ export const useGroupDetails = (groupId: string | undefined) => {
         });
       }
 
-      // Fetch upcoming sessions linked to this group
+      // Fetch upcoming sessions linked to this group.
+      // Window: next 12 months. No small cap — the calendar view needs all
+      // upcoming sessions, not just the first 5. Safety net at 500 rows.
+      const nowIso = new Date().toISOString();
+      const in12mo = new Date();
+      in12mo.setFullYear(in12mo.getFullYear() + 1);
       const { data: sessionsData } = await supabase
         .from("sessions")
         .select(`
@@ -120,9 +125,10 @@ export const useGroupDetails = (groupId: string | undefined) => {
         `)
         .eq("group_id", groupId)
         .eq("status", "active")
-        .gte("date_time", new Date().toISOString())
+        .gte("date_time", nowIso)
+        .lte("date_time", in12mo.toISOString())
         .order("date_time", { ascending: true })
-        .limit(5);
+        .limit(500);
 
       // Get participant counts for sessions
       let sessionsWithCounts: GroupSession[] = [];

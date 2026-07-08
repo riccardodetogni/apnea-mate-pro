@@ -49,6 +49,9 @@ const GroupDetails = () => {
     [sessions]
   );
 
+  // The list view stays compact (5 upcoming); the calendar shows everything.
+  const listSessions = useMemo(() => sessions.slice(0, 5), [sessions]);
+
   // Filter approved members for display
   const approvedMembers = members.filter(m => m.status === 'approved');
 
@@ -305,7 +308,7 @@ const GroupDetails = () => {
         {sessionsView === "calendar" ? (
           <SessionCalendar sessions={calendarSessions} navigateFrom={`/groups/${id}`} />
         ) : (
-          <GroupSessionsList sessions={sessions} groupId={id} />
+          <GroupSessionsList sessions={listSessions} groupId={id} />
         )}
       </div>
 
