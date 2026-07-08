@@ -8,13 +8,14 @@ import { useSpotFavorites } from "@/hooks/useSpotFavorites";
 import { useEvents } from "@/hooks/useEvents";
 import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Search, SlidersHorizontal, Heart, Plus, Calendar, GraduationCap } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal, Heart, Plus, Calendar, GraduationCap, MapPin } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import SpotMap, { SelectedMapItem } from "@/components/spots/SpotMap";
 
 type QuickFilterType = "all" | "favorites";
+type Category = "spots" | "events" | "courses";
 
 const initialFilters: SpotFilters = {
   activities: [],
@@ -27,6 +28,41 @@ const filterOptions: { id: QuickFilterType; label: string; icon?: React.ReactNod
   { id: "all", label: "filterAll" },
   { id: "favorites", label: "filterFavorites", icon: <Heart className="w-3.5 h-3.5" /> },
 ];
+
+const ALL_CATEGORIES: Category[] = ["spots", "events", "courses"];
+
+// Normalize a string for accent-insensitive matching.
+function norm(s: string | null | undefined): string {
+  return (s ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+const REGEX_META = /[.*+?^${}()|[\]\\]/;
+
+// Match `query` against any of the provided text fields.
+// - Safe queries (only letters/digits/spaces) → AND across tokens, OR across fields.
+// - Queries containing regex metacharacters → try as case-insensitive regex,
+//   fall back to substring match on parse errors.
+function matchesQuery(query: string, ...fields: (string | null | undefined)[]): boolean {
+  const q = query.trim();
+  if (!q) return true;
+  const haystack = fields.map(norm);
+
+  if (REGEX_META.test(q)) {
+    try {
+      const re = new RegExp(q, "i");
+      return haystack.some((h) => re.test(h));
+    } catch {
+      // fall through to token match
+    }
+  }
+
+  const tokens = norm(q).split(/\s+/).filter(Boolean);
+  return tokens.every((tok) => haystack.some((h) => h.includes(tok)));
+}
 
 // Map session_type filter values to spot environment_type values.
 const SESSION_TO_ENV: Record<string, string> = {
