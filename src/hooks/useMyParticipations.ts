@@ -62,8 +62,7 @@ async function fetchParticipationsData(userId: string): Promise<ParticipationsDa
       )
     `)
     .eq("user_id", userId)
-    .in("status", ["pending", "confirmed"])
-    .order("joined_at", { ascending: false });
+    .in("status", ["pending", "confirmed"]);
 
   if (fetchError) throw fetchError;
 
@@ -120,14 +119,23 @@ async function fetchParticipationsData(userId: string): Promise<ParticipationsDa
   }
 
 
-  const participations = (data || []).map(p => {
-    const session = p.session as any;
-    return {
-      ...p,
-      session: { ...session, creator: creatorProfiles[session?.creator_id] || null },
-      confirmed_count: confirmedCounts[p.session_id] || 0,
-    };
-  }) as MyParticipation[];
+  const nowIso = new Date().toISOString();
+  const participations = (data || [])
+    .filter(p => {
+      const dt = (p.session as any)?.date_time;
+      return typeof dt === "string" && dt >= nowIso;
+    })
+    .map(p => {
+      const session = p.session as any;
+      return {
+        ...p,
+        session: { ...session, creator: creatorProfiles[session?.creator_id] || null },
+        confirmed_count: confirmedCounts[p.session_id] || 0,
+      };
+    })
+    .sort((a, b) =>
+      (a.session as any).date_time.localeCompare((b.session as any).date_time),
+    ) as MyParticipation[];
 
   const createdSessions: MyCreatedSession[] = (createdData || []).map(s => ({
     id: s.id, title: s.title, date_time: s.date_time, duration_minutes: s.duration_minutes,
