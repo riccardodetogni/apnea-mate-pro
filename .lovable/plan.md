@@ -1,59 +1,64 @@
-# Fix filtro pagina Spot
+# Fix ordinamento e sessioni passate in My Sessions (e verifica Community)
 
-## Diagnosi (il filtro è rotto)
+## Cosa dice il codice oggi
 
-In `src/pages/Spots.tsx` il testo della search bar (`searchQuery`) viene applicato **solo** alla lista `spots` (righe 103-110). I punti `events` e `courses` sulla mappa (`eventPoints`, `coursePoints`, righe 163-181) sono calcolati indipendentemente e **non ricevono mai il filtro di ricerca**.
+### My Sessions (`useMyParticipations.ts`)
+Le due liste "In attesa" e "Confermate" arrivano da questa query:
 
-Risultato osservato quando scrivi "Napoli":
-- gli Spot blu vengono correttamente filtrati (spariscono quelli non-Napoli)
-- gli Eventi (viola) e i Corsi (arancioni) restano tutti visibili ovunque, perché ignorano `searchQuery`
-- sembra che "spariscano gli spot con sessioni" solo perché non ce n'è nessuno a Napoli nel dataset, ma il vero bug è che le altre due categorie non sono filtrate
+```ts
+supabase.from("session_participants")
+  .select("... session:sessions(...)")
+  .eq("user_id", userId)
+  .in("status", ["pending", "confirmed"])
+  .order("joined_at", { ascending: false });
+```
 
-Inoltre i chip "Eventi" / "Corsi" oggi funzionano come toggle indipendenti (mostra/nascondi intero layer). Vuoi che si comportino come filtri di categoria cliccabili accanto a "Tutti / Preferiti".
+Due bug reali:
+1. **Nessun filtro sulla data della sessione** → le sessioni già passate restano visibili finché la partecipazione non è cancellata.
+2. **Ordinamento per `joined_at`** (data di iscrizione) invece che per `date_time` della sessione → l'ordine visto in UI è "chi si è iscritto più di recente", non "cosa succede prima".
 
-## Modifiche proposte (solo `src/pages/Spots.tsx`)
+La sezione "Create da te" invece è già corretta (filtra `date_time >= now()` e ordina per `date_time asc`).
 
-### 1. Search bar filtra tutti e tre i layer per luogo
+### Community (`useSessions.ts` + `Community.tsx`)
+- La query DB filtra già `date_time >= now()` e ordina per `date_time asc`: **niente sessioni passate**.
+- In `Community.tsx` `getFilteredSortedSessions` poi **ri-ordina per distanza** quando l'utente ha la geolocalizzazione attiva (le più vicine prima, a parità di distanza mantiene l'ordine per data). Quindi non è "per data di iscrizione", ma neppure "per data": è "per vicinanza".
 
-Estrarre un helper `matchesQuery(query, ...fields)` che:
-- normalizza la query (trim, lowercase, rimozione accenti via `String.prototype.normalize("NFD").replace(/\p{Diacritic}/gu, "")`)
-- se la query contiene solo caratteri "safe" (lettere/numeri/spazi), fa un match `includes` su ogni token (AND fra token, OR fra i campi) — così "napoli centro" matcha "Napoli, Centro Storico"
-- se la query contiene caratteri regex (`^`, `$`, `.`, `*`, `+`, `?`, `(`, `[`, `\`), la interpreta come regex case-insensitive tollerando errori di sintassi (try/catch, fallback a `includes`)
+Non trovo un bug sull'ordinamento in Community. Sospetto che la segnalazione esterna confonda i due casi. Confermo comunque i comportamenti sotto.
 
-Applicare il matcher a:
-- `spots`: campi `name`, `location`
-- `events`: campi `title`, `city`, `location`, `spot_name` (usare quelli disponibili — verificheremo `useEvents` types)
-- `courses`: campi `title`, `city`, `location`, `spot_name`
+## Modifiche proposte
 
-`eventPoints` / `coursePoints` diventano `useMemo` che partono dalla lista filtrata (search + toggle categoria).
+### 1. Fix My Sessions (bug certo)
+In `src/hooks/useMyParticipations.ts`:
+- Rimuovere `.order("joined_at", ...)` sulla query participations.
+- Dopo aver enriched i dati, filtrare fuori le sessioni con `session.date_time < now()`.
+- Ordinare `participations` per `session.date_time` **ascendente** (la sessione più imminente in cima).
 
-### 2. Chip categoria unificati
+Nessuna modifica al componente `MySessions.tsx` (usa già i due array `pendingParticipations` / `confirmedParticipations` derivati dall'hook).
 
-Sostituire i due toggle `showEvents` / `showCourses` con uno stato `categories: Set<"spots" | "events" | "courses">` (default: tutte attive). I chip cliccabili nella barra diventano:
+Effetto: le sezioni "In attesa" e "Confermate" mostrano solo sessioni future, ordinate per data della sessione.
 
-- Tutti (reset → tutte attive)
-- Preferiti (rimane come quick filter sugli spot)
-- Spot (badge blu)
-- Eventi (badge viola)
-- Corsi (badge arancione)
+### 2. Community — cosa preferisci? (domanda aperta)
+Oggi "Sessions for you" ordina **per distanza** quando hai la geolocalizzazione. Alternative:
 
-Cliccare un chip toggla la categoria corrispondente. Se nessuna categoria è attiva, mostra "Tutti" come attivo visivamente. La legenda in basso a sinistra rispecchia lo stato.
+- **A. Lasciare così** (nearest-first, poi data). È il default attuale ed è coerente con il filtro "vicino a te".
+- **B. Ordinare sempre per data ascendente** e usare la distanza solo per il filtro (`nearbyOnly`).
+- **C. Ibrido**: raggruppa per data (Oggi → Domani → prossimi 7 giorni → oltre) e dentro ogni gruppo ordina per distanza.
 
-### 3. Nessun altro cambiamento
+Non tocco nulla su Community finché non mi dici quale vuoi. Se scegli B o C aggiornerò `Community.tsx` e `AllSessions.tsx` di conseguenza.
 
-- `SpotFiltersSheet` (attività/livello/data) resta invariato: continua ad agire sui soli spot come oggi
-- `useEvents` / `useCourses` non toccati
-- Backend, RLS, tipi DB invariati
+## Il modo corretto (mia opinione)
+
+- **My Sessions**: sempre e solo per **data della sessione ascendente**, sessioni passate nascoste. Le persone aprono questa pagina per sapere "cosa devo fare prossimamente".
+- **Community "Sessions for you"**: opzione **B** (sempre per data). Il chip "Vicino a te" già gestisce la prossimità come filtro; usare la distanza anche come sort implicito è sorprendente per l'utente e produce l'impressione di "lista disordinata". La distanza resta visibile in card.
 
 ## Dettagli tecnici
 
-- File modificato: `src/pages/Spots.tsx`
-- Prima di scrivere il matcher verifico i campi effettivi di `Event` e `Course` con `code--view` su `src/hooks/useEvents.ts` e `src/hooks/useCourses.ts` per usare i nomi corretti
-- Regex fallback silenzioso: `let re; try { re = new RegExp(query, "i"); } catch { return includesMatch(...) }`
-- Ordine di filtraggio: `categories` → `searchQuery` → (per spot) `quickFilter=favorites` → `advancedFilters`
+- File toccati (fase 1): `src/hooks/useMyParticipations.ts`.
+- Query participations: rimuovo l'`order` server-side (irrilevante perché rifiltriamo/ordiniamo in memoria dopo l'enrich), filtro `.filter(p => new Date(p.session.date_time) >= now)` prima del `map`, poi `.sort((a,b) => a.session.date_time.localeCompare(b.session.date_time))`.
+- Nessuna migrazione DB.
+- Fase 2 (Community) parte solo dopo tua scelta A/B/C.
 
 ## Fuori scope
 
-- Ricerca geografica reale (geocoding di "Napoli" → coordinate + raggio): resta il match testuale sui campi luogo/titolo
-- Modifiche al `SpotFiltersSheet`
-- Filtri per data/livello su eventi e corsi
+- Storico "sessioni passate" in una tab separata (potrebbe essere una feature futura, non richiesta).
+- Cambi a Events/Courses (già filtrano per `end_date >= today`).
