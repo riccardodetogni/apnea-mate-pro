@@ -120,10 +120,26 @@ const Spots = () => {
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
   const [showFiltersSheet, setShowFiltersSheet] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<SpotFilters>(initialFilters);
-  const [showEvents, setShowEvents] = useState(true);
-  const [showCourses, setShowCourses] = useState(true);
+  const [categories, setCategories] = useState<Set<Category>>(
+    () => new Set(ALL_CATEGORIES),
+  );
+
+  const toggleCategory = useCallback((cat: Category) => {
+    setCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+    setSelected(undefined);
+  }, []);
+
+  const showSpots = categories.has("spots");
+  const showEvents = categories.has("events");
+  const showCourses = categories.has("courses");
 
   const filteredSpots = useMemo(() => {
+    if (!showSpots) return [];
     let result = spots;
 
     if (quickFilter === "favorites") {
@@ -137,16 +153,29 @@ const Spots = () => {
     }
 
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (spot) =>
-          spot.name.toLowerCase().includes(query) ||
-          spot.location.toLowerCase().includes(query)
+      result = result.filter((spot) =>
+        matchesQuery(searchQuery, spot.name, spot.location),
       );
     }
 
     return result;
-  }, [spots, quickFilter, advancedFilters, searchQuery, favoriteIds, spotSessions]);
+  }, [spots, showSpots, quickFilter, advancedFilters, searchQuery, favoriteIds, spotSessions]);
+
+  const filteredEvents = useMemo(() => {
+    if (!showEvents) return [];
+    if (!searchQuery.trim()) return events;
+    return events.filter((e) =>
+      matchesQuery(searchQuery, e.title, e.location, e.description),
+    );
+  }, [events, showEvents, searchQuery]);
+
+  const filteredCourses = useMemo(() => {
+    if (!showCourses) return [];
+    if (!searchQuery.trim()) return courses;
+    return courses.filter((c) =>
+      matchesQuery(searchQuery, c.title, c.location, c.description),
+    );
+  }, [courses, showCourses, searchQuery]);
 
   const currentSpot = useMemo(() => {
     if (selected?.type !== "spot") return undefined;
@@ -198,22 +227,18 @@ const Spots = () => {
 
   const eventPoints = useMemo(
     () =>
-      showEvents
-        ? events
-            .filter((e) => e.latitude != null && e.longitude != null)
-            .map((e) => ({ id: e.id, latitude: Number(e.latitude), longitude: Number(e.longitude), title: e.title }))
-        : [],
-    [events, showEvents],
+      filteredEvents
+        .filter((e) => e.latitude != null && e.longitude != null)
+        .map((e) => ({ id: e.id, latitude: Number(e.latitude), longitude: Number(e.longitude), title: e.title })),
+    [filteredEvents],
   );
 
   const coursePoints = useMemo(
     () =>
-      showCourses
-        ? courses
-            .filter((c) => c.latitude != null && c.longitude != null)
-            .map((c) => ({ id: c.id, latitude: Number(c.latitude), longitude: Number(c.longitude), title: c.title }))
-        : [],
-    [courses, showCourses],
+      filteredCourses
+        .filter((c) => c.latitude != null && c.longitude != null)
+        .map((c) => ({ id: c.id, latitude: Number(c.latitude), longitude: Number(c.longitude), title: c.title })),
+    [filteredCourses],
   );
 
   if (loading) {
