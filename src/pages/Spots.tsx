@@ -8,13 +8,14 @@ import { useSpotFavorites } from "@/hooks/useSpotFavorites";
 import { useEvents } from "@/hooks/useEvents";
 import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Search, SlidersHorizontal, Heart, Plus, Calendar, GraduationCap } from "lucide-react";
+import { Loader2, Search, SlidersHorizontal, Heart, Plus, Calendar, GraduationCap, MapPin } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import SpotMap, { SelectedMapItem } from "@/components/spots/SpotMap";
 
 type QuickFilterType = "all" | "favorites";
+type Category = "spots" | "events" | "courses";
 
 const initialFilters: SpotFilters = {
   activities: [],
@@ -27,6 +28,41 @@ const filterOptions: { id: QuickFilterType; label: string; icon?: React.ReactNod
   { id: "all", label: "filterAll" },
   { id: "favorites", label: "filterFavorites", icon: <Heart className="w-3.5 h-3.5" /> },
 ];
+
+const ALL_CATEGORIES: Category[] = ["spots", "events", "courses"];
+
+// Normalize a string for accent-insensitive matching.
+function norm(s: string | null | undefined): string {
+  return (s ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+const REGEX_META = /[.*+?^${}()|[\]\\]/;
+
+// Match `query` against any of the provided text fields.
+// - Safe queries (only letters/digits/spaces) → AND across tokens, OR across fields.
+// - Queries containing regex metacharacters → try as case-insensitive regex,
+//   fall back to substring match on parse errors.
+function matchesQuery(query: string, ...fields: (string | null | undefined)[]): boolean {
+  const q = query.trim();
+  if (!q) return true;
+  const haystack = fields.map(norm);
+
+  if (REGEX_META.test(q)) {
+    try {
+      const re = new RegExp(q, "i");
+      return haystack.some((h) => re.test(h));
+    } catch {
+      // fall through to token match
+    }
+  }
+
+  const tokens = norm(q).split(/\s+/).filter(Boolean);
+  return tokens.every((tok) => haystack.some((h) => h.includes(tok)));
+}
 
 // Map session_type filter values to spot environment_type values.
 const SESSION_TO_ENV: Record<string, string> = {
@@ -84,10 +120,26 @@ const Spots = () => {
   const [quickFilter, setQuickFilter] = useState<QuickFilterType>("all");
   const [showFiltersSheet, setShowFiltersSheet] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<SpotFilters>(initialFilters);
-  const [showEvents, setShowEvents] = useState(true);
-  const [showCourses, setShowCourses] = useState(true);
+  const [categories, setCategories] = useState<Set<Category>>(
+    () => new Set(ALL_CATEGORIES),
+  );
+
+  const toggleCategory = useCallback((cat: Category) => {
+    setCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+    setSelected(undefined);
+  }, []);
+
+  const showSpots = categories.has("spots");
+  const showEvents = categories.has("events");
+  const showCourses = categories.has("courses");
 
   const filteredSpots = useMemo(() => {
+    if (!showSpots) return [];
     let result = spots;
 
     if (quickFilter === "favorites") {
@@ -101,16 +153,29 @@ const Spots = () => {
     }
 
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (spot) =>
-          spot.name.toLowerCase().includes(query) ||
-          spot.location.toLowerCase().includes(query)
+      result = result.filter((spot) =>
+        matchesQuery(searchQuery, spot.name, spot.location),
       );
     }
 
     return result;
-  }, [spots, quickFilter, advancedFilters, searchQuery, favoriteIds, spotSessions]);
+  }, [spots, showSpots, quickFilter, advancedFilters, searchQuery, favoriteIds, spotSessions]);
+
+  const filteredEvents = useMemo(() => {
+    if (!showEvents) return [];
+    if (!searchQuery.trim()) return events;
+    return events.filter((e) =>
+      matchesQuery(searchQuery, e.title, e.location, e.description),
+    );
+  }, [events, showEvents, searchQuery]);
+
+  const filteredCourses = useMemo(() => {
+    if (!showCourses) return [];
+    if (!searchQuery.trim()) return courses;
+    return courses.filter((c) =>
+      matchesQuery(searchQuery, c.title, c.location, c.description),
+    );
+  }, [courses, showCourses, searchQuery]);
 
   const currentSpot = useMemo(() => {
     if (selected?.type !== "spot") return undefined;
@@ -162,22 +227,18 @@ const Spots = () => {
 
   const eventPoints = useMemo(
     () =>
-      showEvents
-        ? events
-            .filter((e) => e.latitude != null && e.longitude != null)
-            .map((e) => ({ id: e.id, latitude: Number(e.latitude), longitude: Number(e.longitude), title: e.title }))
-        : [],
-    [events, showEvents],
+      filteredEvents
+        .filter((e) => e.latitude != null && e.longitude != null)
+        .map((e) => ({ id: e.id, latitude: Number(e.latitude), longitude: Number(e.longitude), title: e.title })),
+    [filteredEvents],
   );
 
   const coursePoints = useMemo(
     () =>
-      showCourses
-        ? courses
-            .filter((c) => c.latitude != null && c.longitude != null)
-            .map((c) => ({ id: c.id, latitude: Number(c.latitude), longitude: Number(c.longitude), title: c.title }))
-        : [],
-    [courses, showCourses],
+      filteredCourses
+        .filter((c) => c.latitude != null && c.longitude != null)
+        .map((c) => ({ id: c.id, latitude: Number(c.latitude), longitude: Number(c.longitude), title: c.title })),
+    [filteredCourses],
   );
 
   if (loading) {
@@ -260,7 +321,18 @@ const Spots = () => {
                 );
               })}
               <button
-                onClick={() => setShowEvents((v) => !v)}
+                onClick={() => toggleCategory("spots")}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
+                  showSpots
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white/90 backdrop-blur-md border text-foreground hover:bg-white"
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                Spot
+              </button>
+              <button
+                onClick={() => toggleCategory("events")}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
                   showEvents
                     ? "bg-primary text-primary-foreground"
@@ -271,7 +343,7 @@ const Spots = () => {
                 Eventi
               </button>
               <button
-                onClick={() => setShowCourses((v) => !v)}
+                onClick={() => toggleCategory("courses")}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-colors shadow-sm ${
                   showCourses
                     ? "bg-primary text-primary-foreground"
@@ -285,12 +357,14 @@ const Spots = () => {
           </div>
         </div>
 
-        {(showEvents || showCourses) && (
+        {(showSpots || showEvents || showCourses) && (
           <div
             className="absolute left-3 z-[1000] pointer-events-none bg-background/85 backdrop-blur-md border rounded-lg px-2.5 py-1.5 shadow-sm text-[11px] space-y-0.5"
             style={{ bottom: "calc(env(safe-area-inset-bottom) + 5.5rem)" }}
           >
-            <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(200, 80%, 50%)" }} />Spot</div>
+            {showSpots && (
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(200, 80%, 50%)" }} />Spot</div>
+            )}
             {showEvents && (
               <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "hsl(270, 70%, 55%)" }} />Eventi</div>
             )}
