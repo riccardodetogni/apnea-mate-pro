@@ -750,30 +750,28 @@ const SessionDetails = () => {
         {!session.isCreator && !session.isParticipant && (
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t">
             <div className="max-w-[430px] mx-auto">
-              <div className="flex gap-2">
-                <Button
-                  variant="primaryGradient"
-                  className="flex-1"
-                  onClick={handleJoinRequest}
-                  disabled={joining || isFull}
-                >
-                  {joining ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : isFull ? (
-                    t("sessionFullButton")
-                  ) : (
-                    t("requestToJoin")
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setContactSheetOpen(true)}
-                  className="gap-2"
-                  aria-label="Contatta organizzatore"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                variant="primaryGradient"
+                className="w-full"
+                onClick={handleJoinRequest}
+                disabled={joining || isFull}
+              >
+                {joining ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : isFull ? (
+                  t("sessionFullButton")
+                ) : (
+                  t("requestToJoin")
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full mt-2 gap-2"
+                onClick={() => setContactSheetOpen(true)}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Chiedi informazioni
+              </Button>
               {spotsLeft > 0 && spotsLeft <= 3 && (
                 <p className="text-center text-sm text-warning mt-2">
                   {t("spotsLeftText")

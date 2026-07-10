@@ -389,16 +389,6 @@ const EventDetails = () => {
             <UserMinus className="w-4 h-4" /> {t("cancelRegistration")}
           </Button>
         )}
-        {user && !isCreator && (
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setContactSheetOpen(true)}
-            aria-label="Contatta organizzatore"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </Button>
-        )}
         {user && (userStatus === "confirmed" || user.id === event.creator_id) && (
           <Button
             variant="outline"
@@ -416,6 +406,16 @@ const EventDetails = () => {
           </Button>
         )}
       </div>
+      {user && !isCreator && (
+        <Button
+          variant="outline"
+          className="w-full mb-4 gap-2"
+          onClick={() => setContactSheetOpen(true)}
+        >
+          <MessageCircle className="w-4 h-4" />
+          Chiedi informazioni
+        </Button>
+      )}
 
       {/* Cover image */}
       {event.cover_image_url && (

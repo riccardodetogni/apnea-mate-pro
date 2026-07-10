@@ -372,17 +372,17 @@ const CourseDetails = () => {
             <UserMinus className="w-4 h-4" /> {t("cancelRegistration")}
           </Button>
         )}
-        {user && !isCreator && (
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setContactSheetOpen(true)}
-            aria-label="Contatta organizzatore"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </Button>
-        )}
       </div>
+      {user && !isCreator && (
+        <Button
+          variant="outline"
+          className="w-full mb-4 gap-2"
+          onClick={() => setContactSheetOpen(true)}
+        >
+          <MessageCircle className="w-4 h-4" />
+          Chiedi informazioni
+        </Button>
+      )}
 
       {/* Cover image */}
       {course.cover_image_url && (
