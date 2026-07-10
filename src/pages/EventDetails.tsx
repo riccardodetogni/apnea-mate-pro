@@ -563,6 +563,17 @@ const EventDetails = () => {
         loading={deleting}
         onConfirm={handleDeleteEvent}
       />
+      {!isCreator && (
+        <ContactOrganiserSheet
+          open={contactSheetOpen}
+          onOpenChange={setContactSheetOpen}
+          organiserId={event.creator_id}
+          organiserName={fullName(creatorProfile, "Organizzatore")}
+          organiserAvatarUrl={creatorProfile?.avatar_url}
+          entityType="event"
+          entityTitle={event.title}
+        />
+      )}
     </AppLayout>
   );
 };
