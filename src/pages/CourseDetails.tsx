@@ -11,8 +11,9 @@ import { fullName } from "@/lib/format";
 
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil, Check, X, MoreVertical, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, GraduationCap, Pencil, Check, X, MoreVertical, Trash2, MessageCircle } from "lucide-react";
 import { createNotification } from "@/lib/notifications";
+import { ContactOrganiserSheet } from "@/components/chat/ContactOrganiserSheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,7 @@ const CourseDetails = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
 
   const isCreator = !!user && !!course && user.id === course.creator_id;
 
@@ -370,6 +372,16 @@ const CourseDetails = () => {
             <UserMinus className="w-4 h-4" /> {t("cancelRegistration")}
           </Button>
         )}
+        {user && !isCreator && (
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setContactSheetOpen(true)}
+            aria-label="Contatta organizzatore"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
       {/* Cover image */}
@@ -496,6 +508,17 @@ const CourseDetails = () => {
         loading={deleting}
         onConfirm={handleDeleteCourse}
       />
+      {!isCreator && (
+        <ContactOrganiserSheet
+          open={contactSheetOpen}
+          onOpenChange={setContactSheetOpen}
+          organiserId={course.creator_id}
+          organiserName={fullName(creatorProfile, "Organizzatore")}
+          organiserAvatarUrl={creatorProfile?.avatar_url}
+          entityType="course"
+          entityTitle={course.title}
+        />
+      )}
     </AppLayout>
   );
 };
