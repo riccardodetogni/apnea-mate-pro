@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SafetyWarningModal } from "@/components/community/SafetyWarningModal";
+import { ContactOrganiserSheet } from "@/components/chat/ContactOrganiserSheet";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronLeft,
@@ -78,6 +79,7 @@ const SessionDetails = () => {
   const [joining, setJoining] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [safetyModalOpen, setSafetyModalOpen] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -748,20 +750,30 @@ const SessionDetails = () => {
         {!session.isCreator && !session.isParticipant && (
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t">
             <div className="max-w-[430px] mx-auto">
-              <Button
-                variant="primaryGradient"
-                className="w-full"
-                onClick={handleJoinRequest}
-                disabled={joining || isFull}
-              >
-                {joining ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : isFull ? (
-                  t("sessionFullButton")
-                ) : (
-                  t("requestToJoin")
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="primaryGradient"
+                  className="flex-1"
+                  onClick={handleJoinRequest}
+                  disabled={joining || isFull}
+                >
+                  {joining ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isFull ? (
+                    t("sessionFullButton")
+                  ) : (
+                    t("requestToJoin")
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setContactSheetOpen(true)}
+                  className="gap-2"
+                  aria-label="Contatta organizzatore"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+              </div>
               {spotsLeft > 0 && spotsLeft <= 3 && (
                 <p className="text-center text-sm text-warning mt-2">
                   {t("spotsLeftText")
@@ -785,6 +797,19 @@ const SessionDetails = () => {
         userCertified={isCertified}
         loading={joining}
       />
+
+      {/* Contact Organiser Sheet */}
+      {!session.isCreator && (
+        <ContactOrganiserSheet
+          open={contactSheetOpen}
+          onOpenChange={setContactSheetOpen}
+          organiserId={session.creator_id}
+          organiserName={fullName(session.creator, "Organizzatore")}
+          organiserAvatarUrl={session.creator?.avatar_url}
+          entityType="session"
+          entityTitle={session.title}
+        />
+      )}
 
       {/* Cancel Session Dialog */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>

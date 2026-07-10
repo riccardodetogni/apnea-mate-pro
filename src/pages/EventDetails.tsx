@@ -14,6 +14,7 @@ import { it } from "date-fns/locale";
 import { ArrowLeft, Calendar, MapPin, Users, Loader2, UserPlus, UserMinus, Clock, Share2, Ticket, Trophy, Compass, MessageCircle, Pencil, Check, X, MoreVertical, Trash2 } from "lucide-react";
 import { getOrCreateEventConversation } from "@/hooks/useConversations";
 import { createNotification } from "@/lib/notifications";
+import { ContactOrganiserSheet } from "@/components/chat/ContactOrganiserSheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +56,7 @@ const EventDetails = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
 
   const isCreator = !!user && !!event && user.id === event.creator_id;
 
@@ -387,6 +389,16 @@ const EventDetails = () => {
             <UserMinus className="w-4 h-4" /> {t("cancelRegistration")}
           </Button>
         )}
+        {user && !isCreator && (
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setContactSheetOpen(true)}
+            aria-label="Contatta organizzatore"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+        )}
         {user && (userStatus === "confirmed" || user.id === event.creator_id) && (
           <Button
             variant="outline"
@@ -551,6 +563,17 @@ const EventDetails = () => {
         loading={deleting}
         onConfirm={handleDeleteEvent}
       />
+      {!isCreator && (
+        <ContactOrganiserSheet
+          open={contactSheetOpen}
+          onOpenChange={setContactSheetOpen}
+          organiserId={event.creator_id}
+          organiserName={fullName(creatorProfile, "Organizzatore")}
+          organiserAvatarUrl={creatorProfile?.avatar_url}
+          entityType="event"
+          entityTitle={event.title}
+        />
+      )}
     </AppLayout>
   );
 };
