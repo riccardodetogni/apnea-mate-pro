@@ -1,53 +1,38 @@
-# Contact Organiser Before Joining
+Installazione Google Tag Manager (container `GTM-P2Q3226K`) in `index.html`.
 
-Let users message the organiser of a session, event, or course directly from the details page, without visiting the profile.
+## Modifiche
 
-## UX
+**File:** `index.html` (unico file toccato)
 
-On `SessionDetails`, `EventDetails`, and `CourseDetails`, add a secondary button **"Contatta organizzatore"** next to the main Join / participation CTA (hidden when the current user is the organiser).
+1. Aggiungere lo snippet `<script>` GTM in cima al `<head>`, subito dopo `<meta name="viewport">` (il più in alto possibile, prima di title/meta/OG così viene caricato per primo).
 
-Tapping the button opens a bottom sheet **`ContactOrganiserSheet`** with:
-- Header: organiser avatar + name + activity title.
-- 3–4 tappable **suggested questions** (chips) tailored to the entity type:
-  - Session: "Che livello è richiesto?", "Serve attrezzatura specifica?", "Ci sono ancora posti?"
-  - Event: "Info logistica/alloggio?", "Che livello serve?", "È incluso il pranzo?"
-  - Course: "Qual è il programma?", "Serve certificazione precedente?", "Come si effettua il pagamento?"
-- Free-text `Textarea` (prefilled when a chip is tapped, still editable).
-- Primary button **"Invia messaggio"**.
+2. Aggiungere lo snippet `<noscript><iframe>` subito dopo `<body>`, prima di `<div id="root">`.
 
-On send:
-1. Get-or-create a DM conversation between current user and organiser via existing `getOrCreateDMConversation`.
-2. Prepend a small context line to the first message so the organiser knows what it refers to, e.g.:
-   `📌 Riguardo a "<titolo>" (sessione/evento/corso)\n\n<user text>`
-3. Insert the message, close the sheet, navigate to `/chat/:conversationId`.
+## Codice inserito
 
-Always enabled — no organiser opt-out (per user's choice).
+Nel `<head>`:
+```html
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-P2Q3226K');</script>
+<!-- End Google Tag Manager -->
+```
 
-## Technical
+Nel `<body>`:
+```html
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P2Q3226K"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+```
 
-New file: `src/components/chat/ContactOrganiserSheet.tsx`
-- Props: `open`, `onOpenChange`, `organiserId`, `organiserName`, `organiserAvatarUrl`, `entityType: 'session'|'event'|'course'`, `entityTitle`.
-- Uses shadcn `Sheet` (bottom) + existing button/textarea primitives.
-- Suggested questions defined in a small constant map keyed by `entityType` (Italian + English via `t()` if trivially available; otherwise IT literals — the app is IT-first per existing UI).
-- On submit: call helper `sendContactOrganiserMessage(currentUserId, organiserId, entityType, entityTitle, text)` that wraps `getOrCreateDMConversation` + `supabase.from('messages').insert(...)` and returns `{ conversationId }`. Add this helper in `src/hooks/useConversations.ts` (colocated with the other DM helpers) or a new `src/lib/contactOrganiser.ts` — prefer the latter to keep hooks clean.
-- Uses `useAuth()` for current user; toast on error via `useToast`.
+## Note
 
-Wiring:
-- `src/pages/SessionDetails.tsx`: add button in the CTA area; hide if `user?.id === session.creator_id`.
-- `src/pages/EventDetails.tsx`: same pattern with `event.creator_id`.
-- `src/pages/CourseDetails.tsx`: same pattern with `course.creator_id`.
-
-No schema, RLS, or edge function changes — DMs already work end-to-end and messages RLS already permits participants to insert.
-
-## Out of scope
-
-- No card-level chat icon on feeds (kept off per chosen option).
-- No organiser opt-out toggle.
-- No changes to notifications (the recipient already gets standard message notifications through the existing chat pipeline; if they don't, that's a separate follow-up).
-
-## Verification
-
-- Open a session created by another user → "Contatta organizzatore" visible; on own session → not visible.
-- Tap a suggested question → text prefilled and editable.
-- Send → lands on `/chat/:id` with the message visible; organiser sees it in `Messages`.
-- Repeat with an event and a course.
+- Il `<noscript>` va nel `<body>`, non nel `<head>` (vincolo HTML5 già rispettato nelle istruzioni di Google).
+- Nessuna modifica a React, routing, auth, o codice applicativo.
+- Nessun impatto su iOS/Android/webview: script async standard.
+- Dopo il deploy, GTM sarà attivo su tutte le pagine (web e Capacitor webview). Da GTM Console potrai poi collegare GA4 o altri tag senza toccare il codice.
+- Se in futuro serve tracciare eventi custom (login, join session, ecc.), si potrà pushare su `window.dataLayer` — ma non fa parte di questo task.
