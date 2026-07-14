@@ -8,6 +8,44 @@ import { t } from "@/lib/i18n";
 import { Logo } from "@/components/brand/Logo";
 import { BrandIcon, BrandIconName } from "@/components/brand/BrandIcon";
 import { Button } from "@/components/ui/button";
+import symbolWhite from "@/assets/logos/apnea_mate_pittogramma_white.png";
+
+const BackgroundSymbols = ({ variant }: { variant: "hero" | "final" }) => {
+  if (variant === "final") {
+    return (
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <img
+          src={symbolWhite}
+          alt=""
+          draggable={false}
+          className="select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] max-w-none opacity-[0.05]"
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <img
+        src={symbolWhite}
+        alt=""
+        draggable={false}
+        className="select-none absolute -left-[15%] top-[8%] w-[70vw] sm:w-[46vw] max-w-none opacity-[0.09] -rotate-6"
+      />
+      <img
+        src={symbolWhite}
+        alt=""
+        draggable={false}
+        className="hidden sm:block select-none absolute right-[-10%] -top-[8%] w-[34vw] max-w-none opacity-[0.07] rotate-12"
+      />
+      <img
+        src={symbolWhite}
+        alt=""
+        draggable={false}
+        className="hidden sm:block select-none absolute right-[-18%] bottom-[-25%] w-[55vw] max-w-none opacity-[0.06] -rotate-3"
+      />
+    </div>
+  );
+};
 
 const LanguageToggle = () => {
   const { language, setLanguage } = useLanguage();
@@ -128,6 +166,7 @@ const Landing = () => {
         className="relative overflow-hidden"
         style={{ background: DARK_BG }}
       >
+        <BackgroundSymbols variant="hero" />
         {/* decorative blobs */}
         <div
           className="pointer-events-none absolute inset-0"
@@ -472,6 +511,7 @@ const Landing = () => {
         className="relative overflow-hidden"
         style={{ background: DARK_BG }}
       >
+        <BackgroundSymbols variant="final" />
         <div
           className="pointer-events-none absolute inset-0"
           aria-hidden
