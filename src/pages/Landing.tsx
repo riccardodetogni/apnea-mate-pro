@@ -341,18 +341,19 @@ const Landing = () => {
 
         {/* Features */}
         <section className="px-5 sm:px-8 pb-14 sm:pb-20">
-          <div className="max-w-3xl mx-auto">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ color: "hsl(var(--primary))" }}
-            >
-              {t("landingFeaturesEyebrow")}
-            </p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
-              {t("landingFeaturesTitle")}
-            </h2>
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em]"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                {t("landingFeaturesEyebrow")}
+              </p>
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
+                {t("landingFeaturesTitle")}
+              </h2>
 
-            <div className="mt-8 space-y-4">
+              <div className="mt-8 space-y-4">
               {FEATURES.map((f) => (
                 <div
                   key={f.titleKey}
@@ -380,25 +381,33 @@ const Landing = () => {
                   </div>
                 </div>
               ))}
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <PhoneMockup src={communityAsset.url} alt="Apnea Mate community feed" />
             </div>
           </div>
         </section>
 
         {/* Audience */}
         <section className="px-5 sm:px-8 pb-14 sm:pb-20">
-          <div className="max-w-3xl mx-auto">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ color: "hsl(var(--primary))" }}
-            >
-              {t("landingAudienceEyebrow")}
-            </p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
-              {t("landingAudienceTitle")}
-            </h2>
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+            <div className="order-1">
+              <PhoneMockup src={groupsAsset.url} alt="Apnea Mate groups list" />
+            </div>
+            <div className="order-2">
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em]"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                {t("landingAudienceEyebrow")}
+              </p>
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
+                {t("landingAudienceTitle")}
+              </h2>
 
-            <div
-              className="mt-8 rounded-3xl overflow-hidden"
+              <div
+                className="mt-8 rounded-3xl overflow-hidden"
               style={{
                 background: "hsl(var(--landing-light-card))",
                 border: "1px solid hsl(var(--landing-light-border))",
@@ -430,14 +439,16 @@ const Landing = () => {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </section>
 
         {/* How it works */}
         <section id="how-it-works" className="px-5 sm:px-8 pb-16 sm:pb-24">
-          <div className="max-w-3xl mx-auto">
-            <p
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-start">
+            <div className="order-2 md:order-1">
+              <p
               className="text-xs font-bold uppercase tracking-[0.18em]"
               style={{ color: "hsl(var(--primary))" }}
             >
@@ -527,6 +538,10 @@ const Landing = () => {
                 </li>
               ))}
             </ol>
+            </div>
+            <div className="order-1 md:order-2 md:sticky md:top-8">
+              <PhoneMockup src={spotsAsset.url} alt="Apnea Mate spots map" />
+            </div>
           </div>
         </section>
       </div>
