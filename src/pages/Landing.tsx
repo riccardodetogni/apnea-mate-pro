@@ -9,6 +9,9 @@ import { Logo } from "@/components/brand/Logo";
 import { BrandIcon, BrandIconName } from "@/components/brand/BrandIcon";
 import { Button } from "@/components/ui/button";
 import symbolWhite from "@/assets/logos/apnea_mate_pittogramma_white.png";
+import communityAsset from "@/assets/landing/community.png.asset.json";
+import groupsAsset from "@/assets/landing/groups.png.asset.json";
+import spotsAsset from "@/assets/landing/spots.png.asset.json";
 
 const BackgroundSymbols = ({ variant }: { variant: "hero" | "final" }) => {
   const sizeClass =
@@ -25,6 +28,46 @@ const BackgroundSymbols = ({ variant }: { variant: "hero" | "final" }) => {
         className={`select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${sizeClass}`}
         style={{ opacity }}
       />
+    </div>
+  );
+};
+
+const PhoneMockup = ({
+  src,
+  alt,
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) => {
+  return (
+    <div className={`relative w-full flex justify-center ${className}`}>
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.18), transparent 65%), radial-gradient(circle at 70% 20%, hsl(var(--accent) / 0.18), transparent 55%)",
+          filter: "blur(24px)",
+        }}
+      />
+      <div
+        className="relative w-full max-w-[320px] overflow-hidden rounded-[2rem] md:rotate-[1.5deg] md:hover:rotate-0 transition-transform duration-500"
+        style={{
+          border: "1px solid hsl(var(--landing-light-border))",
+          boxShadow: "0 30px 80px -30px hsl(var(--primary) / 0.45), 0 10px 30px -10px hsl(222 47% 11% / 0.25)",
+          background: "hsl(var(--landing-light-card))",
+        }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          loading="lazy"
+          className="pointer-events-none select-none w-full h-[420px] md:h-[560px] object-cover object-top"
+        />
+      </div>
     </div>
   );
 };
