@@ -11,37 +11,19 @@ import { Button } from "@/components/ui/button";
 import symbolWhite from "@/assets/logos/apnea_mate_pittogramma_white.png";
 
 const BackgroundSymbols = ({ variant }: { variant: "hero" | "final" }) => {
-  if (variant === "final") {
-    return (
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <img
-          src={symbolWhite}
-          alt=""
-          draggable={false}
-          className="select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] max-w-none opacity-[0.05]"
-        />
-      </div>
-    );
-  }
+  const sizeClass =
+    variant === "hero"
+      ? "w-[140vw] sm:w-[110vw] max-w-none"
+      : "w-[900px] max-w-none";
+  const opacity = variant === "hero" ? 0.09 : 0.05;
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <img
         src={symbolWhite}
         alt=""
         draggable={false}
-        className="select-none absolute -left-[15%] top-[8%] w-[70vw] sm:w-[46vw] max-w-none opacity-[0.09] -rotate-6"
-      />
-      <img
-        src={symbolWhite}
-        alt=""
-        draggable={false}
-        className="hidden sm:block select-none absolute right-[-10%] -top-[8%] w-[34vw] max-w-none opacity-[0.07] rotate-12"
-      />
-      <img
-        src={symbolWhite}
-        alt=""
-        draggable={false}
-        className="hidden sm:block select-none absolute right-[-18%] bottom-[-25%] w-[55vw] max-w-none opacity-[0.06] -rotate-3"
+        className={`select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${sizeClass}`}
+        style={{ opacity }}
       />
     </div>
   );
