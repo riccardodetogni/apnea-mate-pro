@@ -17,15 +17,34 @@ const LanguageToggle = () => {
   const { language, setLanguage } = useLanguage();
   return (
     <div className="absolute top-4 right-4 z-10">
-      <button
-        type="button"
-        onClick={() => setLanguage(language === "it" ? "en" : "it")}
-        className="flex items-center gap-1 rounded-full border border-border bg-card/80 backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+      <div
+        role="group"
+        aria-label="Language"
+        className="flex items-center rounded-full overflow-hidden border"
+        style={{
+          background: "hsl(var(--muted))",
+          borderColor: "hsl(var(--border))",
+        }}
       >
-        <span className={language === "it" ? "text-foreground font-semibold" : ""}>IT</span>
-        <span className="text-border">|</span>
-        <span className={language === "en" ? "text-foreground font-semibold" : ""}>EN</span>
-      </button>
+        {(["it", "en"] as const).map((lng) => {
+          const active = language === lng;
+          return (
+            <button
+              key={lng}
+              type="button"
+              onClick={() => setLanguage(lng)}
+              aria-pressed={active}
+              className="px-3 py-1.5 text-xs font-semibold tracking-wider transition-colors"
+              style={{
+                background: active ? "hsl(var(--primary) / 0.12)" : "transparent",
+                color: active ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+              }}
+            >
+              {lng.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -480,13 +499,19 @@ const Auth = () => {
         </div>
 
         {mode === "register" && (
-          <div className="mb-6 rounded-xl border border-border bg-card/50 p-3 flex gap-2">
+          <div
+            className="mb-6 rounded-xl p-3 flex gap-2"
+            style={{
+              background: "hsl(var(--primary) / 0.06)",
+              border: "1px solid hsl(var(--primary) / 0.20)",
+            }}
+          >
             <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-foreground uppercase tracking-wide">
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(var(--primary))" }}>
                 {t("registerPersonalInfoTitle")}
               </p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-xs leading-relaxed" style={{ color: "hsl(var(--foreground) / 0.75)" }}>
                 {t("registerPersonalInfoDesc")}
               </p>
             </div>
