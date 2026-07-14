@@ -581,6 +581,7 @@ const Landing = () => {
             style={{ borderTop: "1px solid hsl(0 0% 100% / 0.08)" }}
           >
             <Logo variant="horizontal-white" className="h-7 w-auto opacity-80" />
+            <p className="text-sm text-white/60">Per informazioni o supporto</p>
             <a
               href="mailto:support@apneamate.com"
               className="text-sm text-white/70 hover:text-white transition-colors"
