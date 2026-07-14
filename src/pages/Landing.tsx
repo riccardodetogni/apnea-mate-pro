@@ -268,17 +268,11 @@ const Landing = () => {
               boxShadow: "0 20px 60px -20px hsl(var(--primary) / 0.35)",
             }}
           >
-            <h2 className="text-lg font-bold" style={{ color: "hsl(var(--landing-light-fg))" }}>
-              {t("landingCtaCardTitle")}
-            </h2>
-            <p className="text-sm mt-1" style={{ color: "hsl(var(--landing-light-muted))" }}>
-              {t("landingCtaCardSubtitle")}
-            </p>
             <Button
               type="button"
               onClick={scrollToPain}
               variant="primaryGradient"
-              className="mt-4 h-12 w-full text-base"
+              className="h-12 w-full text-base"
             >
               {t("landingCtaPrimary")} <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
