@@ -6,6 +6,15 @@
 
 @layer base {
   :root {
+    /* Landing page scoped tokens (fixed regardless of app theme) */
+    --landing-dark: 210 70% 6%;
+    --landing-dark-2: 210 55% 12%;
+    --landing-light: 210 30% 97%;
+    --landing-light-fg: 222 47% 11%;
+    --landing-light-muted: 222 20% 45%;
+    --landing-light-border: 222 30% 88%;
+    --landing-light-card: 0 0% 100%;
+
     /* Background & Surfaces */
     --background: 220 27% 98%;
     --foreground: 222 47% 11%;
