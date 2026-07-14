@@ -1,41 +1,22 @@
-## Add app screenshots to the landing page (one per section)
+## Changes
 
-Use the 3 uploaded screenshots as real product visuals, one per section, in `src/pages/Landing.tsx`.
+### 1. Landing — "Scopri Apnea Mate" scrolls instead of navigating
+In `src/pages/Landing.tsx`:
+- Add `id="pain-banner"` to the wrapping section of the "Quante volte vorresti fare apnea…" bubble (around line ~315).
+- Add a `scrollToPain` helper that calls `document.getElementById("pain-banner")?.scrollIntoView({ behavior: "smooth", block: "start" })`.
+- Change the primary CTA button (`landingCtaPrimary` — "Scopri Apnea Mate" / "Discover Apnea Mate") `onClick` from `goRegister` to `scrollToPain`.
+- Leave the "Hai già un account? Accedi" secondary link and header Login button untouched — registration remains reachable via the pain-section flow further down (existing CTAs).
 
-### Assignment
+### 2. Fix "DATI PERSONALI" block on white Auth page
+The `registerPersonalInfoTitle` / `registerPersonalInfoDesc` info card on `src/pages/Auth.tsx` currently uses a dark/muted background (designed for the dark hero) that looks muddy on the white page.
+- Locate the block in `src/pages/Auth.tsx` and restyle it using light-surface semantic tokens: soft `--primary / 0.06` background, `--primary / 0.20` border, title in `--primary`, body in `--muted-foreground` / `--foreground`. No hardcoded colors.
 
-- **Features ("Cosa trovi dentro")** → Community screenshot (`Screenshot_2026-07-14_at_11.50.20.png`)
-- **Audience ("Per chi è Apnea Mate")** → Groups screenshot (`Screenshot_2026-07-14_at_11.51.44.png`)
-- **How it works** → Spots map screenshot (`Screenshot_2026-07-14_at_11.51.24.png`)
+### 3. Fix IT/EN language toggle on white pages
+`LanguageToggle` in `src/pages/Landing.tsx` is hardcoded with white-on-transparent styles (`bg-white/15`, `text-white/60`) — fine on the dark hero, but the same component (or same visual) also appears on the white Auth page where it becomes unreadable.
+- Refactor `LanguageToggle` to accept a `variant?: "dark" | "light"` prop (default `"dark"` for the hero).
+- Light variant: subtle `--muted` background, `--border` border, active pill uses `--primary / 0.12` bg with `--primary` text; inactive uses `--muted-foreground`.
+- Update the Auth page usage (and any other light-background usage) to pass `variant="light"`. Hero header keeps default.
 
-### Approach
-
-1. **Upload the 3 screenshots as CDN assets** via `lovable-assets`, store pointer JSONs in `src/assets/landing/` (`community.png.asset.json`, `groups.png.asset.json`, `spots.png.asset.json`). No binaries in repo.
-
-2. **New `PhoneMockup` component** (local to `Landing.tsx`):
-   - Rounded 2xl frame, subtle border using `--landing-light-border`, soft shadow, slight scale/tilt on `md+`.
-   - `object-cover` with `object-top` so the image is **cropped** rather than shrunk when the container is shorter than the screenshot — this satisfies "cut them if needed for sizing".
-   - Soft radial glow behind it using `--primary` / `--accent` tokens.
-   - `pointer-events-none`, `select-none`, `draggable={false}`, `loading="lazy"`, descriptive `alt`.
-
-3. **Responsive split layout** for the three sections:
-   - `md+`: 2-column grid (`md:grid-cols-2`, `gap-10`). Text left / image right for Features and How-it-works; **mirrored** (image left / text right) for Audience to create rhythm.
-   - Mobile: single column, mockup rendered **above** the text block at a reduced height (e.g. `max-h-[420px]` with `object-top` crop) so it doesn't dominate the fold.
-   - Vertical alignment centered; container capped at `max-w-5xl` (was `max-w-3xl`) on these sections only to fit the new column.
-
-4. **Untouched**: hero, language toggle, banner card, final CTA, all i18n keys, all copy, routing, hooks, backend logic, and the existing `BackgroundSymbols` watermark.
-
-5. **Styling constraints**: semantic tokens only (no hardcoded colors), no new dependencies, no design-system changes.
-
-### Files touched
-
-- `src/pages/Landing.tsx` — add `PhoneMockup`, restructure the 3 sections into responsive 2-col grids, widen their containers to `max-w-5xl`.
-- `src/assets/landing/community.png.asset.json` (new)
-- `src/assets/landing/groups.png.asset.json` (new)
-- `src/assets/landing/spots.png.asset.json` (new)
-
-### Out of scope
-
-- No changes to hero, banner, final CTA, or copy.
-- No new translations or i18n keys.
-- No animations beyond existing CSS transitions.
+## Out of scope
+- No copy/i18n changes, no routing changes, no backend, no new deps.
+- No changes to hero layout, features, audience, how-it-works, footer.
