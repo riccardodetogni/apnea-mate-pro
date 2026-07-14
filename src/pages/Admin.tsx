@@ -33,8 +33,9 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { FeedbackList } from "@/components/admin/FeedbackList";
-import { useAllFeedback } from "@/hooks/useFeedback";
+import { useNewFeedbackCount } from "@/hooks/useFeedback";
 
 const getRoleLabel = (role: AppRole): string => {
   switch (role) {
@@ -62,6 +63,15 @@ const Admin = () => {
     allUsers,
     allGroups,
     loading,
+    usersLoading,
+    groupsLoading,
+    usersTotal,
+    usersPage,
+    usersSearch,
+    setUsersPage,
+    setUsersSearch,
+    pageSize,
+    ensureGroupsLoaded,
     updateUserRole,
     toggleGroupVerification,
   } = useAdmin();
@@ -72,8 +82,22 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState<typeof allUsers[0] | null>(null);
   const [newUserRole, setNewUserRole] = useState<AppRole>("regular");
   const [togglingGroupId, setTogglingGroupId] = useState<string | null>(null);
-  const { data: allFeedback = [] } = useAllFeedback(isAdmin);
-  const newFeedbackCount = allFeedback.filter((f) => f.status === "new").length;
+  const { data: feedbackCounts } = useNewFeedbackCount(isAdmin);
+  const feedbackTotal = feedbackCounts?.total ?? 0;
+  const newFeedbackCount = feedbackCounts?.newCount ?? 0;
+  const [searchInput, setSearchInput] = useState(usersSearch);
+
+  // Debounce search
+  useEffect(() => {
+    const h = setTimeout(() => {
+      if (searchInput !== usersSearch) setUsersSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(h);
+  }, [searchInput, usersSearch, setUsersSearch]);
+
+  useEffect(() => {
+    if (activeTab === "groups") ensureGroupsLoaded();
+  }, [activeTab, ensureGroupsLoaded]);
 
   useEffect(() => {
     if (!user) {
@@ -174,7 +198,7 @@ const Admin = () => {
             }`}
           >
             <Users className="w-4 h-4" />
-            {t("users")} ({allUsers.length})
+            {t("users")} ({usersTotal})
           </button>
           <button
             onClick={() => setActiveTab("groups")}
@@ -196,7 +220,7 @@ const Admin = () => {
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            {t("adminFeedback")} ({allFeedback.length}
+            {t("adminFeedback")} ({feedbackTotal}
             {newFeedbackCount > 0 ? ` · ${newFeedbackCount} ${t("feedbackStatusNew").toLowerCase()}` : ""})
           </button>
         </div>
@@ -205,7 +229,11 @@ const Admin = () => {
       <div className="px-4 py-6 max-w-[600px] mx-auto">
         {activeTab === "groups" && (
           <div className="space-y-3">
-            {allGroups.length === 0 ? (
+            {groupsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : allGroups.length === 0 ? (
               <div className="text-center py-12 text-muted">
                 <UsersRound className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>{t("noGroupFound")}</p>
@@ -267,7 +295,23 @@ const Admin = () => {
 
         {activeTab === "users" && (
           <div className="space-y-3">
-            {allUsers.map((user) => (
+            <Input
+              placeholder={t("search") + "…"}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="mb-2"
+            />
+            {usersLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : allUsers.length === 0 ? (
+              <div className="text-center py-12 text-muted">
+                <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>—</p>
+              </div>
+            ) : (
+              allUsers.map((user) => (
               <div
                 key={user.id}
                 className="bg-card rounded-xl border border-white/8 p-4 flex items-center gap-3"
@@ -293,7 +337,31 @@ const Admin = () => {
                   {getRoleLabel(user.role)}
                 </button>
               </div>
-            ))}
+              ))
+            )}
+            {usersTotal > pageSize && (
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={usersPage === 0 || usersLoading}
+                  onClick={() => setUsersPage(Math.max(0, usersPage - 1))}
+                >
+                  ←
+                </Button>
+                <span className="text-xs text-muted">
+                  {usersPage + 1} / {Math.max(1, Math.ceil(usersTotal / pageSize))}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={(usersPage + 1) * pageSize >= usersTotal || usersLoading}
+                  onClick={() => setUsersPage(usersPage + 1)}
+                >
+                  →
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
