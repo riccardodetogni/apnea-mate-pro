@@ -1,41 +1,41 @@
-## Problema
+## Add app screenshots to the landing page (one per section)
 
-`useAdmin` è lento per due motivi principali (non la quantità di dati in sé, ma **query N+1**):
+Use the 3 uploaded screenshots as real product visuals, one per section, in `src/pages/Landing.tsx`.
 
-1. **Utenti:** fa 1 query per prendere tutti i profili, poi **una query `user_roles` per ogni utente** in serie. Con 200 utenti = 201 round-trip.
-2. **Gruppi:** stessa cosa — 1 query gruppi + **una `count` `group_members` per ogni gruppo** in serie.
-3. Entrambi i fetch partono insieme al mount della dashboard, anche se stai guardando solo il tab "Users".
-4. `FeedbackList` carica tutti i feedback in parallelo per il badge conteggio.
+### Assignment
 
-## Soluzione
+- **Features ("Cosa trovi dentro")** → Community screenshot (`Screenshot_2026-07-14_at_11.50.20.png`)
+- **Audience ("Per chi è Apnea Mate")** → Groups screenshot (`Screenshot_2026-07-14_at_11.51.44.png`)
+- **How it works** → Spots map screenshot (`Screenshot_2026-07-14_at_11.51.24.png`)
 
-Combino tre fix, in ordine di impatto:
+### Approach
 
-### 1. Eliminare le N+1 (fix principale, risolve ~90% del problema)
+1. **Upload the 3 screenshots as CDN assets** via `lovable-assets`, store pointer JSONs in `src/assets/landing/` (`community.png.asset.json`, `groups.png.asset.json`, `spots.png.asset.json`). No binaries in repo.
 
-- **Users:** una sola query `user_roles` con `.in("user_id", [...])` per tutti gli utenti, poi merge in memoria. Da 201 query → 2.
-- **Groups:** una sola query aggregata su `group_members` raggruppata per `group_id` (via RPC o query con `select` + count lato client su una singola fetch filtrata `status = 'approved'`). Da 1+N → 2.
+2. **New `PhoneMockup` component** (local to `Landing.tsx`):
+   - Rounded 2xl frame, subtle border using `--landing-light-border`, soft shadow, slight scale/tilt on `md+`.
+   - `object-cover` with `object-top` so the image is **cropped** rather than shrunk when the container is shorter than the screenshot — this satisfies "cut them if needed for sizing".
+   - Soft radial glow behind it using `--primary` / `--accent` tokens.
+   - `pointer-events-none`, `select-none`, `draggable={false}`, `loading="lazy"`, descriptive `alt`.
 
-### 2. Paginazione + ricerca lato server sulla tab Users
+3. **Responsive split layout** for the three sections:
+   - `md+`: 2-column grid (`md:grid-cols-2`, `gap-10`). Text left / image right for Features and How-it-works; **mirrored** (image left / text right) for Audience to create rhythm.
+   - Mobile: single column, mockup rendered **above** the text block at a reduced height (e.g. `max-h-[420px]` with `object-top` crop) so it doesn't dominate the fold.
+   - Vertical alignment centered; container capped at `max-w-5xl` (was `max-w-3xl`) on these sections only to fit the new column.
 
-- Lista utenti con **page size 25**, ordinati per `created_at desc`.
-- Barra di ricerca (nome/email) con debounce che filtra via `.ilike` su `profiles` — così anche con migliaia di utenti la dashboard resta istantanea.
-- Bottoni "Precedente / Successiva" + indicatore "Pagina X di Y" (uso `count: 'exact'` sulla query profili per il totale).
-- Il conteggio nel tab (`Users (N)`) diventa il totale dal `count`, non `allUsers.length`.
+4. **Untouched**: hero, language toggle, banner card, final CTA, all i18n keys, all copy, routing, hooks, backend logic, and the existing `BackgroundSymbols` watermark.
 
-### 3. Lazy-load per tab
+5. **Styling constraints**: semantic tokens only (no hardcoded colors), no new dependencies, no design-system changes.
 
-- Al mount carico **solo il tab attivo** (default: Users). Groups e Feedback si caricano quando l'utente clicca la loro tab (e restano in cache via lo state esistente).
-- Il badge "N new" sul tab Feedback diventa una singola query leggera `select count` con `status = 'new'` invece di scaricare tutti i feedback.
+### Files touched
 
-## File toccati
+- `src/pages/Landing.tsx` — add `PhoneMockup`, restructure the 3 sections into responsive 2-col grids, widen their containers to `max-w-5xl`.
+- `src/assets/landing/community.png.asset.json` (new)
+- `src/assets/landing/groups.png.asset.json` (new)
+- `src/assets/landing/spots.png.asset.json` (new)
 
-- `src/hooks/useAdmin.ts` — refactor fetch: batch roles/members, aggiungo `usersPage`, `usersSearch`, `usersTotal`, `fetchUsersPage()`, lazy fetch groups.
-- `src/pages/Admin.tsx` — UI paginazione + search input nel tab Users, trigger fetch groups/feedback on tab change, badge feedback da conteggio leggero.
-- `src/hooks/useFeedback.ts` — aggiungo `useNewFeedbackCount()` (solo count) da usare per il badge; `useAllFeedback` resta ma viene chiamato solo quando la tab feedback è attiva.
+### Out of scope
 
-## Fuori scope
-
-- Nessuna modifica a schema DB, RLS, o alle altre pagine.
-- Nessun cambio al design/token.
-- Nessuna paginazione su Groups/Feedback per ora (dopo il fix N+1 sono già veloci; se in futuro crescono molto si aggiunge con lo stesso pattern).
+- No changes to hero, banner, final CTA, or copy.
+- No new translations or i18n keys.
+- No animations beyond existing CSS transitions.
