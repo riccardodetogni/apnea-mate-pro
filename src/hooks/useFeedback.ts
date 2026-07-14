@@ -71,6 +71,23 @@ export const useAllFeedback = (enabled: boolean) => {
   });
 };
 
+export const useNewFeedbackCount = (enabled: boolean) => {
+  return useQuery({
+    queryKey: ["feedback", "count", "new"],
+    enabled,
+    queryFn: async () => {
+      const { count: total } = await supabase
+        .from("feedback" as any)
+        .select("*", { count: "exact", head: true });
+      const { count: newCount } = await supabase
+        .from("feedback" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("status", "new");
+      return { total: total || 0, newCount: newCount || 0 };
+    },
+  });
+};
+
 export const useSubmitFeedback = () => {
   const { user } = useAuth();
   const qc = useQueryClient();
