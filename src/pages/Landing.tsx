@@ -65,7 +65,7 @@ const PhoneMockup = ({
           alt={alt}
           draggable={false}
           loading="lazy"
-          className="pointer-events-none select-none w-full h-[420px] md:h-[560px] object-cover object-top"
+          className="pointer-events-none select-none w-full h-auto object-contain"
         />
       </div>
     </div>
