@@ -11,6 +11,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import EnvBadge from "./components/dev/EnvBadge";
 
 // Lazy-loaded pages
+const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -79,7 +80,7 @@ const App = () => (
             <ErrorBoundary>
               <Suspense fallback={<PageSpinner />}>
               <Routes>
-                <Route path="/" element={<Navigate to="/auth" replace />} />
+                <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin-login" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
