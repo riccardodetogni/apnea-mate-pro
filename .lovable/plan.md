@@ -1,31 +1,25 @@
-## Localize + polish the footer contact block
+## Rework the footer contact into a quiet, compact strip
 
-**Scope:** `src/pages/Landing.tsx` footer + `src/lib/i18n.ts` (IT/EN strings). No layout changes elsewhere.
+**Problem:** The glass "CONTACT" card competes visually with the "Join Apnea Mate" CTA right above it. Contact is secondary info; it shouldn't look like a second call to action.
 
-### 1. Add i18n keys
-In `src/lib/i18n.ts`, add to both IT and EN dictionaries:
-- `landingContactEyebrow` — IT: `"Contatti"` · EN: `"Contact"`
-- `landingContactTitle` — IT: `"Per informazioni o supporto"` · EN: `"For info or support"`
-- `landingContactCta` — IT: `"Scrivici"` · EN: `"Get in touch"`
+**Scope:** `src/pages/Landing.tsx` only (final dark section footer). No i18n changes — reuse `landingContactTitle` and drop the eyebrow + separate CTA button.
 
-### 2. Redesign the contact block (footer of final CTA section)
-Replace the current plain stack with a subtle glass card, so it reads as a real "Contact" module instead of loose text:
+### New structure
+
+Replace the glass card + separate logo/copyright row with a single, low-key footer strip separated from the CTA by a hairline divider:
 
 ```text
-┌─────────────────────────────────────┐
-│  CONTATTI                           │  ← eyebrow, accent color, tracking
-│  Per informazioni o supporto        │  ← white, medium weight
-│                                     │
-│  [ ✉  support@apneamate.com ]       │  ← pill button, glass bg, hover lift
-└─────────────────────────────────────┘
-        Logo · © 2026 Apnea Mate S.r.l.s.
+────────────────────────────────────────────
+Logo   Per informazioni o supporto — support@apneamate.com   © 2026 Apnea Mate S.r.l.s.
 ```
 
-Details:
-- Card: `rounded-2xl`, `bg: hsl(0 0% 100% / 0.06)`, `border: 1px solid hsl(0 0% 100% / 0.10)`, `backdrop-blur`, padded, centered.
-- Eyebrow uses the same styling as other section eyebrows (uppercase, tracking-[0.18em], accent color).
-- Mail link becomes an inline-flex pill with a `Mail` icon (lucide) + address, `hover:bg-white/10` transition.
-- Below the card, keep logo + copyright on a single subtle line separated by a middot, smaller and more muted, no top border (the card already provides separation).
-- Wire all copy through `t(...)`; the mail address stays literal.
+- One flex row, wraps to stacked/centered on mobile (`flex-col sm:flex-row`, `justify-between`, `gap-3`).
+- Top hairline border (`border-top: 1px solid hsl(0 0% 100% / 0.08)`), `mt-16 pt-6`.
+- Left: `Logo variant="horizontal-white"` at `h-5`, `opacity-60`.
+- Middle: `t("landingContactTitle")` in `text-xs text-white/50`, followed by an em-dash and the `mailto:` link. Link uses `text-white/70 hover:text-white underline-offset-4 hover:underline`, no pill, no icon, no background.
+- Right: `text-xs text-white/40` copyright.
+- Remove the glass card, the `Mail` icon usage, the accent-color eyebrow, and the standalone logo+©️ row.
+- Drop `landingContactEyebrow` and `landingContactCta` usage from `Landing.tsx` (leave keys in `i18n.ts` untouched; harmless).
+- Remove the now-unused `Mail` import.
 
-**Result:** contact section becomes a proper localized module that matches the rest of the landing's glass/accent language, instead of three stacked lines of text.
+**Result:** contact info is present and readable but visually recedes below the "Join Apnea Mate" CTA — one coherent footer line instead of a competing card.
