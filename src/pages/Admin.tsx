@@ -296,7 +296,7 @@ const Admin = () => {
         {activeTab === "users" && (
           <div className="space-y-3">
             <Input
-              placeholder={t("search") + "…"}
+              placeholder={t("searchPlaceholder")}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               className="mb-2"
