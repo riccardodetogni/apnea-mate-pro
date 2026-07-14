@@ -171,6 +171,9 @@ const Landing = () => {
   const scrollToHow = () => {
     document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
   };
+  const scrollToPain = () => {
+    document.getElementById("pain-banner")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const steps = tab === "apneista"
     ? ([
@@ -273,7 +276,7 @@ const Landing = () => {
             </p>
             <Button
               type="button"
-              onClick={goRegister}
+              onClick={scrollToPain}
               variant="primaryGradient"
               className="mt-4 h-12 w-full text-base"
             >
@@ -310,7 +313,7 @@ const Landing = () => {
         }}
       >
         {/* Banner "quante volte…" (dark card inside light bg) */}
-        <section className="px-5 sm:px-8 py-14 sm:py-20">
+        <section id="pain-banner" className="px-5 sm:px-8 py-14 sm:py-20 scroll-mt-16">
           <div
             className="max-w-3xl mx-auto rounded-3xl p-6 sm:p-10 relative overflow-hidden"
             style={{
