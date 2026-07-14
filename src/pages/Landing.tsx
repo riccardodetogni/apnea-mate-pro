@@ -171,6 +171,9 @@ const Landing = () => {
   const scrollToHow = () => {
     document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
   };
+  const scrollToPain = () => {
+    document.getElementById("pain-banner")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const steps = tab === "apneista"
     ? ([
@@ -273,7 +276,7 @@ const Landing = () => {
             </p>
             <Button
               type="button"
-              onClick={goRegister}
+              onClick={scrollToPain}
               variant="primaryGradient"
               className="mt-4 h-12 w-full text-base"
             >
