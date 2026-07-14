@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, Profile, AppRole } from "./useProfile";
 import { t } from "@/lib/i18n";
@@ -14,116 +14,150 @@ export interface AdminGroup {
   member_count: number;
 }
 
+export const USERS_PAGE_SIZE = 25;
+
+const roleOrder: AppRole[] = ["admin", "instructor", "certified", "regular"];
+
 export const useAdmin = () => {
   const { isAdmin, loading: profileLoading } = useProfile();
+
+  // Users (paginated + searchable)
   const [allUsers, setAllUsers] = useState<(Profile & { role: AppRole })[]>([]);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [usersPage, setUsersPage] = useState(0);
+  const [usersSearch, setUsersSearch] = useState("");
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // Groups (loaded lazily)
   const [allGroups, setAllGroups] = useState<AdminGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [groupsLoading, setGroupsLoading] = useState(false);
+  const groupsLoadedRef = useRef(false);
 
-  const fetchAllUsers = useCallback(async () => {
-    if (!isAdmin) return;
+  const fetchUsersPage = useCallback(
+    async (page: number, search: string) => {
+      if (!isAdmin) return;
+      setUsersLoading(true);
+      try {
+        const from = page * USERS_PAGE_SIZE;
+        const to = from + USERS_PAGE_SIZE - 1;
 
-    const { data: profiles, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+        let query = supabase
+          .from("profiles")
+          .select("*", { count: "exact" })
+          .order("created_at", { ascending: false })
+          .range(from, to);
 
-    if (error) {
-      console.error("Error fetching users:", error);
-      return;
-    }
+        const q = search.trim();
+        if (q) {
+          const like = `%${q}%`;
+          query = query.or(`name.ilike.${like},last_name.ilike.${like},email.ilike.${like}`);
+        }
 
-    const usersWithRoles: (Profile & { role: AppRole })[] = [];
-    for (const profile of profiles || []) {
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", profile.user_id);
+        const { data: profiles, count, error } = await query;
+        if (error) {
+          console.error("Error fetching users:", error);
+          setAllUsers([]);
+          setUsersTotal(0);
+          return;
+        }
 
-      const roleOrder: AppRole[] = ["admin", "instructor", "certified", "regular"];
-      const highestRole = roleOrder.find(r => roles?.some(ur => ur.role === r)) || "regular";
-      usersWithRoles.push({ ...profile, role: highestRole });
-    }
+        const ids = (profiles || []).map((p) => p.user_id);
+        let rolesByUser = new Map<string, AppRole[]>();
+        if (ids.length > 0) {
+          const { data: rolesRows } = await supabase
+            .from("user_roles")
+            .select("user_id, role")
+            .in("user_id", ids);
+          for (const r of rolesRows || []) {
+            const arr = rolesByUser.get(r.user_id) || [];
+            arr.push(r.role as AppRole);
+            rolesByUser.set(r.user_id, arr);
+          }
+        }
 
-    setAllUsers(usersWithRoles);
-  }, [isAdmin]);
+        const usersWithRoles = (profiles || []).map((p) => {
+          const roles = rolesByUser.get(p.user_id) || [];
+          const highestRole = roleOrder.find((r) => roles.includes(r)) || "regular";
+          return { ...(p as Profile), role: highestRole };
+        });
+
+        setAllUsers(usersWithRoles);
+        setUsersTotal(count || 0);
+      } finally {
+        setUsersLoading(false);
+      }
+    },
+    [isAdmin],
+  );
 
   const fetchAllGroups = useCallback(async () => {
     if (!isAdmin) return;
+    setGroupsLoading(true);
+    try {
+      const { data: groups, error } = await supabase
+        .from("groups")
+        .select("id, name, location, group_type, verified, verification_requested, created_at")
+        .order("created_at", { ascending: false });
 
-    const { data: groups, error } = await supabase
-      .from("groups")
-      .select("id, name, location, group_type, verified, verification_requested, created_at")
-      .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching groups:", error);
+        setAllGroups([]);
+        return;
+      }
 
-    if (error) {
-      console.error("Error fetching groups:", error);
-      return;
-    }
-
-    const groupsWithCounts: AdminGroup[] = [];
-    for (const group of groups || []) {
-      const { count } = await supabase
+      // Batch: single query for all approved members, count in memory
+      const { data: members } = await supabase
         .from("group_members")
-        .select("*", { count: "exact", head: true })
-        .eq("group_id", group.id)
+        .select("group_id")
         .eq("status", "approved");
 
-      groupsWithCounts.push({
-        ...group,
-        member_count: count || 0,
-      });
-    }
+      const counts = new Map<string, number>();
+      for (const m of members || []) {
+        counts.set(m.group_id, (counts.get(m.group_id) || 0) + 1);
+      }
 
-    setAllGroups(groupsWithCounts);
+      setAllGroups(
+        (groups || []).map((g) => ({ ...g, member_count: counts.get(g.id) || 0 })),
+      );
+      groupsLoadedRef.current = true;
+    } finally {
+      setGroupsLoading(false);
+    }
   }, [isAdmin]);
 
+  const ensureGroupsLoaded = useCallback(() => {
+    if (!groupsLoadedRef.current && !groupsLoading) fetchAllGroups();
+  }, [fetchAllGroups, groupsLoading]);
+
+  // Initial + when page/search change
   useEffect(() => {
     if (!profileLoading && isAdmin) {
-      setLoading(true);
-      Promise.all([fetchAllUsers(), fetchAllGroups()]).finally(() => {
-        setLoading(false);
-      });
-    } else if (!profileLoading) {
-      setLoading(false);
+      fetchUsersPage(usersPage, usersSearch);
     }
-  }, [isAdmin, profileLoading, fetchAllUsers, fetchAllGroups]);
+  }, [isAdmin, profileLoading, usersPage, usersSearch, fetchUsersPage]);
 
   const updateUserRole = async (userId: string, newRole: AppRole) => {
     const { error: deleteError } = await supabase
       .from("user_roles")
       .delete()
       .eq("user_id", userId);
-
     if (deleteError) return { error: deleteError };
 
     const { error: insertError } = await supabase
       .from("user_roles")
-      .insert({
-        user_id: userId,
-        role: newRole,
-      });
+      .insert({ user_id: userId, role: newRole });
 
-    if (!insertError) {
-      await fetchAllUsers();
-    }
-
+    if (!insertError) await fetchUsersPage(usersPage, usersSearch);
     return { error: insertError };
   };
 
   const toggleGroupVerification = async (groupId: string, verified: boolean) => {
     const updateData: any = { verified };
-    if (verified) {
-      updateData.verification_requested = false;
-    }
+    if (verified) updateData.verification_requested = false;
 
-    const { error } = await supabase
-      .from("groups")
-      .update(updateData)
-      .eq("id", groupId);
+    const { error } = await supabase.from("groups").update(updateData).eq("id", groupId);
 
     if (!error) {
-      // Notify the group owner
       const { data: group } = await supabase
         .from("groups")
         .select("created_by, name")
@@ -133,7 +167,7 @@ export const useAdmin = () => {
       if (group?.created_by) {
         await supabase.from("notifications").insert({
           user_id: group.created_by,
-          type: verified ? "group_request_approved" as const : "group_request_approved" as const,
+          type: "group_request_approved" as const,
           title: verified ? t("groupVerified") : t("verificationRemoved"),
           message: verified
             ? `${t("groupVerified")}: "${group.name}"`
@@ -152,12 +186,24 @@ export const useAdmin = () => {
     isAdmin,
     allUsers,
     allGroups,
-    loading: loading || profileLoading,
+    loading: profileLoading,
+    usersLoading,
+    groupsLoading,
+    usersTotal,
+    usersPage,
+    usersSearch,
+    setUsersPage,
+    setUsersSearch: (v: string) => {
+      setUsersPage(0);
+      setUsersSearch(v);
+    },
+    pageSize: USERS_PAGE_SIZE,
+    ensureGroupsLoaded,
     updateUserRole,
     toggleGroupVerification,
     refresh: () => {
-      fetchAllUsers();
-      fetchAllGroups();
+      fetchUsersPage(usersPage, usersSearch);
+      if (groupsLoadedRef.current) fetchAllGroups();
     },
   };
 };
