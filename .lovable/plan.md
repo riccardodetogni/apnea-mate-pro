@@ -1,31 +1,41 @@
-## Usare il pittogramma del logo come sfondo dell'hero
+## Problema
 
-Hai ragione — nel prototipo lo sfondo non sono onde generiche, è **il pittogramma di Apnea Mate** ingrandito e ripetuto/decentrato in versione desaturata. Uso l'asset che già esiste (`apnea_mate_pittogramma_white.png` — la variante bianca è perfetta perché è mono-color e si può gestire con opacità/blend).
+`useAdmin` è lento per due motivi principali (non la quantità di dati in sé, ma **query N+1**):
 
-### Cosa faccio
+1. **Utenti:** fa 1 query per prendere tutti i profili, poi **una query `user_roles` per ogni utente** in serie. Con 200 utenti = 201 round-trip.
+2. **Gruppi:** stessa cosa — 1 query gruppi + **una `count` `group_members` per ogni gruppo** in serie.
+3. Entrambi i fetch partono insieme al mount della dashboard, anche se stai guardando solo il tab "Users".
+4. `FeedbackList` carica tutti i feedback in parallelo per il badge conteggio.
 
-1. **`src/pages/Landing.tsx` — hero**
-   - Aggiungo un layer decorativo `absolute inset-0 pointer-events-none` dentro la `<section>` dell'hero, sotto ai radial-gradient esistenti.
-   - Dentro, 2–3 `<img>` del pittogramma bianco posizionati assoluti:
-     - uno grande a sinistra (~90–120% dell'altezza dell'hero), leggermente ruotato e traslato fuori bordo
-     - uno più piccolo in alto a destra
-     - uno molto grande in basso a destra tagliato dal viewport
-   - Opacità bassa (~0.06–0.10) così restano "watermark" senza rubare leggibilità al testo bianco e alla CTA card.
-   - `select-none`, `draggable={false}`, `alt=""`, `aria-hidden`.
-   - Su mobile riduco numero/dimensione (nascondo i due secondari con `hidden sm:block`) per non affollare.
+## Soluzione
 
-2. **Sezione finale (dark)** — stessa logica ma un solo pittogramma centrato dietro al titolo, opacità ~0.05, per chiudere coerente con l'hero.
+Combino tre fix, in ordine di impatto:
 
-3. **Import dell'asset**
-   - L'immagine `/assets/icons/*` è già in `public/`. Verifico se `apnea_mate_pittogramma_white.png` esiste già nel progetto; se no, la aggiungo in `public/assets/brand/` (l'ho fra i file caricati da te) e la referenzio via path assoluto — nessun hash Vite necessario, comportamento identico a `BrandIcon`.
+### 1. Eliminare le N+1 (fix principale, risolve ~90% del problema)
 
-4. **Nessuna modifica** a token, i18n, routing, `Auth.tsx`, `index.html`, `Logo.tsx`.
+- **Users:** una sola query `user_roles` con `.in("user_id", [...])` per tutti gli utenti, poi merge in memoria. Da 201 query → 2.
+- **Groups:** una sola query aggregata su `group_members` raggruppata per `group_id` (via RPC o query con `select` + count lato client su una singola fetch filtrata `status = 'approved'`). Da 1+N → 2.
 
-### Note tecniche
-- Uso la versione **bianca** del pittogramma perché è già mono-color: opacità bassa su sfondo scuro dà l'effetto azzurrino del prototipo senza filtri CSS (che sono vietati sui BrandIcon, e per coerenza non li uso nemmeno qui).
-- Nessun colore hardcoded, nessun `text-white` nuovo, nessun asset base64 inline.
-- `pointer-events-none` sul wrapper così non intercetta i click sui bottoni.
+### 2. Paginazione + ricerca lato server sulla tab Users
 
-### Fuori scope
-- Non ridisegno SVG di onde.
-- Non tocco layout, copy, CTA, tab "come funziona", features, audience.
+- Lista utenti con **page size 25**, ordinati per `created_at desc`.
+- Barra di ricerca (nome/email) con debounce che filtra via `.ilike` su `profiles` — così anche con migliaia di utenti la dashboard resta istantanea.
+- Bottoni "Precedente / Successiva" + indicatore "Pagina X di Y" (uso `count: 'exact'` sulla query profili per il totale).
+- Il conteggio nel tab (`Users (N)`) diventa il totale dal `count`, non `allUsers.length`.
+
+### 3. Lazy-load per tab
+
+- Al mount carico **solo il tab attivo** (default: Users). Groups e Feedback si caricano quando l'utente clicca la loro tab (e restano in cache via lo state esistente).
+- Il badge "N new" sul tab Feedback diventa una singola query leggera `select count` con `status = 'new'` invece di scaricare tutti i feedback.
+
+## File toccati
+
+- `src/hooks/useAdmin.ts` — refactor fetch: batch roles/members, aggiungo `usersPage`, `usersSearch`, `usersTotal`, `fetchUsersPage()`, lazy fetch groups.
+- `src/pages/Admin.tsx` — UI paginazione + search input nel tab Users, trigger fetch groups/feedback on tab change, badge feedback da conteggio leggero.
+- `src/hooks/useFeedback.ts` — aggiungo `useNewFeedbackCount()` (solo count) da usare per il badge; `useAllFeedback` resta ma viene chiamato solo quando la tab feedback è attiva.
+
+## Fuori scope
+
+- Nessuna modifica a schema DB, RLS, o alle altre pagine.
+- Nessun cambio al design/token.
+- Nessuna paginazione su Groups/Feedback per ora (dopo il fix N+1 sono già veloci; se in futuro crescono molto si aggiunge con lo stesso pattern).
