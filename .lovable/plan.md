@@ -1,22 +1,31 @@
-## Changes
+## Localize + polish the footer contact block
 
-### 1. Landing — "Scopri Apnea Mate" scrolls instead of navigating
-In `src/pages/Landing.tsx`:
-- Add `id="pain-banner"` to the wrapping section of the "Quante volte vorresti fare apnea…" bubble (around line ~315).
-- Add a `scrollToPain` helper that calls `document.getElementById("pain-banner")?.scrollIntoView({ behavior: "smooth", block: "start" })`.
-- Change the primary CTA button (`landingCtaPrimary` — "Scopri Apnea Mate" / "Discover Apnea Mate") `onClick` from `goRegister` to `scrollToPain`.
-- Leave the "Hai già un account? Accedi" secondary link and header Login button untouched — registration remains reachable via the pain-section flow further down (existing CTAs).
+**Scope:** `src/pages/Landing.tsx` footer + `src/lib/i18n.ts` (IT/EN strings). No layout changes elsewhere.
 
-### 2. Fix "DATI PERSONALI" block on white Auth page
-The `registerPersonalInfoTitle` / `registerPersonalInfoDesc` info card on `src/pages/Auth.tsx` currently uses a dark/muted background (designed for the dark hero) that looks muddy on the white page.
-- Locate the block in `src/pages/Auth.tsx` and restyle it using light-surface semantic tokens: soft `--primary / 0.06` background, `--primary / 0.20` border, title in `--primary`, body in `--muted-foreground` / `--foreground`. No hardcoded colors.
+### 1. Add i18n keys
+In `src/lib/i18n.ts`, add to both IT and EN dictionaries:
+- `landingContactEyebrow` — IT: `"Contatti"` · EN: `"Contact"`
+- `landingContactTitle` — IT: `"Per informazioni o supporto"` · EN: `"For info or support"`
+- `landingContactCta` — IT: `"Scrivici"` · EN: `"Get in touch"`
 
-### 3. Fix IT/EN language toggle on white pages
-`LanguageToggle` in `src/pages/Landing.tsx` is hardcoded with white-on-transparent styles (`bg-white/15`, `text-white/60`) — fine on the dark hero, but the same component (or same visual) also appears on the white Auth page where it becomes unreadable.
-- Refactor `LanguageToggle` to accept a `variant?: "dark" | "light"` prop (default `"dark"` for the hero).
-- Light variant: subtle `--muted` background, `--border` border, active pill uses `--primary / 0.12` bg with `--primary` text; inactive uses `--muted-foreground`.
-- Update the Auth page usage (and any other light-background usage) to pass `variant="light"`. Hero header keeps default.
+### 2. Redesign the contact block (footer of final CTA section)
+Replace the current plain stack with a subtle glass card, so it reads as a real "Contact" module instead of loose text:
 
-## Out of scope
-- No copy/i18n changes, no routing changes, no backend, no new deps.
-- No changes to hero layout, features, audience, how-it-works, footer.
+```text
+┌─────────────────────────────────────┐
+│  CONTATTI                           │  ← eyebrow, accent color, tracking
+│  Per informazioni o supporto        │  ← white, medium weight
+│                                     │
+│  [ ✉  support@apneamate.com ]       │  ← pill button, glass bg, hover lift
+└─────────────────────────────────────┘
+        Logo · © 2026 Apnea Mate S.r.l.s.
+```
+
+Details:
+- Card: `rounded-2xl`, `bg: hsl(0 0% 100% / 0.06)`, `border: 1px solid hsl(0 0% 100% / 0.10)`, `backdrop-blur`, padded, centered.
+- Eyebrow uses the same styling as other section eyebrows (uppercase, tracking-[0.18em], accent color).
+- Mail link becomes an inline-flex pill with a `Mail` icon (lucide) + address, `hover:bg-white/10` transition.
+- Below the card, keep logo + copyright on a single subtle line separated by a middot, smaller and more muted, no top border (the card already provides separation).
+- Wire all copy through `t(...)`; the mail address stays literal.
+
+**Result:** contact section becomes a proper localized module that matches the rest of the landing's glass/accent language, instead of three stacked lines of text.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, ArrowRight, ArrowDown, User, ShieldCheck } from "lucide-react";
+import { Loader2, ArrowRight, ArrowDown, User, ShieldCheck, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -576,21 +576,41 @@ const Landing = () => {
             {t("landingFinalCta")} <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
 
-          <div
-            className="mt-14 pt-8 flex flex-col items-center gap-3"
-            style={{ borderTop: "1px solid hsl(0 0% 100% / 0.08)" }}
-          >
-            <Logo variant="horizontal-white" className="h-7 w-auto opacity-80" />
-            <p className="text-sm text-white/60">Per informazioni o supporto</p>
-            <a
-              href="mailto:support@apneamate.com"
-              className="text-sm text-white/70 hover:text-white transition-colors"
+          <div className="mt-14 flex flex-col items-center gap-6">
+            <div
+              className="w-full max-w-md rounded-2xl px-6 py-6 text-center"
+              style={{
+                background: "hsl(0 0% 100% / 0.06)",
+                border: "1px solid hsl(0 0% 100% / 0.10)",
+                backdropFilter: "blur(14px)",
+              }}
             >
-              support@apneamate.com
-            </a>
-            <p className="text-xs text-white/50">
-              © {new Date().getFullYear()} {t("landingCopyright")}
-            </p>
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em]"
+                style={{ color: "hsl(var(--accent))" }}
+              >
+                {t("landingContactEyebrow")}
+              </p>
+              <p className="mt-1.5 text-base font-medium text-white">
+                {t("landingContactTitle")}
+              </p>
+              <a
+                href="mailto:support@apneamate.com"
+                className="mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors"
+                style={{
+                  background: "hsl(0 0% 100% / 0.08)",
+                  border: "1px solid hsl(0 0% 100% / 0.14)",
+                }}
+              >
+                <Mail className="w-4 h-4" />
+                support@apneamate.com
+              </a>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-white/50">
+              <Logo variant="horizontal-white" className="h-5 w-auto opacity-70" />
+              <span>·</span>
+              <span>© {new Date().getFullYear()} {t("landingCopyright")}</span>
+            </div>
           </div>
         </div>
       </section>

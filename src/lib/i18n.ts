@@ -936,6 +936,9 @@ const translations = {
     landingFinalSubtitle: "Unisciti oggi alla community degli apneisti italiani.",
     landingFinalCta: "Iscriviti ad Apnea Mate",
     landingCopyright: "Apnea Mate S.r.l.s.",
+    landingContactEyebrow: "Contatti",
+    landingContactTitle: "Per informazioni o supporto",
+    landingContactCta: "Scrivici",
    },
   en: {
     // App
@@ -1868,6 +1871,9 @@ const translations = {
     landingFinalSubtitle: "Join the freediving community today.",
     landingFinalCta: "Join Apnea Mate",
     landingCopyright: "Apnea Mate S.r.l.s.",
+    landingContactEyebrow: "Contact",
+    landingContactTitle: "For info or support",
+    landingContactCta: "Get in touch",
    },
 };
 
