@@ -9,6 +9,9 @@ import { Logo } from "@/components/brand/Logo";
 import { BrandIcon, BrandIconName } from "@/components/brand/BrandIcon";
 import { Button } from "@/components/ui/button";
 import symbolWhite from "@/assets/logos/apnea_mate_pittogramma_white.png";
+import communityAsset from "@/assets/landing/community.png.asset.json";
+import groupsAsset from "@/assets/landing/groups.png.asset.json";
+import spotsAsset from "@/assets/landing/spots.png.asset.json";
 
 const BackgroundSymbols = ({ variant }: { variant: "hero" | "final" }) => {
   const sizeClass =
@@ -25,6 +28,46 @@ const BackgroundSymbols = ({ variant }: { variant: "hero" | "final" }) => {
         className={`select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${sizeClass}`}
         style={{ opacity }}
       />
+    </div>
+  );
+};
+
+const PhoneMockup = ({
+  src,
+  alt,
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) => {
+  return (
+    <div className={`relative w-full flex justify-center ${className}`}>
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse at center, hsl(var(--primary) / 0.18), transparent 65%), radial-gradient(circle at 70% 20%, hsl(var(--accent) / 0.18), transparent 55%)",
+          filter: "blur(24px)",
+        }}
+      />
+      <div
+        className="relative w-full max-w-[320px] overflow-hidden rounded-[2rem] md:rotate-[1.5deg] md:hover:rotate-0 transition-transform duration-500"
+        style={{
+          border: "1px solid hsl(var(--landing-light-border))",
+          boxShadow: "0 30px 80px -30px hsl(var(--primary) / 0.45), 0 10px 30px -10px hsl(222 47% 11% / 0.25)",
+          background: "hsl(var(--landing-light-card))",
+        }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          draggable={false}
+          loading="lazy"
+          className="pointer-events-none select-none w-full h-[420px] md:h-[560px] object-cover object-top"
+        />
+      </div>
     </div>
   );
 };
@@ -298,18 +341,19 @@ const Landing = () => {
 
         {/* Features */}
         <section className="px-5 sm:px-8 pb-14 sm:pb-20">
-          <div className="max-w-3xl mx-auto">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ color: "hsl(var(--primary))" }}
-            >
-              {t("landingFeaturesEyebrow")}
-            </p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
-              {t("landingFeaturesTitle")}
-            </h2>
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em]"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                {t("landingFeaturesEyebrow")}
+              </p>
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
+                {t("landingFeaturesTitle")}
+              </h2>
 
-            <div className="mt-8 space-y-4">
+              <div className="mt-8 space-y-4">
               {FEATURES.map((f) => (
                 <div
                   key={f.titleKey}
@@ -337,25 +381,33 @@ const Landing = () => {
                   </div>
                 </div>
               ))}
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <PhoneMockup src={communityAsset.url} alt="Apnea Mate community feed" />
             </div>
           </div>
         </section>
 
         {/* Audience */}
         <section className="px-5 sm:px-8 pb-14 sm:pb-20">
-          <div className="max-w-3xl mx-auto">
-            <p
-              className="text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ color: "hsl(var(--primary))" }}
-            >
-              {t("landingAudienceEyebrow")}
-            </p>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
-              {t("landingAudienceTitle")}
-            </h2>
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+            <div className="order-1">
+              <PhoneMockup src={groupsAsset.url} alt="Apnea Mate groups list" />
+            </div>
+            <div className="order-2">
+              <p
+                className="text-xs font-bold uppercase tracking-[0.18em]"
+                style={{ color: "hsl(var(--primary))" }}
+              >
+                {t("landingAudienceEyebrow")}
+              </p>
+              <h2 className="mt-2 text-3xl sm:text-4xl font-bold">
+                {t("landingAudienceTitle")}
+              </h2>
 
-            <div
-              className="mt-8 rounded-3xl overflow-hidden"
+              <div
+                className="mt-8 rounded-3xl overflow-hidden"
               style={{
                 background: "hsl(var(--landing-light-card))",
                 border: "1px solid hsl(var(--landing-light-border))",
@@ -387,14 +439,16 @@ const Landing = () => {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </section>
 
         {/* How it works */}
         <section id="how-it-works" className="px-5 sm:px-8 pb-16 sm:pb-24">
-          <div className="max-w-3xl mx-auto">
-            <p
+          <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-start">
+            <div className="order-2 md:order-1">
+              <p
               className="text-xs font-bold uppercase tracking-[0.18em]"
               style={{ color: "hsl(var(--primary))" }}
             >
@@ -484,6 +538,10 @@ const Landing = () => {
                 </li>
               ))}
             </ol>
+            </div>
+            <div className="order-1 md:order-2 md:sticky md:top-8">
+              <PhoneMockup src={spotsAsset.url} alt="Apnea Mate spots map" />
+            </div>
           </div>
         </section>
       </div>
