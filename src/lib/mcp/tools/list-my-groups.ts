@@ -23,7 +23,7 @@ export default defineTool({
     }
     const { data, error } = await sb
       .from("groups")
-      .select("id,name,description,group_type,location,is_verified")
+      .select("id,name,description,group_type,activity_type,location,verified")
       .in("id", ids);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
