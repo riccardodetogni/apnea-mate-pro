@@ -46,6 +46,7 @@ const EditEvent = lazy(() => import("./pages/EditEvent"));
 const EditCourse = lazy(() => import("./pages/EditCourse"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const AllSessions = lazy(() => import("./pages/AllSessions"));
 const FollowingSessions = lazy(() => import("./pages/FollowingSessions"));
 const AllEvents = lazy(() => import("./pages/AllEvents"));
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
                 <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
                 <Route path="/spots" element={<RequireAuth><Spots /></RequireAuth>} />

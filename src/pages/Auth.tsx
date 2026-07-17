@@ -71,6 +71,15 @@ const Auth = () => {
 
   useEffect(() => {
     if (user) {
+      // If the user came from the OAuth consent screen (or another protected
+      // flow), send them back there instead of the default landing page.
+      const rawNext = searchParams.get("next");
+      const isSafeNext =
+        typeof rawNext === "string" && rawNext.startsWith("/") && !rawNext.startsWith("//");
+      if (isSafeNext) {
+        navigate(rawNext);
+        return;
+      }
       // Check if profile exists by querying the database
       const checkProfile = async () => {
         const { data: profile } = await supabase
