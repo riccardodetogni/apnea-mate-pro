@@ -11,6 +11,12 @@ import { Mail, Loader2, ArrowLeft, CheckCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/Logo";
 
+declare global {
+  interface Window {
+    dataLayer?: Array<Record<string, unknown>>;
+  }
+}
+
 type AuthMode = "login" | "register" | "forgotPassword";
 
 const LanguageToggle = () => {
@@ -242,6 +248,9 @@ const Auth = () => {
             });
           }
         } else {
+          // GTM: notifica "Registrazione Completa" per il trigger ADV
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: "account_activated" });
           // Registration successful - show confirmation screen
           setConfirmationSent(true);
         }
