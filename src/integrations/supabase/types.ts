@@ -1753,6 +1753,10 @@ export type Database = {
       rejoin_course: { Args: { _course_id: string }; Returns: string }
       rejoin_event: { Args: { _event_id: string }; Returns: string }
       rejoin_session: { Args: { _session_id: string }; Returns: string }
+      request_log_signature: {
+        Args: { _instructor_user_id: string; _log_id: string }
+        Returns: string
+      }
       sign_libretti_group: {
         Args: { _group_id: string; _register_id: string }
         Returns: number
@@ -1761,6 +1765,7 @@ export type Database = {
         Args: { _participant_ids?: string[]; _register_id: string }
         Returns: number
       }
+      sign_requested_log: { Args: { _log_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "regular" | "certified" | "instructor" | "admin"
