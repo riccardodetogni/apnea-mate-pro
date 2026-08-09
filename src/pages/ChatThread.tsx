@@ -5,6 +5,7 @@ import { ChatBubble } from "@/components/chat/ChatBubble";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useConversations } from "@/hooks/useConversations";
+import { useViewportHeight } from "@/hooks/useViewportHeight";
 
 const ChatThread = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,7 @@ const ChatThread = () => {
   const { messages, loading, sendMessage, editMessage, deleteMessage, markAsRead } = useChat(id);
   const { conversations } = useConversations();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const viewportHeight = useViewportHeight();
 
   const conversation = conversations.find((c) => c.id === id);
   const title = conversation?.name || "Chat";
@@ -28,12 +30,20 @@ const ChatThread = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
+  // Keep the latest message visible when the keyboard opens/closes
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [viewportHeight]);
+
   const handleSend = async (content: string) => {
     await sendMessage(content);
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-full overflow-x-hidden bg-background">
+    <div
+      className="flex flex-col h-screen h-[100dvh] w-full max-w-full overflow-hidden bg-background"
+      style={viewportHeight ? { height: `${viewportHeight}px` } : undefined}
+    >
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-3 py-3 flex items-center gap-3 z-10 safe-area-top">
         <button
@@ -61,7 +71,7 @@ const ChatThread = () => {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-4">
         {loading ? (
           <div className="flex items-center justify-center h-32">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
