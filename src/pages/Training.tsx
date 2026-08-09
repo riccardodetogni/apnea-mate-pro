@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { t } from "@/lib/i18n";
-import { Lock, Wind, TableProperties, TrendingUp } from "lucide-react";
+import { Lock, Wind, TableProperties, TrendingUp, ArrowLeft } from "lucide-react";
 import { TrainingMode, Co2TableConfig as Co2Config, QuadraticConfig as QConfig, O2TableConfig as O2Config, TrainingStep, generateCo2Steps, generateQuadraticSteps, generateO2Steps } from "@/types/training";
 import { Co2TableConfig } from "@/components/training/Co2TableConfig";
 import { QuadraticConfig } from "@/components/training/QuadraticConfig";
@@ -11,6 +12,7 @@ import { TrainingTimer } from "@/components/training/TrainingTimer";
 type Screen = "home" | "co2-config" | "o2-config" | "quadratic-config" | "timer";
 
 const Training = () => {
+  const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("home");
   const [trainingSteps, setTrainingSteps] = useState<TrainingStep[]>([]);
   const [trainingMode, setTrainingMode] = useState<TrainingMode>("co2");
@@ -44,11 +46,20 @@ const Training = () => {
     <AppLayout hideNav={isTimer}>
       {screen === "home" && (
         <>
-          <header className="mb-6">
-            <h1 className="text-2xl font-bold text-foreground">{t("myTraining")}</h1>
-            <div className="flex items-center gap-1.5 text-sm text-muted mt-1">
-              <Lock className="w-3.5 h-3.5" />
-              <span>{t("privateLog")}</span>
+          <header className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => navigate("/tools")}
+              className="w-9 h-9 rounded-full bg-white/80 border border-border flex items-center justify-center"
+              aria-label="Indietro"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-foreground">{t("myTraining")}</h1>
+              <div className="flex items-center gap-1.5 text-sm text-muted mt-1">
+                <Lock className="w-3.5 h-3.5" />
+                <span>{t("privateLog")}</span>
+              </div>
             </div>
           </header>
 

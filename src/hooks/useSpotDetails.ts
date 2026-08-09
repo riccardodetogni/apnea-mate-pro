@@ -10,9 +10,11 @@ export interface SpotDetails {
   latitude: number | null;
   longitude: number | null;
   description: string | null;
+  cover_image_url: string | null;
   created_at: string;
   created_by: string | null;
 }
+
 
 export interface SpotSession {
   id: string;

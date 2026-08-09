@@ -224,16 +224,23 @@ const Community = () => {
       ? withDistance.filter(s => isWithinRadius(s.lat, s.lon))
       : withDistance;
 
-    // Sort by distance (if available), then by date
-    return filtered.sort((a, b) => {
-      // Sessions with known distance come first
-      if (a.distanceKm !== null && b.distanceKm !== null) {
-        return a.distanceKm - b.distanceKm;
-      }
-      if (a.distanceKm !== null) return -1;
-      if (b.distanceKm !== null) return 1;
-      return 0; // Keep original order (by date from query)
-    });
+    // Sort by event date ASC, then by distance as tiebreaker; drop past sessions defensively
+    const nowMs = Date.now();
+    return filtered
+      .filter((s) => {
+        const dt = (s as any).rawDateTime;
+        return typeof dt === "string" && new Date(dt).getTime() >= nowMs;
+      })
+      .sort((a, b) => {
+        const da = new Date((a as any).rawDateTime).getTime();
+        const db = new Date((b as any).rawDateTime).getTime();
+        if (da !== db) return da - db;
+        if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;
+        if (a.distanceKm !== null) return -1;
+        if (b.distanceKm !== null) return 1;
+        return 0;
+      });
+
   };
 
   const availableSessions = getFilteredSortedSessions(sessions, rawSessions);

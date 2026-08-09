@@ -195,22 +195,31 @@ export const useSessionDetails = (sessionId: string | undefined) => {
   }, [fetchSession, sessionId]);
 
   const approveParticipant = async (participantId: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("session_participants")
       .update({ status: "confirmed" })
-      .eq("id", participantId);
+      .eq("id", participantId)
+      .select("id");
 
+    if (!error && (!data || data.length === 0)) {
+      return { error: new Error("rls_blocked") };
+    }
     return { error };
   };
 
   const rejectParticipant = async (participantId: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("session_participants")
       .update({ status: "cancelled", cancelled_at: new Date().toISOString(), cancelled_by: user?.id ?? null })
-      .eq("id", participantId);
+      .eq("id", participantId)
+      .select("id");
 
+    if (!error && (!data || data.length === 0)) {
+      return { error: new Error("rls_blocked") };
+    }
     return { error };
   };
+
 
   const cancelSession = async () => {
     if (!sessionId) return { error: new Error("No session") };

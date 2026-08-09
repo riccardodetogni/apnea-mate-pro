@@ -1,56 +1,31 @@
-## Cosa chiede il task
+End-of-day cleanup for chat email notifications
 
-Il team marketing ha creato in GTM un trigger che ascolta un evento custom `account_activated` sul dataLayer, per far scattare il tag di conversione "Registrazione Completa" (usato nelle ADV). Serve un push dell'evento nel momento esatto in cui l'utente completa la registrazione.
+## Goal
+Make chat unread email notifications reset at the end of each day (Europe/Rome), so a new message on a new day reliably triggers a new notification — even if the user never read the previous day's messages.
 
-Il codice richiesto è:
+## Current behavior
+- The `process-chat-email-notifications` Edge Function runs every minute via `pg_cron`.
+- It sends one email per conversation/recipient cycle and sets `last_emailed_at` on the pending row.
+- A sliding 24-hour housekeeping query already deletes rows where `last_emailed_at < now - 24h`.
+- Because this is a sliding window, a message sent late in the evening can block new notifications for most of the next morning.
 
-```js
-window.dataLayer = window.dataLayer || [];
-window.dataLayer.push({ event: 'account_activated' });
-```
+## Proposed change
+Add an end-of-day cleanup step inside the existing `process-chat-email-notifications` Edge Function that runs on every invocation.
 
-## Verifica di correttezza
+- Delete rows where `last_emailed_at` is before the start of the current day in `Europe/Rome`.
+- Keep the existing 24-hour safety cleanup unchanged.
+- The dispatcher logic that only sends rows with `last_emailed_at IS NULL` stays the same.
 
-- GTM è già installato correttamente in `index.html` (container `GTM-P2Q3226K`), quindi `window.dataLayer` esiste già a livello globale.
-- Il nome dell'evento va lasciato **esattamente** `account_activated` (case-sensitive, sottolineatura) perché è la stringa che matcha il trigger su GTM.
-- Il punto giusto in cui sparare l'evento è `src/pages/Auth.tsx`, dentro `handleSubmit`, nel ramo `mode === "register"`, subito dopo che `signUp(...)` torna senza errore e prima/dopo `setConfirmationSent(true)` (riga 244–247 attuali). È esattamente il momento in cui l'utente atterra sulla schermata "controlla la mail per confermare la registrazione".
-- La riga difensiva `window.dataLayer = window.dataLayer || [];` va comunque tenuta, così se in futuro GTM venisse rimosso o bloccato da un ad-blocker il codice non crasha.
+## Result
+- A user receives at most one email per active conversation per day (if they do not read the chat).
+- After midnight Europe/Rome, a new message in the same conversation starts a fresh notification cycle.
+- The existing 24-hour fallback still removes old rows if the daily cleanup were ever to miss a day.
 
-## Cosa NON conta come "registrazione completa"
+## Implementation steps
+1. Update `supabase/functions/process-chat-email-notifications/index.ts` to add an end-of-day cleanup query after the existing housekeeping query.
+2. Compute the start of today in `Europe/Rome` and delete sent rows older than that timestamp.
+3. Include the deleted count in the function response for observability.
+4. Deploy the updated Edge Function with `supabase--deploy_edge_functions`.
 
-Vale la pena chiarirlo perché cambia dove mettere il push:
-
-- **Ora (proposto):** l'evento parte quando l'API di signup risponde ok, cioè quando l'account è stato creato ma l'email non è ancora stata confermata. È quello che descrive il task ("quando fai atterrare sulla pagina con 'apri la mail'").
-- **Alternativa più stringente:** sparare l'evento solo dopo che l'utente clicca il link di conferma nella mail e viene effettivamente loggato (in `AuthContext` sul primo `SIGNED_IN` di un nuovo utente). Più preciso come conversione, ma non è quello richiesto dal task.
-
-Procedo con la prima interpretazione perché è quella esplicitamente indicata. Segnalo l'alternativa perché è tipicamente più utile per l'attribuzione ADV; se serve, la aggiungiamo in un secondo momento.
-
-## Implementazione
-
-Un'unica modifica a `src/pages/Auth.tsx`:
-
-1. Nel blocco `else` di successo del `signUp` (attuale riga 244–247), aggiungere prima di `setConfirmationSent(true)`:
-
-   ```ts
-   // GTM: notifica "Registrazione Completa" per il trigger ADV
-   window.dataLayer = window.dataLayer || [];
-   window.dataLayer.push({ event: "account_activated" });
-   ```
-
-2. Aggiungere in cima al file una piccola dichiarazione TypeScript per evitare errori di tipo su `window.dataLayer`:
-
-   ```ts
-   declare global {
-     interface Window {
-       dataLayer?: Array<Record<string, unknown>>;
-     }
-   }
-   ```
-
-Nessun'altra modifica: niente pacchetti nuovi, niente cambi a `index.html`, niente modifiche al backend.
-
-## Come verificare che funziona
-
-1. Aprire l'app, andare su Registrati, completare il form e cliccare "Registrami".
-2. Non appena appare la schermata "controlla la mail", aprire la Console del browser e digitare `window.dataLayer` — deve comparire un oggetto `{ event: "account_activated" }` nella lista.
-3. In GTM, dalla modalità Anteprima (Preview), confermare che il trigger `account_activated` scatta esattamente una volta in corrispondenza di quella schermata e che il tag "Registrazione Completa" parte.
+## No database migration needed
+The `pending_chat_email_notifications` schema already has the columns and indexes required. Only the Edge Function code changes.

@@ -64,6 +64,8 @@ const formatDateTime = (dateTime: string): string => {
 };
 
 import { mapLevel, mapSessionType } from "@/lib/i18n";
+import { useRegisterForSession } from "@/hooks/useRegisterLink";
+import { RegisterLinkCard } from "@/components/register/RegisterLinkCard";
 
 const SessionDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,6 +77,7 @@ const SessionDetails = () => {
   const { isCertified, canJoinSession } = useCommunityContext();
 
   const { session, loading, approveParticipant, rejectParticipant, cancelSession, refetch } = useSessionDetails(id);
+  const { data: registerLink } = useRegisterForSession(id);
 
   const [joining, setJoining] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -252,7 +255,13 @@ const SessionDetails = () => {
     setActionLoading(null);
 
     if (error) {
-      toast({ title: t("error"), description: t("cannotApprove"), variant: "destructive" });
+      console.error("Approve participant failed:", error);
+      const detail = error.message && error.message !== "rls_blocked" ? error.message : null;
+      toast({
+        title: t("error"),
+        description: detail ? `${t("cannotApprove")}: ${detail}` : t("cannotApprove"),
+        variant: "destructive",
+      });
     } else {
       toast({ title: t("approvedTitle"), description: t("approvedDesc") });
 
@@ -537,6 +546,9 @@ const SessionDetails = () => {
             />
           </div>
         )}
+
+        {/* Legge 70 register (visible only to register managers/responsibles) */}
+        {registerLink && <RegisterLinkCard link={registerLink} />}
 
         {/* Chat button for confirmed participants only */}
         {(session.isCreator || (session.myParticipation?.status === 'confirmed')) && (

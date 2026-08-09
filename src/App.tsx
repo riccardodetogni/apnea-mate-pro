@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import RequireAuth from "./components/auth/RequireAuth";
+import RequireStaff from "./components/register/RequireStaff";
 import ErrorBoundary from "./components/ErrorBoundary";
 import EnvBadge from "./components/dev/EnvBadge";
 
@@ -51,6 +52,20 @@ const AllSessions = lazy(() => import("./pages/AllSessions"));
 const FollowingSessions = lazy(() => import("./pages/FollowingSessions"));
 const AllEvents = lazy(() => import("./pages/AllEvents"));
 const AllCourses = lazy(() => import("./pages/AllCourses"));
+const Tools = lazy(() => import("./pages/Tools"));
+const Logbook = lazy(() => import("./pages/Logbook"));
+const CreateDiveLog = lazy(() => import("./pages/CreateDiveLog"));
+const DiveLogDetail = lazy(() => import("./pages/DiveLogDetail"));
+const Certifications = lazy(() => import("./pages/Certifications"));
+const RegisterList = lazy(() => import("./pages/register/RegisterList"));
+const RegisterPermissions = lazy(() => import("./pages/register/RegisterPermissions"));
+const RegisterDetail = lazy(() => import("./pages/register/RegisterDetail"));
+const AssignGroups = lazy(() => import("./pages/register/AssignGroups"));
+const AddGuest = lazy(() => import("./pages/register/AddGuest"));
+const CreateRegister = lazy(() => import("./pages/register/CreateRegister"));
+const LibrettiIndex = lazy(() => import("./pages/register/LibrettiIndex"));
+const LibrettiAnteprima = lazy(() => import("./pages/register/LibrettiAnteprima"));
+const SignDiveTool = lazy(() => import("./pages/logbook/SignDiveTool"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,6 +123,20 @@ const App = () => (
                 <Route path="/groups/:id/manage" element={<RequireAuth><GroupManage /></RequireAuth>} />
                 <Route path="/create/group" element={<RequireAuth><CreateGroup /></RequireAuth>} />
                 <Route path="/training" element={<RequireAuth><Training /></RequireAuth>} />
+                <Route path="/tools" element={<RequireAuth><Tools /></RequireAuth>} />
+                <Route path="/logbook" element={<RequireAuth><Logbook /></RequireAuth>} />
+                <Route path="/logbook/new" element={<RequireAuth><CreateDiveLog /></RequireAuth>} />
+                <Route path="/logbook/:id" element={<RequireAuth><DiveLogDetail /></RequireAuth>} />
+                <Route path="/certifications" element={<RequireAuth><Certifications /></RequireAuth>} />
+                <Route path="/registro" element={<RequireAuth><RequireStaff><RegisterList /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/new" element={<RequireAuth><RequireStaff><CreateRegister /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/permessi" element={<RequireAuth><RequireStaff><RegisterPermissions /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/:id" element={<RequireAuth><RequireStaff><RegisterDetail /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/:id/assign" element={<RequireAuth><RequireStaff><AssignGroups /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/:id/ospite" element={<RequireAuth><RequireStaff><AddGuest /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/:id/libretti" element={<RequireAuth><RequireStaff><LibrettiIndex /></RequireStaff></RequireAuth>} />
+                <Route path="/registro/:id/libretti/:groupId" element={<RequireAuth><RequireStaff><LibrettiAnteprima /></RequireStaff></RequireAuth>} />
+                <Route path="/tools/sign-dive" element={<RequireAuth><RequireStaff><SignDiveTool /></RequireStaff></RequireAuth>} />
                 <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
                 <Route path="/users/:id" element={<RequireAuth><UserProfile /></RequireAuth>} />
                 <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />

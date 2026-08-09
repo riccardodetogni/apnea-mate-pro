@@ -61,7 +61,7 @@ const Profile = () => {
   const [completeProfileOpen, setCompleteProfileOpen] = useState(false);
 
   // Inline edit state
-  const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | "freediving_since" | null>(null);
+  const [editField, setEditField] = useState<"name" | "bio" | "location" | "insurance_provider" | "freediving_since" | "instructor_brevetto_label" | null>(null);
   
 
 
@@ -85,6 +85,7 @@ const Profile = () => {
       const yr = parseInt(value, 10);
       update.freediving_since = !isNaN(yr) ? yr : null;
     }
+    else if (editField === "instructor_brevetto_label") update.instructor_brevetto_label = value || null;
     await updateProfile(update);
   };
 
@@ -251,6 +252,24 @@ const Profile = () => {
               {t("submitCertification")}
             </Button>
           )}
+
+          {role === "instructor" && (
+            <button
+              onClick={() => setEditField("instructor_brevetto_label")}
+              className="w-full mt-3 card-session !rounded-xl !p-3 text-left flex items-center gap-2 group"
+            >
+              <Shield className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-[hsl(var(--card-muted))]">
+                  {language === "it" ? "Brevetto istruttore" : "Instructor certification"}
+                </p>
+                <p className="text-sm text-card-foreground truncate">
+                  {(profile as any).instructor_brevetto_label || (language === "it" ? "Aggiungi brevetto" : "Add certification")}
+                </p>
+              </div>
+              <Pencil className="w-3.5 h-3.5 text-[hsl(var(--card-muted))] opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          )}
         </div>
 
         {/* Personal Bests */}
@@ -379,6 +398,28 @@ const Profile = () => {
             />
           </div>
 
+          {/* Chat email notifications toggle */}
+          <div className="w-full p-4 flex items-center gap-3 border-b border-[hsl(var(--card-border))]">
+            <MessageSquare className="w-5 h-5 text-[hsl(var(--card-muted))]" />
+            <div className="flex-1 min-w-0">
+              <span className="text-card-foreground">
+                {language === "it" ? "Email per messaggi non letti" : "Unread chat emails"}
+              </span>
+              <p className="text-xs text-[hsl(var(--card-muted))] mt-0.5">
+                {language === "it"
+                  ? "Ricevi una email quando hai messaggi non letti dopo alcuni minuti"
+                  : "Get an email when you have unread messages after a few minutes"}
+              </p>
+            </div>
+            <Switch
+              checked={profile.email_notify_chat !== false}
+              onCheckedChange={async (checked) => {
+                await updateProfile({ email_notify_chat: checked });
+              }}
+            />
+          </div>
+
+
           <button
             onClick={toggleLanguage}
             className="w-full p-4 flex items-center gap-3 hover:bg-[hsl(var(--badge-blue-bg))] transition-colors border-b border-[hsl(var(--card-border))]"
@@ -410,7 +451,8 @@ const Profile = () => {
           editField === "bio" ? (profile.bio || "") :
           editField === "location" ? (profile.location || "") :
           editField === "insurance_provider" ? (profile.insurance_provider || "") :
-          editField === "freediving_since" ? (profile.freediving_since?.toString() || "") : ""
+          editField === "freediving_since" ? (profile.freediving_since?.toString() || "") :
+          editField === "instructor_brevetto_label" ? ((profile as any).instructor_brevetto_label || "") : ""
         }
         onSave={handleFieldSave}
       />

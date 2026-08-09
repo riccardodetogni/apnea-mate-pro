@@ -209,11 +209,22 @@ const SpotDetails = () => {
         )}
       </div>
 
+      {/* Cover image */}
+      {spot.cover_image_url && (
+        <div className="rounded-2xl overflow-hidden mb-4 aspect-[16/9] bg-card">
+          <img src={spot.cover_image_url} alt={spot.name} className="w-full h-full object-cover" />
+        </div>
+      )}
+
       {/* Hero section */}
       <div className="card-session !rounded-2xl !p-0 mb-4">
         <div className="relative z-[1] p-5 flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-3xl">
-            {environmentIcons[spot.environment_type] ?? <BrandIcon name="spot" variant="color" size={32} />}
+          <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--badge-blue-bg))] flex items-center justify-center text-3xl overflow-hidden shrink-0">
+            {spot.cover_image_url ? (
+              <img src={spot.cover_image_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              environmentIcons[spot.environment_type] ?? <BrandIcon name="spot" variant="color" size={32} />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-card-foreground mb-1">{spot.name}</h2>
@@ -230,6 +241,7 @@ const SpotDetails = () => {
           </div>
         </div>
       </div>
+
 
       {/* Description */}
       {spot.description && (

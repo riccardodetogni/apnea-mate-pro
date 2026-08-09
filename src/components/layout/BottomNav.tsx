@@ -1,49 +1,44 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Globe, MessageCircle, BarChart3 } from "lucide-react";
+import { Globe, MessageCircle, LayoutGrid } from "lucide-react";
 import { t } from "@/lib/i18n";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useConversations } from "@/hooks/useConversations";
-import { CreateDisclaimerModal } from "@/components/community/CreateDisclaimerModal";
 import { BrandIcon } from "@/components/brand/BrandIcon";
 
 const navItems: Array<{
   path: string;
-  labelKey: "navCommunity" | "navSpot" | "navMessages" | "navGroups" | "navTraining";
+  label: string;
   renderIcon: () => ReactNode;
 }> = [
-  { path: "/community", labelKey: "navCommunity", renderIcon: () => <Globe className="w-5 h-5" /> },
-  { path: "/spots", labelKey: "navSpot", renderIcon: () => <BrandIcon name="spot" variant="color" size={24} /> },
-  { path: "/messages", labelKey: "navMessages", renderIcon: () => <MessageCircle className="w-5 h-5" /> },
-  { path: "/groups", labelKey: "navGroups", renderIcon: () => <BrandIcon name="gruppi" variant="color" size={24} /> },
-  { path: "/training", labelKey: "navTraining", renderIcon: () => <BarChart3 className="w-5 h-5" /> },
+  { path: "/community", label: t("navCommunity"), renderIcon: () => <Globe className="w-5 h-5" /> },
+  { path: "/spots", label: t("navSpot"), renderIcon: () => <BrandIcon name="spot" variant="color" size={24} /> },
+  { path: "/messages", label: "Messaggi", renderIcon: () => <MessageCircle className="w-5 h-5" /> },
+  { path: "/groups", label: t("navGroups"), renderIcon: () => <BrandIcon name="gruppi" variant="color" size={24} /> },
+  { path: "/tools", label: "Tools", renderIcon: () => <LayoutGrid className="w-5 h-5" /> },
 ];
 
 export const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { language } = useLanguage();
   const { totalUnread } = useConversations();
-  const [trainingDisclaimerOpen, setTrainingDisclaimerOpen] = useState(false);
 
   return (
     <div className="bottom-nav-container safe-area-bottom">
       <div className="bottom-nav-inner">
-        {navItems.map(({ path, renderIcon, labelKey }) => {
-          const isActive = location.pathname === path || 
-            (path === "/community" && location.pathname === "/");
+        {navItems.map(({ path, renderIcon, label }) => {
+          const isActive =
+            location.pathname === path ||
+            (path === "/community" && location.pathname === "/") ||
+            (path === "/tools" &&
+              (location.pathname.startsWith("/tools") ||
+                location.pathname.startsWith("/logbook") ||
+                location.pathname.startsWith("/training")));
           const showBadge = path === "/messages" && totalUnread > 0;
-          
+
           return (
             <button
               key={path}
-              onClick={() => {
-                if (path === "/training") {
-                  setTrainingDisclaimerOpen(true);
-                } else {
-                  navigate(path);
-                }
-              }}
+              onClick={() => navigate(path)}
               className={`nav-item ${isActive ? "active" : ""}`}
             >
               <div className="relative">
@@ -54,20 +49,11 @@ export const BottomNav = () => {
                   </span>
                 )}
               </div>
-              <span>{t(labelKey)}</span>
+              <span>{label}</span>
             </button>
           );
         })}
       </div>
-      <CreateDisclaimerModal
-        open={trainingDisclaimerOpen}
-        onClose={() => setTrainingDisclaimerOpen(false)}
-        onConfirm={() => {
-          setTrainingDisclaimerOpen(false);
-          navigate("/training");
-        }}
-        checkboxText={t("trainingDisclaimerCheckbox")}
-      />
     </div>
   );
 };

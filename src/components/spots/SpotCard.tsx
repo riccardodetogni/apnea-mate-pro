@@ -86,12 +86,17 @@ const SpotCard = ({
 
       {/* Spot info */}
       <div className="flex gap-3">
-        {/* Placeholder image */}
-        <div className="w-20 h-20 rounded-xl bg-card flex items-center justify-center text-3xl flex-shrink-0">
-          {getEnvironmentEmoji(spot.environment_type) ?? (
-            <BrandIcon name="spot" variant="color" size={32} />
+        {/* Cover or placeholder */}
+        <div className="w-20 h-20 rounded-xl bg-card flex items-center justify-center text-3xl flex-shrink-0 overflow-hidden">
+          {spot.cover_image_url ? (
+            <img src={spot.cover_image_url} alt={spot.name} className="w-full h-full object-cover" />
+          ) : (
+            getEnvironmentEmoji(spot.environment_type) ?? (
+              <BrandIcon name="spot" variant="color" size={32} />
+            )
           )}
         </div>
+
 
         <div className="flex-1 min-w-0">
           {/* Type badge */}

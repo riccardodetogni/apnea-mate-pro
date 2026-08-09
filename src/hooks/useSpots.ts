@@ -9,6 +9,7 @@ export interface Spot {
   latitude: number | null;
   longitude: number | null;
   description: string | null;
+  cover_image_url: string | null;
   hasActiveSessions: boolean;
 }
 
@@ -26,8 +27,9 @@ interface SpotsData {
 async function fetchSpotsData(): Promise<SpotsData> {
   const { data: spotsData, error: spotsError } = await supabase
     .from("spots")
-    .select("id, name, environment_type, location, latitude, longitude, description")
+    .select("id, name, environment_type, location, latitude, longitude, description, cover_image_url")
     .order("name", { ascending: true });
+
 
   if (spotsError) throw spotsError;
 

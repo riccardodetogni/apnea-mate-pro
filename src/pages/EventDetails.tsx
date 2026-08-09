@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeleteConfirmDialog } from "@/components/common/DeleteConfirmDialog";
+import { useRegisterForEvent } from "@/hooks/useRegisterLink";
+import { RegisterLinkCard } from "@/components/register/RegisterLinkCard";
 
 interface EventScheduleItem {
   id: string;
@@ -40,6 +42,7 @@ const eventTypeConfig: Record<string, { labelKey: string; icon: typeof Ticket; c
 
 const EventDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const { data: registerLink } = useRegisterForEvent(id);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -416,6 +419,9 @@ const EventDetails = () => {
           Chiedi informazioni
         </Button>
       )}
+
+      {/* Legge 70 register (visible only to register managers/responsibles) */}
+      {registerLink && <RegisterLinkCard link={registerLink} />}
 
       {/* Cover image */}
       {event.cover_image_url && (
