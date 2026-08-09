@@ -488,6 +488,7 @@ export type Database = {
           org_group_id: string | null
           register_date: string
           retention_until: string | null
+          safety_checklist: Json
           session_id: string | null
           spot_id: string | null
           spot_label: string | null
@@ -507,6 +508,7 @@ export type Database = {
           org_group_id?: string | null
           register_date: string
           retention_until?: string | null
+          safety_checklist?: Json
           session_id?: string | null
           spot_id?: string | null
           spot_label?: string | null
@@ -526,6 +528,7 @@ export type Database = {
           org_group_id?: string | null
           register_date?: string
           retention_until?: string | null
+          safety_checklist?: Json
           session_id?: string | null
           spot_id?: string | null
           spot_label?: string | null
@@ -1714,6 +1717,7 @@ export type Database = {
         | "event_cancelled"
         | "course_cancelled"
         | "group_deleted"
+        | "signature_reminder"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1866,6 +1870,7 @@ export const Constants = {
         "event_cancelled",
         "course_cancelled",
         "group_deleted",
+        "signature_reminder",
       ],
     },
   },
