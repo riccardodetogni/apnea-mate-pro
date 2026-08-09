@@ -481,6 +481,7 @@ export type Database = {
       }
       dive_registers: {
         Row: {
+          center_label: string | null
           closed_at: string | null
           created_at: string
           created_by: string
@@ -489,6 +490,7 @@ export type Database = {
           max_depth_m: number | null
           opened_at: string | null
           org_group_id: string | null
+          planned_depth_m: number | null
           register_date: string
           retention_until: string | null
           safety_checklist: Json
@@ -501,6 +503,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_label?: string | null
           closed_at?: string | null
           created_at?: string
           created_by: string
@@ -509,6 +512,7 @@ export type Database = {
           max_depth_m?: number | null
           opened_at?: string | null
           org_group_id?: string | null
+          planned_depth_m?: number | null
           register_date: string
           retention_until?: string | null
           safety_checklist?: Json
@@ -521,6 +525,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_label?: string | null
           closed_at?: string | null
           created_at?: string
           created_by?: string
@@ -529,6 +534,7 @@ export type Database = {
           max_depth_m?: number | null
           opened_at?: string | null
           org_group_id?: string | null
+          planned_depth_m?: number | null
           register_date?: string
           retention_until?: string | null
           safety_checklist?: Json
@@ -1642,6 +1648,7 @@ export type Database = {
         Args: { _session_id: string }
         Returns: string
       }
+      full_name_of: { Args: { _last: string; _name: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
