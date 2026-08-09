@@ -383,6 +383,7 @@ export type Database = {
       dive_register_participants: {
         Row: {
           assigned_responsible_id: string | null
+          attendance_status: string
           brevetto_label: string | null
           created_at: string
           dive_log_id: string | null
@@ -395,6 +396,7 @@ export type Database = {
         }
         Insert: {
           assigned_responsible_id?: string | null
+          attendance_status?: string
           brevetto_label?: string | null
           created_at?: string
           dive_log_id?: string | null
@@ -407,6 +409,7 @@ export type Database = {
         }
         Update: {
           assigned_responsible_id?: string | null
+          attendance_status?: string
           brevetto_label?: string | null
           created_at?: string
           dive_log_id?: string | null
@@ -1689,6 +1692,10 @@ export type Database = {
       rejoin_session: { Args: { _session_id: string }; Returns: string }
       sign_libretti_group: {
         Args: { _group_id: string; _register_id: string }
+        Returns: number
+      }
+      sign_participants: {
+        Args: { _participant_ids?: string[]; _register_id: string }
         Returns: number
       }
     }
