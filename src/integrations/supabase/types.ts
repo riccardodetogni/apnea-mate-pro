@@ -1757,6 +1757,15 @@ export type Database = {
         Args: { _instructor_user_id: string; _log_id: string }
         Returns: string
       }
+      search_instructors: {
+        Args: { _q: string }
+        Returns: {
+          instructor_brevetto_label: string
+          last_name: string
+          name: string
+          user_id: string
+        }[]
+      }
       sign_libretti_group: {
         Args: { _group_id: string; _register_id: string }
         Returns: number
