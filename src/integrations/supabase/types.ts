@@ -1591,6 +1591,7 @@ export type Database = {
       }
     }
     Functions: {
+      brevetto_label_of: { Args: { _user_id: string }; Returns: string }
       can_review_user: {
         Args: { _reviewer_id: string; _target_id: string }
         Returns: boolean
