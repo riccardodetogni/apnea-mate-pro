@@ -60,7 +60,7 @@ const ChatUnreadMessagesEmail = ({
               <Text style={cardText}>“{messagePreview}”</Text>
             </Container>
           )}
-          <Button style={button} href={`${SITE_URL}/chat/${conversationId}`}>
+          <Button style={button} href={`${SITE_URL}/messages/${conversationId}`}>
             Apri la conversazione
           </Button>
           <Text style={footer}>— Il team Apnea Mate</Text>
