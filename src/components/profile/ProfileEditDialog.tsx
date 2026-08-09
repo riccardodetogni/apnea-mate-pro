@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type FieldType = "name" | "bio" | "location" | "insurance_provider" | "freediving_since";
+type FieldType = "name" | "bio" | "location" | "insurance_provider" | "freediving_since" | "instructor_brevetto_label";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -61,6 +61,14 @@ const fieldConfig = {
     placeholderIt: "es. 2018",
     placeholderEn: "e.g. 2018",
     maxLength: 4,
+    required: false,
+  },
+  instructor_brevetto_label: {
+    labelIt: "Brevetto istruttore",
+    labelEn: "Instructor certification",
+    placeholderIt: "es. AIDA Instructor Lv.2 · #12345",
+    placeholderEn: "e.g. AIDA Instructor Lv.2 · #12345",
+    maxLength: 150,
     required: false,
   },
 };

@@ -17,7 +17,13 @@ export type NotificationType =
   | "event_request_rejected"
   | "event_cancelled"
   | "course_cancelled"
-  | "group_deleted";
+  | "group_deleted"
+  | "signature_reminder"
+  | "signature_request"
+  | "dive_log_signed"
+  | "dive_log_created"
+  | "register_closed";
+
 
 export interface NotificationMetadata {
   session_id?: string;
@@ -30,6 +36,12 @@ export interface NotificationMetadata {
   event_title?: string;
   user_id?: string;
   user_name?: string;
+  dive_log_id?: string;
+  request_id?: string;
+  requester_id?: string;
+  register_id?: string;
+  verifier_id?: string;
+
 }
 
 export interface CreateNotificationParams {

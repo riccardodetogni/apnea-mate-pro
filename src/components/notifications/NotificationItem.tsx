@@ -8,6 +8,10 @@ import {
   Shield,
   GraduationCap,
   CalendarDays,
+  PenSquare,
+  FilePlus,
+  Lock,
+
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
@@ -34,6 +38,12 @@ const iconMap = {
   event_join_request: { icon: CalendarDays, color: "text-blue-500" },
   event_request_approved: { icon: Check, color: "text-green-500" },
   event_request_rejected: { icon: X, color: "text-red-500" },
+  signature_request: { icon: PenSquare, color: "text-primary" },
+  signature_reminder: { icon: PenSquare, color: "text-amber-500" },
+  dive_log_signed: { icon: PenSquare, color: "text-green-500" },
+  dive_log_created: { icon: FilePlus, color: "text-blue-500" },
+  register_closed: { icon: Lock, color: "text-amber-500" },
+
 };
 
 export const NotificationItem = ({ notification, onClick }: NotificationItemProps) => {

@@ -27,7 +27,13 @@ export const ChatInput = ({ onSend, disabled }: Props) => {
   };
 
   return (
-    <div className="flex items-end gap-2 p-3 border-t bg-background safe-area-bottom">
+    <div
+      className="flex w-full max-w-full box-border items-end gap-2 p-3 border-t bg-background safe-area-bottom overflow-hidden"
+      style={{
+        paddingLeft: "max(12px, env(safe-area-inset-left))",
+        paddingRight: "max(12px, env(safe-area-inset-right))",
+      }}
+    >
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

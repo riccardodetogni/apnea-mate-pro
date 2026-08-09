@@ -33,7 +33,7 @@ const ChatThread = () => {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-background">
+    <div className="flex flex-col h-[100dvh] w-full max-w-full overflow-x-hidden bg-background">
       {/* Header */}
       <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b px-3 py-3 flex items-center gap-3 z-10 safe-area-top">
         <button

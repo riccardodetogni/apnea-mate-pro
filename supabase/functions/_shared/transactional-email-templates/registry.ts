@@ -27,6 +27,7 @@ import { template as courseRequestRejected } from './course-request-rejected.tsx
 import { template as eventJoinRequest } from './event-join-request.tsx'
 import { template as eventRequestApproved } from './event-request-approved.tsx'
 import { template as eventRequestRejected } from './event-request-rejected.tsx'
+import { template as chatUnreadMessages } from './chat-unread-messages.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'waitlist-confirmation': waitlistConfirmation,
@@ -48,4 +49,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'event-join-request': eventJoinRequest,
   'event-request-approved': eventRequestApproved,
   'event-request-rejected': eventRequestRejected,
+  'chat-unread-messages': chatUnreadMessages,
 }

@@ -44,7 +44,17 @@ export const NotificationsDrawer = ({ open, onOpenChange }: NotificationsDrawerP
     // Navigate based on type and metadata
     const { metadata, type } = notification;
 
-    if (type === "group_verification_request") {
+    if (
+      type === "signature_request" ||
+      type === "signature_reminder" ||
+      type === "dive_log_signed" ||
+      type === "dive_log_created" ||
+      type === "register_closed"
+    ) {
+      if (metadata.dive_log_id) navigate(`/logbook/${metadata.dive_log_id}`);
+      else navigate("/logbook");
+
+    } else if (type === "group_verification_request") {
       navigate("/admin");
     } else if (type.startsWith("session_") && metadata.session_id) {
       navigate(`/sessions/${metadata.session_id}`);
