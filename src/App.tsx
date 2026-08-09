@@ -3,13 +3,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import RequireAuth from "./components/auth/RequireAuth";
 import RequireStaff from "./components/register/RequireStaff";
 import ErrorBoundary from "./components/ErrorBoundary";
 import EnvBadge from "./components/dev/EnvBadge";
+
+// Older unread-message emails linked to /chat/:id; keep those links working.
+const LegacyChatRedirect = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={id ? `/messages/${id}` : "/messages"} replace />;
+};
 
 // Lazy-loaded pages
 const Landing = lazy(() => import("./pages/Landing"));
