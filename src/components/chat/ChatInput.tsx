@@ -28,7 +28,7 @@ export const ChatInput = ({ onSend, disabled }: Props) => {
 
   return (
     <div
-      className="flex w-full max-w-full box-border items-end gap-2 p-3 border-t bg-background safe-area-bottom overflow-hidden"
+      className="flex shrink-0 w-full max-w-full box-border items-end gap-2 p-3 border-t bg-background safe-area-bottom overflow-hidden"
       style={{
         paddingLeft: "max(12px, env(safe-area-inset-left))",
         paddingRight: "max(12px, env(safe-area-inset-right))",
@@ -41,13 +41,13 @@ export const ChatInput = ({ onSend, disabled }: Props) => {
         placeholder={t("chatPlaceholder")}
         disabled={disabled || sending}
         rows={1}
-        className="min-w-0 flex-1 resize-none rounded-xl border border-border bg-muted/10 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-24"
-        style={{ minHeight: 40 }}
+        className="min-w-0 w-0 flex-1 resize-none break-words rounded-xl border border-border bg-muted/10 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-24"
+        style={{ minHeight: 40, overflowWrap: "anywhere" }}
       />
       <button
         onClick={handleSend}
         disabled={!text.trim() || sending || disabled}
-        className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 transition-opacity shrink-0"
+        className="w-10 h-10 min-w-[40px] basis-10 flex-none rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 transition-opacity"
       >
         <Send className="w-4 h-4" />
       </button>
