@@ -144,6 +144,8 @@ const App = () => (
                 <Route path="/discover" element={<RequireAuth><DiscoverFreedivers /></RequireAuth>} />
                 <Route path="/messages" element={<RequireAuth><Messages /></RequireAuth>} />
                 <Route path="/messages/:id" element={<RequireAuth><ChatThread /></RequireAuth>} />
+                {/* Legacy link shape used by older email notifications */}
+                <Route path="/chat/:id" element={<LegacyChatRedirect />} />
                 <Route path="/create/event" element={<RequireAuth><CreateEvent /></RequireAuth>} />
                 <Route path="/create/course" element={<RequireAuth><CreateCourse /></RequireAuth>} />
                 <Route path="/events/:id" element={<RequireAuth><EventDetails /></RequireAuth>} />
