@@ -744,6 +744,57 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_chat_email_notifications: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          first_unread_at: string
+          first_unread_message_id: string
+          id: string
+          last_emailed_at: string | null
+          scheduled_for: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          first_unread_at?: string
+          first_unread_message_id: string
+          id?: string
+          last_emailed_at?: string | null
+          scheduled_for: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          first_unread_at?: string
+          first_unread_message_id?: string
+          id?: string
+          last_emailed_at?: string | null
+          scheduled_for?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_chat_email_notifications_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_chat_email_notifications_first_unread_message_id_fkey"
+            columns: ["first_unread_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personal_bests: {
         Row: {
           created_at: string
@@ -790,6 +841,7 @@ export type Database = {
           birth_date: string | null
           created_at: string
           email: string
+          email_notify_chat: boolean
           freediving_since: number | null
           has_insurance: boolean
           id: string
@@ -808,6 +860,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           email: string
+          email_notify_chat?: boolean
           freediving_since?: number | null
           has_insurance?: boolean
           id?: string
@@ -826,6 +879,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           email?: string
+          email_notify_chat?: boolean
           freediving_since?: number | null
           has_insurance?: boolean
           id?: string
