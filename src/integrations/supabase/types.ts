@@ -258,6 +258,44 @@ export type Database = {
           },
         ]
       }
+      dive_log_signature_requests: {
+        Row: {
+          created_at: string
+          dive_log_id: string
+          id: string
+          instructor_user_id: string
+          requester_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dive_log_id: string
+          id?: string
+          instructor_user_id: string
+          requester_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dive_log_id?: string
+          id?: string
+          instructor_user_id?: string
+          requester_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_log_signature_requests_dive_log_id_fkey"
+            columns: ["dive_log_id"]
+            isOneToOne: false
+            referencedRelation: "dive_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dive_log_signatures: {
         Row: {
           created_at: string
@@ -301,12 +339,14 @@ export type Database = {
       }
       dive_logs: {
         Row: {
+          breathing_apparatus: boolean
           center_label: string | null
           created_at: string
           discipline: string
           dive_date: string
           dives_count: number | null
           end_time: string | null
+          gas_mix: string | null
           id: string
           instructor_label: string | null
           notes: string | null
@@ -322,12 +362,14 @@ export type Database = {
           verification_status: string
         }
         Insert: {
+          breathing_apparatus?: boolean
           center_label?: string | null
           created_at?: string
           discipline: string
           dive_date: string
           dives_count?: number | null
           end_time?: string | null
+          gas_mix?: string | null
           id?: string
           instructor_label?: string | null
           notes?: string | null
@@ -343,12 +385,14 @@ export type Database = {
           verification_status?: string
         }
         Update: {
+          breathing_apparatus?: boolean
           center_label?: string | null
           created_at?: string
           discipline?: string
           dive_date?: string
           dives_count?: number | null
           end_time?: string | null
+          gas_mix?: string | null
           id?: string
           instructor_label?: string | null
           notes?: string | null
@@ -486,6 +530,7 @@ export type Database = {
           created_at: string
           created_by: string
           end_time: string | null
+          event_id: string | null
           id: string
           max_depth_m: number | null
           opened_at: string | null
@@ -508,6 +553,7 @@ export type Database = {
           created_at?: string
           created_by: string
           end_time?: string | null
+          event_id?: string | null
           id?: string
           max_depth_m?: number | null
           opened_at?: string | null
@@ -530,6 +576,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           end_time?: string | null
+          event_id?: string | null
           id?: string
           max_depth_m?: number | null
           opened_at?: string | null
@@ -547,6 +594,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dive_registers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dive_registers_org_group_id_fkey"
             columns: ["org_group_id"]
@@ -1695,6 +1749,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      register_has_started: { Args: { _register_id: string }; Returns: boolean }
       rejoin_course: { Args: { _course_id: string }; Returns: string }
       rejoin_event: { Args: { _event_id: string }; Returns: string }
       rejoin_session: { Args: { _session_id: string }; Returns: string }
@@ -1733,6 +1788,7 @@ export type Database = {
         | "course_cancelled"
         | "group_deleted"
         | "signature_reminder"
+        | "signature_request"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1886,6 +1942,7 @@ export const Constants = {
         "course_cancelled",
         "group_deleted",
         "signature_reminder",
+        "signature_request",
       ],
     },
   },
