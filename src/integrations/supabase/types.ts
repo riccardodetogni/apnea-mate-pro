@@ -845,6 +845,7 @@ export type Database = {
           freediving_since: number | null
           has_insurance: boolean
           id: string
+          instructor_brevetto_label: string | null
           insurance_provider: string | null
           last_name: string | null
           location: string | null
@@ -864,6 +865,7 @@ export type Database = {
           freediving_since?: number | null
           has_insurance?: boolean
           id?: string
+          instructor_brevetto_label?: string | null
           insurance_provider?: string | null
           last_name?: string | null
           location?: string | null
@@ -883,6 +885,7 @@ export type Database = {
           freediving_since?: number | null
           has_insurance?: boolean
           id?: string
+          instructor_brevetto_label?: string | null
           insurance_provider?: string | null
           last_name?: string | null
           location?: string | null
