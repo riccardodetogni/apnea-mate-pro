@@ -1811,6 +1811,9 @@ export type Database = {
         | "group_deleted"
         | "signature_reminder"
         | "signature_request"
+        | "dive_log_signed"
+        | "register_closed"
+        | "dive_log_created"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1965,6 +1968,9 @@ export const Constants = {
         "group_deleted",
         "signature_reminder",
         "signature_request",
+        "dive_log_signed",
+        "register_closed",
+        "dive_log_created",
       ],
     },
   },
