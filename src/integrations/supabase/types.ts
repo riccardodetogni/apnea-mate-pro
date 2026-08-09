@@ -258,6 +258,306 @@ export type Database = {
           },
         ]
       }
+      dive_log_signatures: {
+        Row: {
+          created_at: string
+          credential_confirmed_at: string
+          dive_log_id: string
+          id: string
+          method: string
+          requested_at: string | null
+          verifier_brevetto_label: string | null
+          verifier_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_confirmed_at?: string
+          dive_log_id: string
+          id?: string
+          method?: string
+          requested_at?: string | null
+          verifier_brevetto_label?: string | null
+          verifier_user_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_confirmed_at?: string
+          dive_log_id?: string
+          id?: string
+          method?: string
+          requested_at?: string | null
+          verifier_brevetto_label?: string | null
+          verifier_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_log_signatures_dive_log_id_fkey"
+            columns: ["dive_log_id"]
+            isOneToOne: true
+            referencedRelation: "dive_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dive_logs: {
+        Row: {
+          center_label: string | null
+          created_at: string
+          discipline: string
+          dive_date: string
+          dives_count: number | null
+          end_time: string | null
+          id: string
+          instructor_label: string | null
+          notes: string | null
+          outing_type: string
+          planned_depth_m: number | null
+          reached_depth_m: number | null
+          register_id: string | null
+          spot_id: string | null
+          spot_label: string | null
+          start_time: string | null
+          updated_at: string
+          user_id: string
+          verification_status: string
+        }
+        Insert: {
+          center_label?: string | null
+          created_at?: string
+          discipline: string
+          dive_date: string
+          dives_count?: number | null
+          end_time?: string | null
+          id?: string
+          instructor_label?: string | null
+          notes?: string | null
+          outing_type: string
+          planned_depth_m?: number | null
+          reached_depth_m?: number | null
+          register_id?: string | null
+          spot_id?: string | null
+          spot_label?: string | null
+          start_time?: string | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+        }
+        Update: {
+          center_label?: string | null
+          created_at?: string
+          discipline?: string
+          dive_date?: string
+          dives_count?: number | null
+          end_time?: string | null
+          id?: string
+          instructor_label?: string | null
+          notes?: string | null
+          outing_type?: string
+          planned_depth_m?: number | null
+          reached_depth_m?: number | null
+          register_id?: string | null
+          spot_id?: string | null
+          spot_label?: string | null
+          start_time?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_logs_register_id_fkey"
+            columns: ["register_id"]
+            isOneToOne: false
+            referencedRelation: "dive_registers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_logs_spot_id_fkey"
+            columns: ["spot_id"]
+            isOneToOne: false
+            referencedRelation: "spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dive_register_participants: {
+        Row: {
+          assigned_responsible_id: string | null
+          brevetto_label: string | null
+          created_at: string
+          dive_log_id: string | null
+          guest_birthdate: string | null
+          guest_birthplace: string | null
+          guest_name: string | null
+          id: string
+          register_id: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_responsible_id?: string | null
+          brevetto_label?: string | null
+          created_at?: string
+          dive_log_id?: string | null
+          guest_birthdate?: string | null
+          guest_birthplace?: string | null
+          guest_name?: string | null
+          id?: string
+          register_id: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_responsible_id?: string | null
+          brevetto_label?: string | null
+          created_at?: string
+          dive_log_id?: string | null
+          guest_birthdate?: string | null
+          guest_birthplace?: string | null
+          guest_name?: string | null
+          id?: string
+          register_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_register_participants_assigned_responsible_id_fkey"
+            columns: ["assigned_responsible_id"]
+            isOneToOne: false
+            referencedRelation: "dive_register_responsibles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_register_participants_dive_log_id_fkey"
+            columns: ["dive_log_id"]
+            isOneToOne: false
+            referencedRelation: "dive_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_register_participants_register_id_fkey"
+            columns: ["register_id"]
+            isOneToOne: false
+            referencedRelation: "dive_registers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dive_register_responsibles: {
+        Row: {
+          brevetto_label: string | null
+          created_at: string
+          id: string
+          instructor_user_id: string
+          is_school: boolean
+          register_id: string
+        }
+        Insert: {
+          brevetto_label?: string | null
+          created_at?: string
+          id?: string
+          instructor_user_id: string
+          is_school?: boolean
+          register_id: string
+        }
+        Update: {
+          brevetto_label?: string | null
+          created_at?: string
+          id?: string
+          instructor_user_id?: string
+          is_school?: boolean
+          register_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_register_responsibles_register_id_fkey"
+            columns: ["register_id"]
+            isOneToOne: false
+            referencedRelation: "dive_registers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dive_registers: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          created_by: string
+          end_time: string | null
+          id: string
+          max_depth_m: number | null
+          opened_at: string | null
+          org_group_id: string | null
+          register_date: string
+          retention_until: string | null
+          session_id: string | null
+          spot_id: string | null
+          spot_label: string | null
+          start_time: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          created_by: string
+          end_time?: string | null
+          id?: string
+          max_depth_m?: number | null
+          opened_at?: string | null
+          org_group_id?: string | null
+          register_date: string
+          retention_until?: string | null
+          session_id?: string | null
+          spot_id?: string | null
+          spot_label?: string | null
+          start_time?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string
+          end_time?: string | null
+          id?: string
+          max_depth_m?: number | null
+          opened_at?: string | null
+          org_group_id?: string | null
+          register_date?: string
+          retention_until?: string | null
+          session_id?: string | null
+          spot_id?: string | null
+          spot_label?: string | null
+          start_time?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dive_registers_org_group_id_fkey"
+            columns: ["org_group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_registers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dive_registers_spot_id_fkey"
+            columns: ["spot_id"]
+            isOneToOne: false
+            referencedRelation: "spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1040,6 +1340,44 @@ export type Database = {
           },
         ]
       }
+      signing_tokens: {
+        Row: {
+          created_at: string
+          dive_log_id: string | null
+          expires_at: string
+          id: string
+          token_hash: string
+          used_at: string | null
+          verifier_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dive_log_id?: string | null
+          expires_at: string
+          id?: string
+          token_hash: string
+          used_at?: string | null
+          verifier_user_id: string
+        }
+        Update: {
+          created_at?: string
+          dive_log_id?: string | null
+          expires_at?: string
+          id?: string
+          token_hash?: string
+          used_at?: string | null
+          verifier_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signing_tokens_dive_log_id_fkey"
+            columns: ["dive_log_id"]
+            isOneToOne: false
+            referencedRelation: "dive_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spot_favorites: {
         Row: {
           created_at: string
@@ -1245,6 +1583,10 @@ export type Database = {
         Args: { _reviewer_id: string; _target_id: string }
         Returns: boolean
       }
+      can_view_dive_log: {
+        Args: { _log_id: string; _uid: string }
+        Returns: boolean
+      }
       delete_course_cascade: {
         Args: { _course_id: string }
         Returns: {
@@ -1309,6 +1651,10 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_dive_register_manager: {
+        Args: { _register_id: string; _uid: string }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -1338,6 +1684,10 @@ export type Database = {
       rejoin_course: { Args: { _course_id: string }; Returns: string }
       rejoin_event: { Args: { _event_id: string }; Returns: string }
       rejoin_session: { Args: { _session_id: string }; Returns: string }
+      sign_libretti_group: {
+        Args: { _group_id: string; _register_id: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "regular" | "certified" | "instructor" | "admin"
