@@ -1686,6 +1686,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      dive_log_origin: {
+        Args: { _log_id: string }
+        Returns: {
+          kind: string
+          ref_id: string
+          title: string
+        }[]
+      }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
